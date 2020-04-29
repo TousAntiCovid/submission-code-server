@@ -28,6 +28,13 @@ public class CodePositiveServiceImpl implements ICodePositiveService {
 
     @Override
     public boolean saveAllCodeGenerateByBatch(List<CodePositiveDto> codePositiveDtos) {
-        return false;
+        //save all codesDtos
+        return true;
+    }
+
+    @Override
+    public boolean saveCodeGenerate(CodePositiveDto codePositiveDto) {
+        //mapper codepositive from codePositiveDto
+        return true;
     }
 }

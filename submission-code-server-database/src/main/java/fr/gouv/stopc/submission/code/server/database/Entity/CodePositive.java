@@ -16,29 +16,29 @@ public class CodePositive {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
 
-    @Column(name = "LOT")
+    @Column(name = "lot")
     private long lot;
 
 
-    @Column(name = "CODE", nullable = false)
+    @Column(name = "code", nullable = false)
     private String code;
 
     @Column(name = "type_code", nullable = false)
     private char type;
 
-    @Column(name = "DATE_END_VALIDITY", nullable = false)
+    @Column(name = "date_end_validity", nullable = false)
     private OffsetDateTime dateEndValidity;
 
-    @Column(name = "DATE_AVAILABLE", nullable = false)
+    @Column(name = "date_available", nullable = false)
     private OffsetDateTime dateAvailable;
 
-    @Column(name = "DATE_USE")
+    @Column(name = "date_use")
     private OffsetDateTime dateUse;
 
-    @Column(name = "DATE_GENERATION", nullable = false)
+    @Column(name = "date_generation", nullable = false)
     private OffsetDateTime dateGeneration;
 
-    @Column(name = "USED", nullable = false)
+    @Column(name = "used", nullable = false)
     private Boolean used;
 
 }

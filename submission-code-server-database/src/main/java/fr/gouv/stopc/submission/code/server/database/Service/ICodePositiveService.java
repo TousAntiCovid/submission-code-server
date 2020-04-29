@@ -9,4 +9,5 @@ import java.util.Optional;
 public interface ICodePositiveService {
       Optional<CodePositive> getCodeValidity(String code);
       boolean saveAllCodeGenerateByBatch(List<CodePositiveDto> codePositiveDtos);
+      boolean saveCodeGenerate(CodePositiveDto codePositiveDto);
 }
