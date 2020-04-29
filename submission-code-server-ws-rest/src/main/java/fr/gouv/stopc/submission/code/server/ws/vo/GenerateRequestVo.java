@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Requests parameters for /Generate endpoint
+ * Requests parameters for /generate endpoint
  */
 @AllArgsConstructor
 @NoArgsConstructor
@@ -23,5 +23,5 @@ public class GenerateRequestVo {
     /**
      * The type of the provided code
      */
-    private GenerateResponseDto.TypeKey type;
+    private String type;
 }

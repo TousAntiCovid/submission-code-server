@@ -1,5 +1,6 @@
 package fr.gouv.stopc.submission.code.server.ws.controller;
 
+import fr.gouv.stopc.submission.code.server.ws.dto.GenerateResponseDto;
 import fr.gouv.stopc.submission.code.server.ws.vo.GenerateRequestVo;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -17,5 +18,5 @@ public interface IGenerateController {
 	
 
 	@PostMapping(value = "/generate")
-	public ResponseEntity register(@RequestBody(required = true) GenerateRequestVo generateRequestVo);
+	public ResponseEntity<GenerateResponseDto> register(@RequestBody(required = true) GenerateRequestVo generateRequestVo);
 }

@@ -2,6 +2,8 @@ package fr.gouv.stopc.submission.code.server.ws.controller.impl;
 
 
 import fr.gouv.stopc.submission.code.server.ws.controller.IVerifyController;
+import fr.gouv.stopc.submission.code.server.ws.dto.GenerateResponseDto;
+import fr.gouv.stopc.submission.code.server.ws.dto.VerifyResponseDto;
 import fr.gouv.stopc.submission.code.server.ws.vo.VerifyRequestVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -23,6 +25,8 @@ public class VerifyControllerImpl implements IVerifyController {
 
     @Override
     public ResponseEntity reportContactHistory(VerifyRequestVo verifyRequestVo) {
-        return null;
+        log.info("Receiving code : {} and type : {}", verifyRequestVo.getCode(), verifyRequestVo.getType().toString());
+
+        return ResponseEntity.ok(VerifyResponseDto.builder().build());
     }
 }

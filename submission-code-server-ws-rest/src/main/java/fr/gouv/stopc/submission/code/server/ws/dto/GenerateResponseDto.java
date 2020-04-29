@@ -12,40 +12,27 @@ import lombok.NoArgsConstructor;
 public class GenerateResponseDto {
 
 
-    private TypeKey typeAsString;
+    /**
+     *  UUIDv4 or 6-alphanum
+     */
+    private String typeAsString;
 
-    private TypeKey typeAsInt;
+    /**
+     * 1  - > UUIDv4
+     * 2  - > 6-alphanum
+     */
+    private Integer typeAsInt;
 
-    // should be 6 long or x long
+    /**
+     *  6-alphanum - > size = 6
+     *  UUIDv4 - > size = 36
+     */
     private String code;
+
 
     private String validFrom;
 
     private String validUntil;
-
-
-
-    public enum TypeKey {
-        UUIDv4("UUIDv4", 1),
-        ALPHANUM6("6-alphanum", 2);
-
-        private final String name;
-        private final Integer code;
-
-        TypeKey(String name, Integer code) {
-            this.name = name;
-            this.code = code;
-        }
-
-        @Override
-        public String toString() {
-            return this.name;
-        }
-
-        public Integer toInteger() {
-            return this.code;
-        }
-    }
 
 
 }
