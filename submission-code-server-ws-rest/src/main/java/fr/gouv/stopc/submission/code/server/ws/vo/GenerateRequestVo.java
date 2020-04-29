@@ -1,6 +1,6 @@
 package fr.gouv.stopc.submission.code.server.ws.vo;
 
-import fr.gouv.stopc.robertserver.ws.dto.GenerateResponseDto;
+import fr.gouv.stopc.submission.code.server.ws.dto.GenerateResponseDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
