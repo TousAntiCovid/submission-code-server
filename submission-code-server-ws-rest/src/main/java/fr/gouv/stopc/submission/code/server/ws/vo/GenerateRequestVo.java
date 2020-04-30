@@ -23,4 +23,5 @@ public class GenerateRequestVo {
      * The type of the provided code
      */
     private String type;
+
 }
