@@ -18,5 +18,5 @@ public interface IGenerateController {
 	
 
 	@PostMapping(value = "/generate")
-	public ResponseEntity<GenerateResponseDto> register(@RequestBody(required = true) GenerateRequestVo generateRequestVo);
+	public ResponseEntity<GenerateResponseDto> createSubmissionCode(@RequestBody(required = true) GenerateRequestVo generateRequestVo);
 }

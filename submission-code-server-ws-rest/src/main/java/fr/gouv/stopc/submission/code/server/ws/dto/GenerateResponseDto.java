@@ -29,9 +29,14 @@ public class GenerateResponseDto {
      */
     private String code;
 
-
+    /**
+     *  Forrmat ISO date is : YYYY-MM-DDTHH:mm:ss.sssZ
+     */
     private String validFrom;
 
+    /**
+     *  Forrmat ISO date is : YYYY-MM-DDTHH:mm:ss.sssZ
+     */
     private String validUntil;
 
 

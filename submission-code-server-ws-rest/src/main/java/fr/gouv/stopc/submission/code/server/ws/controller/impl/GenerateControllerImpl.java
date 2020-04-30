@@ -23,7 +23,7 @@ public class GenerateControllerImpl implements IGenerateController {
 
 
 	@Override
-	public ResponseEntity<GenerateResponseDto> register(GenerateRequestVo generateRequestVo) {
+	public ResponseEntity<GenerateResponseDto> createSubmissionCode(GenerateRequestVo generateRequestVo) {
 		log.info("Receiving code : {} and type : {}", generateRequestVo.getCode(), generateRequestVo.getType().toString());
 		return ResponseEntity.ok(GenerateResponseDto.builder().build());
 	}
