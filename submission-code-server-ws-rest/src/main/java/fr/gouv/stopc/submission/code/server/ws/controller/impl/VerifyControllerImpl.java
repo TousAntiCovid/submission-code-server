@@ -24,7 +24,7 @@ public class VerifyControllerImpl implements IVerifyController {
     }
 
     @Override
-    public ResponseEntity reportContactHistory(VerifyRequestVo verifyRequestVo) {
+    public ResponseEntity verirySubmissionCode(VerifyRequestVo verifyRequestVo) {
         log.info("Receiving code : {} and type : {}", verifyRequestVo.getCode(), verifyRequestVo.getType().toString());
 
         return ResponseEntity.ok(VerifyResponseDto.builder().build());
