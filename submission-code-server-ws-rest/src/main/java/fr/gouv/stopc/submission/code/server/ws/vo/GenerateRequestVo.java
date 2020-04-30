@@ -5,6 +5,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.validation.Valid;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
+
 /**
  * Requests parameters for /generate endpoint
  */
@@ -12,16 +16,20 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 @Builder
+@Valid
 public class GenerateRequestVo {
 
     /**
      * The code value to verify
      */
+    @Size(max = 6)
+    @Pattern(regexp = "[^[a-zA-Z0-9]+$]")
     private String code;
 
     /**
      * The type of the provided code
      */
+    @Pattern(regexp = "[1-2]")
     private String type;
 
 }

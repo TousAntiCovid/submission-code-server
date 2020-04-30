@@ -22,7 +22,7 @@ public class CodePositive {
     private String code;
 
     @Column(name = "type_code", nullable = false)
-    private char type;
+    private String type;
 
     @Column(name = "date_end_validity", nullable = false)
     private OffsetDateTime dateEndValidity;

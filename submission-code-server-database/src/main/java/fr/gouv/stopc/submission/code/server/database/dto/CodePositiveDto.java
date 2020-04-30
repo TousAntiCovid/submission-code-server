@@ -22,7 +22,8 @@ public class CodePositiveDto {
     @NotBlank
     private String code;
 
-    private char type;
+    @NotNull
+    private String type;
 
     @NotNull
     private OffsetDateTime dateEndValidity;

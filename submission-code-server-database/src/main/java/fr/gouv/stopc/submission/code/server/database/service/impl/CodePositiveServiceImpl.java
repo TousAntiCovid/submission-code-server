@@ -28,11 +28,11 @@ public class CodePositiveServiceImpl implements ICodePositiveService {
     }
 
     @Override
-    public Optional<CodePositiveDto> getCodeValidity(String code) {
+    public Optional<CodePositiveDto> getCodeValidity(String code, String type) {
         if(Strings.isBlank(code)){
             return Optional.empty();
         }
-        CodePositive codePositive = codePositiveRepository.findByCode(code);
+        CodePositive codePositive = codePositiveRepository.findByCodeAndType(code,type);
         if(Objects.isNull(codePositive)){
             return Optional.empty();
         }
@@ -60,6 +60,20 @@ public class CodePositiveServiceImpl implements ICodePositiveService {
         ModelMapper modelMapper = new ModelMapper();
         CodePositive codePositive = modelMapper.map(codePositiveDto, CodePositive.class);
         codePositiveRepository.save(codePositive);
+        return true;
+    }
+
+    @Override
+    public boolean updateCodeUsed(CodePositiveDto codePositiveDto) {
+        String code = codePositiveDto.getCode();
+        String type = codePositiveDto.getType();
+        CodePositive codepositive = codePositiveRepository.findByCodeAndType(code, type);
+        if (Objects.isNull(codepositive)){
+            return false;
+        }
+        codepositive.setDateUse(codePositiveDto.getDateUse());
+        codepositive.setUsed(true);
+        codePositiveRepository.save(codepositive);
         return true;
     }
 }
