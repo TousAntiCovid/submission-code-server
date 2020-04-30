@@ -7,7 +7,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ICodePositiveService {
-      Optional<CodePositiveDto> getCodeValidity(String code);
+      Optional<CodePositiveDto> getCodeValidity(String code,String type);
       boolean saveAllCodeGenerateByBatch(List<CodePositiveDto> codePositiveDtos);
       boolean saveCodeGenerate(CodePositiveDto codePositiveDto);
+      boolean updateCodeUsed(CodePositiveDto codePositiveDto);
 }

@@ -20,10 +20,10 @@ public class CodePositiveServiceImplTest {
     @Test
     public void getCodeValidity() {
         CodePositive codepositive = new CodePositive();
-        Mockito.when(codePositiveRepositoryMock.findByCode(Mockito.anyString())).thenReturn(codepositive);
+        Mockito.when(codePositiveRepositoryMock.findByCodeAndType(Mockito.anyString(),Mockito.anyString())).thenReturn(codepositive);
         CodePositiveServiceImpl codePositiveServiceTest = new CodePositiveServiceImpl(codePositiveRepositoryMock);
         String code = "test";
-        Optional<CodePositiveDto> result = codePositiveServiceTest.getCodeValidity(code);
+        Optional<CodePositiveDto> result = codePositiveServiceTest.getCodeValidity(code,"test");
         Assert.notNull(result.get());
     }
 
@@ -54,10 +54,10 @@ public class CodePositiveServiceImplTest {
     @Test
     public void getValidityEmpty(){
         CodePositive codepositive = new CodePositive();
-        Mockito.when(codePositiveRepositoryMock.findByCode(Mockito.anyString())).thenReturn(codepositive);
+        Mockito.when(codePositiveRepositoryMock.findByCodeAndType(Mockito.anyString(),Mockito.anyString())).thenReturn(codepositive);
         CodePositiveServiceImpl codePositiveServiceTest = new CodePositiveServiceImpl(codePositiveRepositoryMock);
         String code = "";
-        Optional<CodePositiveDto> result = codePositiveServiceTest.getCodeValidity(code);
+        Optional<CodePositiveDto> result = codePositiveServiceTest.getCodeValidity(code, "test");
         Assert.isTrue(!result.isPresent());
     }
 
@@ -67,5 +67,28 @@ public class CodePositiveServiceImplTest {
         CodePositiveServiceImpl codePositiveServiceTest = new CodePositiveServiceImpl(codePositiveRepositoryMock);
         boolean result = codePositiveServiceTest.saveAllCodeGenerateByBatch(new ArrayList<>());
         Assert.isTrue(!result);
+    }
+
+    @Test
+    public void updateCodeUsed(){
+        CodePositiveDto codePositiveDto = new CodePositiveDto();
+        codePositiveDto.setCode("test");
+        codePositiveDto.setType("test");
+        CodePositive codepositive = new CodePositive();
+        Mockito.when(codePositiveRepositoryMock.findByCodeAndType(Mockito.anyString(),Mockito.anyString())).thenReturn(codepositive);
+        Mockito.when(codePositiveRepositoryMock.save(codepositive)).thenReturn(codepositive);
+        CodePositiveServiceImpl codePositiveService = new CodePositiveServiceImpl(codePositiveRepositoryMock);
+        Assert.isTrue(codePositiveService.updateCodeUsed(codePositiveDto));
+    }
+    @Test
+    public void updateCodeUsedNotFound(){
+        CodePositiveDto codePositiveDto = new CodePositiveDto();
+        codePositiveDto.setCode("test");
+        codePositiveDto.setType("test");
+        CodePositive codepositive = new CodePositive();
+        Mockito.when(codePositiveRepositoryMock.findByCodeAndType(Mockito.anyString(),Mockito.anyString())).thenReturn(null);
+        Mockito.when(codePositiveRepositoryMock.save(codepositive)).thenReturn(codepositive);
+        CodePositiveServiceImpl codePositiveService = new CodePositiveServiceImpl(codePositiveRepositoryMock);
+        Assert.isTrue(!codePositiveService.updateCodeUsed(codePositiveDto));
     }
 }
