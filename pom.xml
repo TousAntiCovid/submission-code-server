@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
@@ -22,6 +22,7 @@
 		<module>submission-code-server-commun</module>
 		<module>submission-code-server-database</module>
 		<module>submission-code-server-ws-rest</module>
+		<module>submission-code-server-batch</module>
 	</modules>
 
 	<properties>
@@ -31,6 +32,7 @@
 		<maven.jar.plugin.version>3.1.1</maven.jar.plugin.version>
 		<javax-rs.version>2.1.1</javax-rs.version>
 		<postgresql.version>42.2.12</postgresql.version>
+		<javax.validation.version>2.0.1.Final</javax.validation.version>
 	</properties>
 
 	<dependencies>
@@ -84,12 +86,16 @@
 				<artifactId>javax.ws.rs-api</artifactId>
 				<version>${javax-rs.version}</version>
 			</dependency>
-
 			<dependency>
-    <groupId>org.postgresql</groupId>
-    <artifactId>postgresql</artifactId>
-    <version>${postgresql.version}</version>
-</dependency>
+				<groupId>javax.validation</groupId>
+				<artifactId>validation-api</artifactId>
+				<version>${javax.validation.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.postgresql</groupId>
+				<artifactId>postgresql</artifactId>
+				<version>${postgresql.version}</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
@@ -159,7 +165,7 @@
 							<configuration>
 								<fileSets>
 									<fileSet
-										implementation="org.apache.maven.shared.model.fileset.FileSet">
+											implementation="org.apache.maven.shared.model.fileset.FileSet">
 										<directory>${project.basedir}</directory>
 										<includes>
 											<include>**/*.exec</include>
