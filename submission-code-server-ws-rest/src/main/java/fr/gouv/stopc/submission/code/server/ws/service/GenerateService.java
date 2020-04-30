@@ -6,13 +6,13 @@ import fr.gouv.stopc.submission.code.server.commun.service.IUUIDv4CodeService;
 import javax.inject.Inject;
 
 public class GenerateService implements IGenerateService {
-   private IUUIDv4CodeService iuuiDv4CodeService;
-   private IAlphaNumericCodeService iAlphaNumericCodeService;
+   private IUUIDv4CodeService uuiDv4CodeService;
+   private IAlphaNumericCodeService alphaNumericCodeService;
 
    @Inject
-   public GenerateService (IUUIDv4CodeService iuuiDv4CodeService, IAlphaNumericCodeService iAlphaNumericCodeService){
-       this.iAlphaNumericCodeService= iAlphaNumericCodeService;
-       this.iuuiDv4CodeService = iuuiDv4CodeService;
+   public GenerateService (IUUIDv4CodeService uuiDv4CodeService, IAlphaNumericCodeService alphaNumericCodeService){
+       this.alphaNumericCodeService= alphaNumericCodeService;
+       this.uuiDv4CodeService = uuiDv4CodeService;
    }
 
 
@@ -22,7 +22,7 @@ public class GenerateService implements IGenerateService {
     }
 
     @Override
-    public String generateAlphaNumercCode() {
+    public String generateAlphaNumericCode() {
         return null;
     }
 }

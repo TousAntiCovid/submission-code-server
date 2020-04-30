@@ -8,8 +8,8 @@ import java.time.OffsetDateTime;
 
 @Data
 @Entity
-@Table(name ="codepositive")
-public class CodePositive {
+@Table(name ="submission_code")
+public class SubmissionCode {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

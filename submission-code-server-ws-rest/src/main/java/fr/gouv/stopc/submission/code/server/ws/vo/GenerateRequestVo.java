@@ -18,20 +18,10 @@ import javax.validation.constraints.Size;
 @Builder
 @Valid
 public class GenerateRequestVo {
-
-    /**
-     * The code value to verify
-     */
-    @Size(max = 6)
-    @Pattern(regexp = "[^[a-zA-Z0-9]+$]")
-    @NotNull
-    private String code;
-
     /**
      * The type of the provided code
      */
     @NotNull
-    @Pattern(regexp = "[1-2]")
     private String type;
 
 }
