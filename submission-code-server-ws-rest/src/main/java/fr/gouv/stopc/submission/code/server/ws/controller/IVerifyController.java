@@ -16,5 +16,5 @@ import javax.ws.rs.Produces;
 public interface IVerifyController {
 
     @PostMapping(value="/verify")
-    public ResponseEntity reportContactHistory(@RequestBody(required = true) VerifyRequestVo verifyRequestVo);
+    public ResponseEntity verirySubmissionCode(@RequestBody(required = true) VerifyRequestVo verifyRequestVo);
 }

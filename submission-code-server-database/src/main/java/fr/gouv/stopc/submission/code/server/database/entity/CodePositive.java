@@ -1,6 +1,5 @@
-package fr.gouv.stopc.submission.code.server.database.Entity;
+package fr.gouv.stopc.submission.code.server.database.entity;
 
-import com.sun.istack.NotNull;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -18,7 +17,6 @@ public class CodePositive {
 
     @Column(name = "lot")
     private long lot;
-
 
     @Column(name = "code", nullable = false)
     private String code;
