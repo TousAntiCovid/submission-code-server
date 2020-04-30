@@ -8,8 +8,8 @@ import fr.gouv.stopc.submission.code.server.ws.vo.VerifyRequestVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-
 import javax.inject.Inject;
+
 
 @Service
 @Slf4j
@@ -26,10 +26,10 @@ public class VerifyControllerImpl implements IVerifyController {
     public ResponseEntity verifySubmissionCode(VerifyRequestVo verifyRequestVo) {
         log.info("Receiving code : {} and type : {}", verifyRequestVo.getCode(), verifyRequestVo.getType());
         String type = verifyRequestVo.getType();
-        String code= verifyRequestVo.getCode();
+        String code = verifyRequestVo.getCode();
         boolean result = verifyServiceImpl.verifyCode(code, type);
 
-        return ResponseEntity.ok( VerifyResponseDto.builder().valid(result).build());
-
+        return ResponseEntity.ok(VerifyResponseDto.builder().valid(result).build());
     }
+
 }

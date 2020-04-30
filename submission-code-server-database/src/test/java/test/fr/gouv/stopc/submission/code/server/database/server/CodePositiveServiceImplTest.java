@@ -69,6 +69,7 @@ public class CodePositiveServiceImplTest {
         Assert.isTrue(!result);
     }
 
+
     @Test
     public void updateCodeUsed(){
         CodePositiveDto codePositiveDto = new CodePositiveDto();
@@ -91,4 +92,5 @@ public class CodePositiveServiceImplTest {
         CodePositiveServiceImpl codePositiveService = new CodePositiveServiceImpl(codePositiveRepositoryMock);
         Assert.isTrue(!codePositiveService.updateCodeUsed(codePositiveDto));
     }
+
 }
