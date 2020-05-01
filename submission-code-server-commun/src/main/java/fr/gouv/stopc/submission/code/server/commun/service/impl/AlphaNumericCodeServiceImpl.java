@@ -1,7 +1,6 @@
 package fr.gouv.stopc.submission.code.server.commun.service.impl;
 
 import fr.gouv.stopc.submission.code.server.commun.service.IAlphaNumericCodeService;
-
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -21,7 +20,7 @@ public class AlphaNumericCodeServiceImpl implements IAlphaNumericCodeService {
 
     private static final Integer MAX_SIZE = ALPHA_NUMERIC_CHAR_ARRAY.size();
 
-    public static String generateAlphaNumericCode() {
+    public String generateCode() {
         final List<Character> characters = getShuffledAlphaNumList();
 
         final Random random = new Random();
@@ -38,7 +37,5 @@ public class AlphaNumericCodeServiceImpl implements IAlphaNumericCodeService {
         Collections.shuffle(tempAlphaNumList,random);
         return tempAlphaNumList;
     }
-
-
 
 }

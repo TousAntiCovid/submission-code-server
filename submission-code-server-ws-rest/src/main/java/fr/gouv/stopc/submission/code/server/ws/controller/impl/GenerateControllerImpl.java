@@ -24,7 +24,7 @@ public class GenerateControllerImpl implements IGenerateController {
 
 	@Override
 	public ResponseEntity<GenerateResponseDto> createSubmissionCode(GenerateRequestVo generateRequestVo) {
-		log.info("Receiving code : {} and type : {}", generateRequestVo.getCode(), generateRequestVo.getType().toString());
+		log.info("Receiving and type : {}", generateRequestVo.getType().toString());
 		return ResponseEntity.ok(GenerateResponseDto.builder().build());
 	}
 }

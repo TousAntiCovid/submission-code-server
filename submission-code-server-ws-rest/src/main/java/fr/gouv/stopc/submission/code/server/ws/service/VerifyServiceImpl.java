@@ -1,7 +1,7 @@
 package fr.gouv.stopc.submission.code.server.ws.service;
 
-import fr.gouv.stopc.submission.code.server.database.dto.CodePositiveDto;
-import fr.gouv.stopc.submission.code.server.database.service.ICodePositiveService;
+import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
+import fr.gouv.stopc.submission.code.server.database.service.ISubmissionCodeService;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
@@ -13,20 +13,20 @@ import java.util.Optional;
 @Service
 public class VerifyServiceImpl implements IVerifyService {
 
-    private ICodePositiveService iCodePositiveService;
+    private ISubmissionCodeService submissionCodeService;
 
     @Inject
-    public VerifyServiceImpl (ICodePositiveService iCodePositiveService){
-        this.iCodePositiveService= iCodePositiveService;
+    public VerifyServiceImpl (ISubmissionCodeService submissionCodeService){
+        this.submissionCodeService = submissionCodeService;
     }
 
     @Override
     public boolean verifyCode(String code, String type) {
-        Optional<CodePositiveDto> codeDtoOptional = iCodePositiveService.getCodeValidity(code, type);
+        Optional<SubmissionCodeDto> codeDtoOptional = submissionCodeService.getCodeValidity(code, type);
         if (!codeDtoOptional.isPresent()){
             return false;
         }
-        CodePositiveDto codeDto = codeDtoOptional.get();
+        SubmissionCodeDto codeDto = codeDtoOptional.get();
         /*
             we don't use the code already used.
          */
@@ -43,7 +43,7 @@ public class VerifyServiceImpl implements IVerifyService {
 
         codeDto.setUsed(true);
         codeDto.setDateUse(dateNow);
-        return iCodePositiveService.updateCodeUsed(codeDto);
+        return submissionCodeService.updateCodeUsed(codeDto);
     }
 
     private boolean validationDate(OffsetDateTime dateNow, OffsetDateTime dateAvailable, OffsetDateTime dateEndValidity) {

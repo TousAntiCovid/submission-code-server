@@ -15,7 +15,11 @@ import java.time.OffsetDateTime;
 @Data
 @Builder
 @Valid
-public class CodePositiveDto {
+public class SubmissionCodeDto {
+
+    /*
+        Empty for short codes, required for long codes
+     */
     private long lot;
 
     @NotNull
