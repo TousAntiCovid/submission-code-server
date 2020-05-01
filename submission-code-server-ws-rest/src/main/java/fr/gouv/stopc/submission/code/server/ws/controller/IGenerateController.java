@@ -2,6 +2,7 @@ package fr.gouv.stopc.submission.code.server.ws.controller;
 
 import fr.gouv.stopc.submission.code.server.ws.dto.GenerateResponseDto;
 import fr.gouv.stopc.submission.code.server.ws.vo.GenerateRequestVo;
+import org.modelmapper.internal.Errors;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +17,12 @@ import java.util.List;
 public interface IGenerateController {
 
 	@GetMapping(value = "/generate")
-    ResponseEntity<List<GenerateResponseDto>> generateCode(@Valid @RequestBody GenerateRequestVo generateRequestVo);
+    ResponseEntity<List<GenerateResponseDto>> generateCode(@Valid @RequestBody GenerateRequestVo generateRequestVo, Errors errors);
 
+
+    /**
+     * Exception should be handle here
+     */
+    @ExceptionHandler(Exception.class)
+    void requestErrorHandling(Exception e);
 }

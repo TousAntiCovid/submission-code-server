@@ -17,5 +17,12 @@ public interface IGenerateService {
      */
     List<GenerateResponseDto> generateAlphaNumericCode();
 
+    /**
+     * Method calls {@link #generateAlphaNumericCode()} if #TypeEnum.ALPHANUM_6
+     * Method calls {@link #generateUUIDv4Codes(long)} )} if #TypeEnum.UUIDv4
+     * @param generateRequestVo generatedRequestVo containing the type of code to be generated.
+     * @return return a list of codes depending of the generateRequestVo given in parameter.
+     * @throws UnsupportedDataTypeException in case of the GeneratedRequestVo is not processable.
+     */
     List<GenerateResponseDto> generateCode(final GenerateRequestVo generateRequestVo) throws UnsupportedDataTypeException;
 }

@@ -56,15 +56,16 @@ public class GenerateServiceImpl implements IGenerateService {
 
     @Override
     public List<GenerateResponseDto> generateCode(GenerateRequestVo generateRequestVo) throws UnsupportedDataTypeException {
-        if(generateRequestVo == null) {
-            //TODO handle Error here
-            return null;
-        } else if (generateRequestVo.getType() == null) {
-            //TODO handle Error here
-            return null;
+        if(generateRequestVo == null || generateRequestVo.getType() == null) {
+            //TODO unsupportedError
+            throw new UnsupportedDataTypeException();
+
         } else if (CodeTypeEnum.UUIDv4.equals(generateRequestVo.getType())) {
+
             return this.generateUUIDv4Codes(NUMBER_OF_UUIDv4_PER_CALL);
+
         } else if (CodeTypeEnum.ALPHANUM_6.equals(generateRequestVo.getType())) {
+
             return this.generateAlphaNumericCode();
         }
 
