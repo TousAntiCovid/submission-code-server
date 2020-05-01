@@ -30,17 +30,13 @@ public class SubmissionCodeDto {
     @NotNull
     private String type;
 
-    @NotNull
     private OffsetDateTime dateEndValidity;
 
-    @NotNull
     private OffsetDateTime dateAvailable;
 
     private OffsetDateTime dateUse;
 
-    @NotNull
     private OffsetDateTime dateGeneration;
 
-    @NotNull
     private Boolean used;
 }

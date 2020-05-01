@@ -41,25 +41,23 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
     }
 
     @Override
-    public boolean saveAllCodeGenerateByBatch(List<SubmissionCodeDto> submissionCodeDtos) {
+    public Iterable<SubmissionCode> saveAllCodeGenerateByBatch(List<SubmissionCodeDto> submissionCodeDtos) {
         if(submissionCodeDtos.isEmpty()) {
-            return false;
+            return null;
         }
         ModelMapper modelMapper = new ModelMapper();
         List<SubmissionCode> submissionCodes = submissionCodeDtos.stream().map(tmp-> modelMapper.map(tmp, SubmissionCode.class)).collect(Collectors.toList());
-        submissionCodeRepository.saveAll(submissionCodes);
-        return true;
+       return submissionCodeRepository.saveAll(submissionCodes);
     }
 
     @Override
-    public boolean saveCodeGenerate(SubmissionCodeDto submissionCodeDto) {
+    public SubmissionCode saveCodeGenerate(SubmissionCodeDto submissionCodeDto) {
         if (Objects.isNull(submissionCodeDto)) {
-            return false;
+            return null;
         }
         ModelMapper modelMapper = new ModelMapper();
         SubmissionCode submissionCode = modelMapper.map(submissionCodeDto, SubmissionCode.class);
-        submissionCodeRepository.save(submissionCode);
-        return true;
+        return submissionCodeRepository.save(submissionCode);
     }
 
     @Override
@@ -74,6 +72,11 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
         codepositive.setUsed(true);
         submissionCodeRepository.save(codepositive);
         return true;
+    }
+
+    @Override
+    public List<SubmissionCode> getAvailableUUIDv4Codes() {
+        return this.submissionCodeRepository.findAllByLotNullAndTypeEquals("1");
     }
 
 }

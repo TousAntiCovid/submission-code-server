@@ -1,6 +1,7 @@
 package fr.gouv.stopc.submission.code.server.database.service;
 
 import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
+import fr.gouv.stopc.submission.code.server.database.entity.SubmissionCode;
 
 import java.util.List;
 import java.util.Optional;
@@ -8,10 +9,16 @@ import java.util.Optional;
 public interface ISubmissionCodeService {
       Optional<SubmissionCodeDto> getCodeValidity(String code, String type);
 
-      boolean saveAllCodeGenerateByBatch(List<SubmissionCodeDto> submissionCodeDtos);
+      Iterable<SubmissionCode> saveAllCodeGenerateByBatch(List<SubmissionCodeDto> submissionCodeDtos);
 
-      boolean saveCodeGenerate(SubmissionCodeDto submissionCodeDto);
+      SubmissionCode saveCodeGenerate(SubmissionCodeDto submissionCodeDto);
 
       boolean updateCodeUsed(SubmissionCodeDto submissionCodeDto);
+
+      /**
+       * get all the codes that have been generated previously
+       * @return list of codes not uses in bd
+       */
+      List<SubmissionCode> getAvailableUUIDv4Codes();
 
 }

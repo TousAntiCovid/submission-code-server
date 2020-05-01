@@ -5,6 +5,7 @@ import fr.gouv.stopc.submission.code.server.database.entity.SubmissionCode;
 import fr.gouv.stopc.submission.code.server.database.repository.SubmissionCodeRepository;
 import fr.gouv.stopc.submission.code.server.database.service.impl.SubmissionCodeServiceImpl;
 
+import org.apache.commons.collections4.IterableUtils;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.modelmapper.internal.util.Assert;
@@ -37,8 +38,8 @@ public class SubmissionCodeServiceImplTest {
         List<SubmissionCodeDto> submissionCodeDtos = new ArrayList<>();
         SubmissionCodeDto submissionCodeDto = new SubmissionCodeDto();
         submissionCodeDtos.add(submissionCodeDto);
-        boolean result = submissionCodeServiceTest.saveAllCodeGenerateByBatch(submissionCodeDtos);
-        Assert.isTrue(result);
+        Iterable<SubmissionCode> result = submissionCodeServiceTest.saveAllCodeGenerateByBatch(submissionCodeDtos);
+        Assert.isTrue(IterableUtils.size(result) != 0);
     }
 
     @Test
@@ -47,8 +48,8 @@ public class SubmissionCodeServiceImplTest {
         Mockito.when(submissionCodeRepositoryMock.save(submissionCode)).thenReturn(submissionCode);
         SubmissionCodeServiceImpl submissionCodeServiceTest = new SubmissionCodeServiceImpl(submissionCodeRepositoryMock);
         SubmissionCodeDto submissionCodeDto = new SubmissionCodeDto();
-        boolean result= submissionCodeServiceTest.saveCodeGenerate(submissionCodeDto);
-        Assert.isTrue(result);
+        SubmissionCode result= submissionCodeServiceTest.saveCodeGenerate(submissionCodeDto);
+        Assert.isTrue(result != null);
     }
 
     @Test
@@ -64,8 +65,8 @@ public class SubmissionCodeServiceImplTest {
     @Test
     public void saveAllCodeGenerateByBatchEmpty() {
         SubmissionCodeServiceImpl codePositiveServiceTest = new SubmissionCodeServiceImpl(submissionCodeRepositoryMock);
-        boolean result = codePositiveServiceTest.saveAllCodeGenerateByBatch(new ArrayList<>());
-        Assert.isTrue(!result);
+        Iterable<SubmissionCode> result = codePositiveServiceTest.saveAllCodeGenerateByBatch(new ArrayList<>());
+        Assert.isTrue(result == null);
     }
 
 
