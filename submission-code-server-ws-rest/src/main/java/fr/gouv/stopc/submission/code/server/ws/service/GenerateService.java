@@ -18,11 +18,13 @@ public class GenerateService implements IGenerateService {
 
    @Override
     public String generateUUIDv4Code() {
-        return null;
+       //TODO: Verify that code don't exist in DB before returning
+       return this.uuiDv4CodeService.generateCode();
     }
 
     @Override
     public String generateAlphaNumericCode() {
-        return null;
+        //TODO: Verify that code don't exist in DB before returning
+        return this.alphaNumericCodeService.generateCode();
     }
 }
