@@ -1,9 +1,12 @@
 package fr.gouv.stopc.submission.code.server.commun.service.impl;
 
 import fr.gouv.stopc.submission.code.server.commun.service.IAlphaNumericCodeService;
+import org.springframework.stereotype.Service;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Service
 public class AlphaNumericCodeServiceImpl implements IAlphaNumericCodeService {
 
     private static final String ALPHA_LOWER_CASE = "abcdefghijklmnopqrstuvwxyz";
@@ -23,11 +26,11 @@ public class AlphaNumericCodeServiceImpl implements IAlphaNumericCodeService {
         final List<Character> characters = getShuffledAlphaNumList();
 
         final Random random = new Random();
-        String alphanum = "";
+        String alphaNum = "";
         for (int i = 0; i < CODE_SIZE; i++) {
-            alphanum += characters.get(random.nextInt(ALPHA_NUMERIC_CHAR_ARRAY.size()-1)).toString();
+            alphaNum += characters.get(random.nextInt(ALPHA_NUMERIC_CHAR_ARRAY.size()-1)).toString();
         }
-        return alphanum;
+        return alphaNum;
     }
 
     /**

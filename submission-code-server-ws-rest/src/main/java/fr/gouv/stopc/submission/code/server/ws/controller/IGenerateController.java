@@ -6,14 +6,16 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import javax.ws.rs.Produces;
+import java.util.List;
 
 @RestController
 @RequestMapping(value = "${controller.path.prefix}")
 @Produces(MediaType.APPLICATION_JSON_VALUE)
 public interface IGenerateController {
-	
 
 	@GetMapping(value = "/generate")
-	public ResponseEntity<GenerateResponseDto> createSubmissionCode(@RequestBody(required = true) GenerateRequestVo generateRequestVo);
+    ResponseEntity<List<GenerateResponseDto>> generateCode(@Valid @RequestBody GenerateRequestVo generateRequestVo);
+
 }

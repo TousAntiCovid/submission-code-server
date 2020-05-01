@@ -5,4 +5,5 @@ import org.springframework.data.repository.CrudRepository;
 
 public interface SubmissionCodeRepository extends CrudRepository<SubmissionCode, Long> {
      SubmissionCode findByCodeAndType(String code, String type);
+
 }
