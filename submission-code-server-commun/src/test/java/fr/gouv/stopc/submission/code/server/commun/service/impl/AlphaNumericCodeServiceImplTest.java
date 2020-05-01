@@ -2,9 +2,7 @@ package fr.gouv.stopc.submission.code.server.commun.service.impl;
 
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -17,7 +15,7 @@ class AlphaNumericCodeServiceImplTest {
     void generateAlphaNumericCodeTest() {
         Long size = new Long("300000");
         final long start = System.currentTimeMillis();
-        final List<String> alphaNumIDS = Stream.generate(AlphaNumericCodeServiceImpl::generateAlphaNumericCode)
+        final List<String> alphaNumIDS = Stream.generate(new AlphaNumericCodeServiceImpl()::generateCode)
                 .distinct()
                 .limit(size)
                 .collect(Collectors.toList());
