@@ -4,6 +4,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 
 /**
  * Requests parameters for /generate endpoint
@@ -12,15 +16,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 @Builder
+@Valid
 public class GenerateRequestVo {
-
-    /**
-     * The code value to verify
-     */
-    private String code;
-
     /**
      * The type of the provided code
      */
+    @NotNull
     private String type;
+
 }

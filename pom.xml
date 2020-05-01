@@ -22,7 +22,6 @@
 		<module>submission-code-server-commun</module>
 		<module>submission-code-server-database</module>
 		<module>submission-code-server-ws-rest</module>
-		<module>submission-code-server-batch</module>
 	</modules>
 
 	<properties>
