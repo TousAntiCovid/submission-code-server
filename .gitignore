@@ -29,3 +29,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+
+### scs-webapp dependencies ###
+submission-code-server-ws-rest/src/scs-backoffice-webapp/node_modules
