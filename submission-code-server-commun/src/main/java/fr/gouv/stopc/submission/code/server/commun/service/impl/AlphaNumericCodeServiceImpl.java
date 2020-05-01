@@ -8,6 +8,7 @@ public class AlphaNumericCodeServiceImpl implements IAlphaNumericCodeService {
 
     private static final String ALPHA_LOWER_CASE = "abcdefghijklmnopqrstuvwxyz";
     private static final String NUMERIC= "0123456789";
+    private static final Integer CODE_SIZE = 6;
 
     private static final List<Character> ALPHA_NUMERIC_CHAR_ARRAY = String
             .format(
@@ -18,23 +19,24 @@ public class AlphaNumericCodeServiceImpl implements IAlphaNumericCodeService {
             .mapToObj(c -> (char) c)
             .collect(Collectors.toList());
 
-    private static final Integer MAX_SIZE = ALPHA_NUMERIC_CHAR_ARRAY.size();
-
     public String generateCode() {
         final List<Character> characters = getShuffledAlphaNumList();
 
         final Random random = new Random();
         String alphanum = "";
-        for (int i = 0; i < 6; i++) {
-            alphanum += characters.get(random.nextInt(MAX_SIZE-1)).toString();
+        for (int i = 0; i < CODE_SIZE; i++) {
+            alphanum += characters.get(random.nextInt(ALPHA_NUMERIC_CHAR_ARRAY.size()-1)).toString();
         }
         return alphanum;
     }
 
+    /**
+     * @return return a shuffled copy of ALPHA_NUMERIC_CHAR_ARRAY
+     */
     protected static List<Character> getShuffledAlphaNumList() {
         final Random random = new Random();
         final ArrayList<Character> tempAlphaNumList = new ArrayList<>(ALPHA_NUMERIC_CHAR_ARRAY);
-        Collections.shuffle(tempAlphaNumList,random);
+        Collections.shuffle(ALPHA_NUMERIC_CHAR_ARRAY,random);
         return tempAlphaNumList;
     }
 
