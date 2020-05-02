@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
 import java.util.List;
+import java.util.Objects;
 
 public interface SubmissionCodeRepository extends CrudRepository<SubmissionCode, Long> {
      SubmissionCode findByCodeAndType(String code, String type);
@@ -12,6 +13,6 @@ public interface SubmissionCodeRepository extends CrudRepository<SubmissionCode,
      List<SubmissionCode> findAllByLotNullAndTypeEquals(String type);
 
      @Query(value = "SELECT max(lot) FROM SubmissionCode ")
-     long lastLot();
+     String lastLot();
      
 }

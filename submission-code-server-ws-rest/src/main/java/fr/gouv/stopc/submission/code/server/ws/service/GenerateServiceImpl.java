@@ -17,8 +17,8 @@ import org.springframework.stereotype.Service;
 import javax.activation.UnsupportedDataTypeException;
 import javax.inject.Inject;
 import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -103,17 +103,24 @@ public class GenerateServiceImpl implements IGenerateService {
         final ArrayList<GenerateResponseDto> generateResponseList = new ArrayList<>();
 
         long failCount = 1;
-        //TODO: add method to generate validFrom and validUntil values.
+        /*
+            The date available/validfrom is date of now in this time
+         */
         OffsetDateTime validFrom =OffsetDateTime.now() ;
-        OffsetDateTime validUntil=OffsetDateTime.now() ;
+        OffsetDateTime validUntil;
+        OffsetDateTime validGenDate= OffsetDateTime.now();
+        long lot = submissionCodeService.lastLot() + 1;
 
         for (int i = 0; i < size && failCount <= NUMBER_OF_TRY_IN_CASE_OF_ERROR; ) {
             String code;
 
             if(CodeTypeEnum.UUIDv4.equals(cte)) {
                 code = this.uuiDv4CodeService.generateCode();
+                validUntil= getValidityDateUUIDCode(validGenDate);
             } else if (CodeTypeEnum.ALPHANUM_6.equals(cte)) {
                 code = this.alphaNumericCodeService.generateCode();
+                validUntil= getValidityDateAlphaNum6(validGenDate);
+                lot=0;
             } else {
                 return generateResponseList;
             }
@@ -123,6 +130,9 @@ public class GenerateServiceImpl implements IGenerateService {
                     .type(cte.getTypeCode())
                     .dateAvailable(validFrom)
                     .dateEndValidity(validUntil)
+                    .dateGeneration(validGenDate)
+                    .used(false)
+                    .lot(lot)
                     .build();
 
             try {
@@ -131,8 +141,8 @@ public class GenerateServiceImpl implements IGenerateService {
                         .code(sc.getCode())
                         .typeAsString(cte.getType())
                         .typeAsInt(Integer.parseInt(cte.getTypeCode()))
-                        .validFrom(sc.getDateAvailable() != null ? sc.getDateAvailable().toString() : "")
-                        .validUntil(sc.getDateAvailable() != null ? sc.getDateEndValidity().toString() : "")
+                        .validFrom(sc.getDateAvailable() != null ? formatOffsetDateTime(sc.getDateAvailable()) : "")
+                        .validUntil(sc.getDateAvailable() != null ? formatOffsetDateTime(sc.getDateEndValidity()) : "")
                         .build()
                 );
                 i++;
@@ -148,7 +158,12 @@ public class GenerateServiceImpl implements IGenerateService {
     }
 
     public List<GenerateResponseDto> generateUUIDv4CodesBulk() {
-        //TODO: add method to generate validFrom and validUntil values.
+         /*
+            The date available/validfrom is date of now in this time
+         */
+        OffsetDateTime validFrom =OffsetDateTime.now() ;
+        OffsetDateTime validGenDate= OffsetDateTime.now();
+        long lot = submissionCodeService.lastLot() + 1;
 
         final List<SubmissionCodeDto> submissionCodeDtos = this.uuiDv4CodeService
                 .generateCodes(NUMBER_OF_UUIDv4_PER_CALL)
@@ -157,6 +172,11 @@ public class GenerateServiceImpl implements IGenerateService {
                         SubmissionCodeDto.builder()
                                 .code(code)
                                 .type(CodeTypeEnum.UUIDv4.getTypeCode())
+                                .dateGeneration(validGenDate)
+                                .dateAvailable(validFrom)
+                                .dateEndValidity(getValidityDateUUIDCode(validGenDate))
+                                .lot(lot)
+                                .used(false)
                                 .build()
                 )
                 .collect(Collectors.toList());
@@ -167,12 +187,23 @@ public class GenerateServiceImpl implements IGenerateService {
                         .code(sc.getCode())
                         .typeAsString(CodeTypeEnum.UUIDv4.getType())
                         .typeAsInt(Integer.parseInt(CodeTypeEnum.UUIDv4.getTypeCode()))
-                        .validFrom(sc.getDateAvailable() != null ? sc.getDateAvailable().toString() : "")
-                        .validUntil(sc.getDateAvailable() != null ? sc.getDateEndValidity().toString() : "")
+                        .validFrom(sc.getDateAvailable() != null ? formatOffsetDateTime(sc.getDateAvailable()) : "")
+                        .validUntil(sc.getDateAvailable() != null ? formatOffsetDateTime(sc.getDateEndValidity()) : "")
                         .build()
                 )
                 .collect(Collectors.toList());
     }
 
+    private String formatOffsetDateTime(OffsetDateTime date){
+        return date.format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
+    }
+
+    private OffsetDateTime getValidityDateUUIDCode(OffsetDateTime generateDate){
+        return generateDate.plusMinutes(TIME_VALIDITY_UUID);
+    }
+
+    private OffsetDateTime getValidityDateAlphaNum6(OffsetDateTime generateDate){
+        return generateDate.plusMinutes(TIME_VALIDITY_ALPHANUM);
+    }
 
 }

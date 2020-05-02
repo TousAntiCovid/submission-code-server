@@ -15,6 +15,8 @@ public interface ISubmissionCodeService {
 
       boolean updateCodeUsed(SubmissionCodeDto submissionCodeDto);
 
+      long lastLot();
+
       /**
        * get all the codes that have been generated previously
        * @return list of codes not uses in bd
