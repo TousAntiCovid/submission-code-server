@@ -87,5 +87,4 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
     public List<SubmissionCode> getAvailableUUIDv4Codes() {
         return this.submissionCodeRepository.findAllByLotNullAndTypeEquals("1");
     }
-
 }
