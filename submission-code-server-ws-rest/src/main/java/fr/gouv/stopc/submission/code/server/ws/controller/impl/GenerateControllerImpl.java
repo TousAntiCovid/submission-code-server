@@ -31,7 +31,7 @@ public class GenerateControllerImpl implements IGenerateController {
 	}
 
 	@Override
-	public ResponseEntity<List<GenerateResponseDto>> generateCode(GenerateRequestVo generateRequestVo,Errors errors) {
+	public ResponseEntity<List<GenerateResponseDto>> generateCode(GenerateRequestVo generateRequestVo) {
 		log.info("Receiving and type : {}", generateRequestVo.getType());
 		try {
 			return ResponseEntity.ok(this.generateService.generateCode(generateRequestVo));
@@ -40,6 +40,11 @@ public class GenerateControllerImpl implements IGenerateController {
 			e.printStackTrace();
 		}
 		return ResponseEntity.badRequest().body(null);
+	}
+
+	public ResponseEntity<List<GenerateResponseDto>> generateCodeBulk(GenerateRequestVo generateRequestVo) {
+		log.info("Receiving and type : {}", generateRequestVo.getType());
+		return ResponseEntity.ok(this.generateService.generateCodeBulk());
 	}
 
 

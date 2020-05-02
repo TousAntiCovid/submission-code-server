@@ -1,10 +1,13 @@
 package fr.gouv.stopc.submission.code.server.ws.enums;
 
+import lombok.Getter;
+
 import java.util.Arrays;
 
 /**
  * @author cllange
  */
+@Getter
 public enum CodeTypeEnum {
 
     UUIDv4("1", "UUIDv4"),
@@ -18,6 +21,7 @@ public enum CodeTypeEnum {
         this.typeCode = typeCode;
         this.type = type;
     }
+
 
     public final Boolean equals(String typeOrTypeCode) {
         return this.type.equals(typeOrTypeCode) || this.typeCode.equals(typeOrTypeCode) ;

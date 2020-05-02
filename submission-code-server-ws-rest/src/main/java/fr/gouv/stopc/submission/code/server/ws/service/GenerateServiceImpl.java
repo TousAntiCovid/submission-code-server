@@ -5,6 +5,7 @@ import fr.gouv.stopc.submission.code.server.commun.service.IUUIDv4CodeService;
 import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
 import fr.gouv.stopc.submission.code.server.database.entity.SubmissionCode;
 import fr.gouv.stopc.submission.code.server.database.service.ISubmissionCodeService;
+import fr.gouv.stopc.submission.code.server.ws.annotations.CodeType;
 import fr.gouv.stopc.submission.code.server.ws.dto.GenerateResponseDto;
 import fr.gouv.stopc.submission.code.server.ws.enums.CodeTypeEnum;
 import fr.gouv.stopc.submission.code.server.ws.vo.GenerateRequestVo;
@@ -18,7 +19,6 @@ import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -42,8 +42,84 @@ public class GenerateServiceImpl implements IGenerateService {
         this.submissionCodeService = submissionCodeService;
     }
 
-    private List<GenerateResponseDto> test(final long size) {
-        final List<SubmissionCodeDto> submissionCodeDtos = this.uuiDv4CodeService.generateCodes(size)
+
+
+    @Override
+    public List<GenerateResponseDto> generateUUIDv4Codes(long size) {
+        //TODO: Verify that code don't exist in DB before returning
+        return this.generateCodeGeneric(size, CodeTypeEnum.UUIDv4);
+    }
+
+
+    @Override
+    public List<GenerateResponseDto> generateAlphaNumericCode() {
+        //TODO: Verify that code don't exist in DB before returning
+        return this.generateCodeGeneric(1, CodeTypeEnum.ALPHANUM_6);
+    }
+
+    public List<GenerateResponseDto> generateCodeBulk() {
+        return this.generateUUIDv4CodesBulk();
+    }
+
+
+    @Override
+    public List<GenerateResponseDto> generateCode(GenerateRequestVo generateRequestVo) throws UnsupportedDataTypeException {
+        if(generateRequestVo == null || generateRequestVo.getType() == null) {
+            //TODO unsupportedError
+            throw new UnsupportedDataTypeException();
+
+        } else if (CodeTypeEnum.UUIDv4.equals(generateRequestVo.getType())) {
+
+            return this.generateUUIDv4Codes(NUMBER_OF_UUIDv4_PER_CALL);
+
+        } else if (CodeTypeEnum.ALPHANUM_6.equals(generateRequestVo.getType())) {
+            return this.generateAlphaNumericCode();
+        }
+
+        //TODO unsupportedError
+        throw new UnsupportedDataTypeException();
+    }
+
+    
+
+    private List<GenerateResponseDto> generateCodeGeneric(long size, CodeTypeEnum cte) {
+        final ArrayList<GenerateResponseDto> generateResponseList = new ArrayList<>();
+        for (int i = 0; i < size; ) {
+
+            String code;
+            if(CodeTypeEnum.UUIDv4.equals(cte)) {
+                code = this.uuiDv4CodeService.generateCode();
+            } else if (CodeTypeEnum.ALPHANUM_6.equals(cte)) {
+                code = this.alphaNumericCodeService.generateCode();
+            } else {
+                return generateResponseList;
+            }
+
+            SubmissionCodeDto submissionCodeDto = SubmissionCodeDto.builder()
+                    .code(code)
+                    .type(cte.getTypeCode())
+                    .build();
+            try {
+                final SubmissionCode sc = this.submissionCodeService.saveCodeGenerate(submissionCodeDto);
+                generateResponseList.add(GenerateResponseDto.builder()
+                        .code(sc.getCode())
+                        .typeAsString(sc.getType())
+                        .validFrom(sc.getDateAvailable() != null ? sc.getDateAvailable().toString() : "")
+                        .validUntil(sc.getDateAvailable() != null ? sc.getDateEndValidity().toString() : "")
+                        .build()
+                );
+                i++;
+            } catch (Exception e) {
+                // TODO: caught dedicated error here.
+                log.error("Caught error : ", e);
+            }
+        }
+        return generateResponseList;
+    }
+
+    public List<GenerateResponseDto> generateUUIDv4CodesBulk() {
+        final List<SubmissionCodeDto> submissionCodeDtos = this.uuiDv4CodeService
+                .generateCodes(NUMBER_OF_UUIDv4_PER_CALL)
                 .stream()
                 .map(code ->
                         SubmissionCodeDto.builder()
@@ -65,63 +141,5 @@ public class GenerateServiceImpl implements IGenerateService {
                 .collect(Collectors.toList());
     }
 
-    @Override
-    public List<GenerateResponseDto> generateUUIDv4Codes(long size) {
-        //TODO: Verify that code don't exist in DB before returning
-        final ArrayList<GenerateResponseDto> generateResponseList = new ArrayList<>();
-        for (int i = 0; i < size; ) {
 
-            final String code = this.uuiDv4CodeService.generateCode();
-            SubmissionCodeDto submissionCodeDto = SubmissionCodeDto.builder()
-                    .code(code)
-                    .type("1")
-                    .build();
-            try {
-                final SubmissionCode sc = this.submissionCodeService.saveCodeGenerate(submissionCodeDto);
-                generateResponseList.add(GenerateResponseDto.builder()
-                        .code(sc.getCode())
-                        .typeAsString(sc.getCode())
-                        .validFrom(sc.getDateAvailable() != null ? sc.getDateAvailable().toString() : "")
-                        .validUntil(sc.getDateAvailable() != null ? sc.getDateEndValidity().toString() : "")
-                        .build()
-                );
-                i++;
-            } catch (Exception e) {
-                log.error("Caught error : ", e);
-            }
-        }
-        return generateResponseList;
-    }
-
-
-
-
-    @Override
-    public List<GenerateResponseDto> generateAlphaNumericCode() {
-        //TODO: Verify that code don't exist in DB before returning
-        return Arrays.asList(GenerateResponseDto
-                .builder()
-                .code(this.alphaNumericCodeService.generateCode())
-                .build()
-        );
-    }
-
-    @Override
-    public List<GenerateResponseDto> generateCode(GenerateRequestVo generateRequestVo) throws UnsupportedDataTypeException {
-        if(generateRequestVo == null || generateRequestVo.getType() == null) {
-            //TODO unsupportedError
-            throw new UnsupportedDataTypeException();
-
-        } else if (CodeTypeEnum.UUIDv4.equals(generateRequestVo.getType())) {
-
-            return this.generateUUIDv4Codes(NUMBER_OF_UUIDv4_PER_CALL);
-
-        } else if (CodeTypeEnum.ALPHANUM_6.equals(generateRequestVo.getType())) {
-
-            return this.generateAlphaNumericCode();
-        }
-
-        //TODO unsupportedError
-        throw new UnsupportedDataTypeException();
-    }
 }

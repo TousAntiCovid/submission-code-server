@@ -16,8 +16,11 @@ import java.util.List;
 @Produces(MediaType.APPLICATION_JSON_VALUE)
 public interface IGenerateController {
 
-	@GetMapping(value = "/generate")
-    ResponseEntity<List<GenerateResponseDto>> generateCode(@Valid @RequestBody GenerateRequestVo generateRequestVo, Errors errors);
+    @GetMapping(value = "/generate")
+    ResponseEntity<List<GenerateResponseDto>> generateCode(@Valid @RequestBody GenerateRequestVo generateRequestVo);
+
+    @GetMapping(value = "/generate-bulk")
+    ResponseEntity<List<GenerateResponseDto>> generateCodeBulk(GenerateRequestVo generateRequestVo);
 
 
     /**

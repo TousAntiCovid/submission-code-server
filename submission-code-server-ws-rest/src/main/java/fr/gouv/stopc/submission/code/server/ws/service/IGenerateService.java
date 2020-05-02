@@ -25,4 +25,17 @@ public interface IGenerateService {
      * @throws UnsupportedDataTypeException in case of the GeneratedRequestVo is not processable.
      */
     List<GenerateResponseDto> generateCode(final GenerateRequestVo generateRequestVo) throws UnsupportedDataTypeException;
+
+    /**
+     * Method calls {@link #generateUUIDv4CodesBulk()}
+     * @return return a list of uuidv4 codes.
+     */
+    List<GenerateResponseDto> generateCodeBulk();
+
+    /**
+     * Method generates uuidv4 code with saveAll method of repository
+     * It generate a list of uuidv4 in one shot and save it as a bulk.
+     * @return
+     */
+    List<GenerateResponseDto> generateUUIDv4CodesBulk();
 }
