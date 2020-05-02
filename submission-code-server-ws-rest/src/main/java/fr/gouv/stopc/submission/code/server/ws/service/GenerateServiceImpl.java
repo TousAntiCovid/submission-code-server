@@ -5,17 +5,18 @@ import fr.gouv.stopc.submission.code.server.commun.service.IUUIDv4CodeService;
 import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
 import fr.gouv.stopc.submission.code.server.database.entity.SubmissionCode;
 import fr.gouv.stopc.submission.code.server.database.service.ISubmissionCodeService;
-import fr.gouv.stopc.submission.code.server.ws.annotations.CodeType;
 import fr.gouv.stopc.submission.code.server.ws.dto.GenerateResponseDto;
 import fr.gouv.stopc.submission.code.server.ws.enums.CodeTypeEnum;
 import fr.gouv.stopc.submission.code.server.ws.vo.GenerateRequestVo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.IterableUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import javax.activation.UnsupportedDataTypeException;
 import javax.inject.Inject;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -30,6 +31,18 @@ public class GenerateServiceImpl implements IGenerateService {
 
     @Value("${generation.code.bulk.num.of.code}")
     private long NUMBER_OF_UUIDv4_PER_CALL;
+
+    @Value("${generation.code.num.of.tries}")
+    private long NUMBER_OF_TRY_IN_CASE_OF_ERROR;
+
+    @Value("${generation.code.uuid.validity.minutes}")
+    private long TIME_VALIDITY_UUID;
+
+    @Value("${generation.code.alpha.num.6.validity.minutes}")
+    private long TIME_VALIDITY_ALPHANUM;
+
+
+
 
     @Inject
     public GenerateServiceImpl(
@@ -75,18 +88,28 @@ public class GenerateServiceImpl implements IGenerateService {
         } else if (CodeTypeEnum.ALPHANUM_6.equals(generateRequestVo.getType())) {
             return this.generateAlphaNumericCode();
         }
-
         //TODO unsupportedError
         throw new UnsupportedDataTypeException();
     }
 
-    
 
+    /**
+     * Method used to sequentially generate codes of codeType in parameter
+     * @param size the desired number of code to be generated*;
+     * @param cte the code type desired
+     * @return list of unique persisted codes
+     */
     private List<GenerateResponseDto> generateCodeGeneric(long size, CodeTypeEnum cte) {
         final ArrayList<GenerateResponseDto> generateResponseList = new ArrayList<>();
-        for (int i = 0; i < size; ) {
 
+        long failCount = 1;
+        //TODO: add method to generate validFrom and validUntil values.
+        OffsetDateTime validFrom =OffsetDateTime.now() ;
+        OffsetDateTime validUntil=OffsetDateTime.now() ;
+
+        for (int i = 0; i < size && failCount <= NUMBER_OF_TRY_IN_CASE_OF_ERROR; ) {
             String code;
+
             if(CodeTypeEnum.UUIDv4.equals(cte)) {
                 code = this.uuiDv4CodeService.generateCode();
             } else if (CodeTypeEnum.ALPHANUM_6.equals(cte)) {
@@ -98,33 +121,42 @@ public class GenerateServiceImpl implements IGenerateService {
             SubmissionCodeDto submissionCodeDto = SubmissionCodeDto.builder()
                     .code(code)
                     .type(cte.getTypeCode())
+                    .dateAvailable(validFrom)
+                    .dateEndValidity(validUntil)
                     .build();
+
             try {
                 final SubmissionCode sc = this.submissionCodeService.saveCodeGenerate(submissionCodeDto);
                 generateResponseList.add(GenerateResponseDto.builder()
                         .code(sc.getCode())
-                        .typeAsString(sc.getType())
+                        .typeAsString(cte.getType())
+                        .typeAsInt(Integer.parseInt(cte.getTypeCode()))
                         .validFrom(sc.getDateAvailable() != null ? sc.getDateAvailable().toString() : "")
                         .validUntil(sc.getDateAvailable() != null ? sc.getDateEndValidity().toString() : "")
                         .build()
                 );
                 i++;
-            } catch (Exception e) {
+                failCount = 0;
+            } catch (DataIntegrityViolationException divException) {
                 // TODO: caught dedicated error here.
-                log.error("Caught error : ", e);
+                // TODO: Handle only not unique error here.
+                log.error("code generated is not unique try  -> {}/{}", failCount, NUMBER_OF_TRY_IN_CASE_OF_ERROR);
+                failCount++;
             }
         }
         return generateResponseList;
     }
 
     public List<GenerateResponseDto> generateUUIDv4CodesBulk() {
+        //TODO: add method to generate validFrom and validUntil values.
+
         final List<SubmissionCodeDto> submissionCodeDtos = this.uuiDv4CodeService
                 .generateCodes(NUMBER_OF_UUIDv4_PER_CALL)
                 .stream()
                 .map(code ->
                         SubmissionCodeDto.builder()
                                 .code(code)
-                                .type("1")
+                                .type(CodeTypeEnum.UUIDv4.getTypeCode())
                                 .build()
                 )
                 .collect(Collectors.toList());
@@ -133,7 +165,8 @@ public class GenerateServiceImpl implements IGenerateService {
         return IterableUtils.toList(submissionCodes).stream()
                 .map(sc -> GenerateResponseDto.builder()
                         .code(sc.getCode())
-                        .typeAsString(sc.getCode())
+                        .typeAsString(CodeTypeEnum.UUIDv4.getType())
+                        .typeAsInt(Integer.parseInt(CodeTypeEnum.UUIDv4.getTypeCode()))
                         .validFrom(sc.getDateAvailable() != null ? sc.getDateAvailable().toString() : "")
                         .validUntil(sc.getDateAvailable() != null ? sc.getDateEndValidity().toString() : "")
                         .build()
