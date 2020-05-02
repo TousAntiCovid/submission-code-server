@@ -18,25 +18,25 @@ public class SubmissionCode {
     @Column(name = "lot")
     private long lot;
 
-    @Column(name = "code", nullable = false)
+    @Column(name = "code", nullable = false, unique = true)
     private String code;
 
     @Column(name = "type_code", nullable = false)
     private String type;
 
-    @Column(name = "date_end_validity", nullable = false)
+    @Column(name = "date_end_validity")
     private OffsetDateTime dateEndValidity;
 
-    @Column(name = "date_available", nullable = false)
+    @Column(name = "date_available")
     private OffsetDateTime dateAvailable;
 
     @Column(name = "date_use")
     private OffsetDateTime dateUse;
 
-    @Column(name = "date_generation", nullable = false)
+    @Column(name = "date_generation")
     private OffsetDateTime dateGeneration;
 
-    @Column(name = "used", nullable = false)
+    @Column(name = "used")
     private Boolean used;
 
 }

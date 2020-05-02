@@ -1,5 +1,6 @@
 package fr.gouv.stopc.submission.code.server.ws.vo;
 
+import fr.gouv.stopc.submission.code.server.ws.annotations.CodeType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,6 +23,7 @@ public class GenerateRequestVo {
      * The type of the provided code
      */
     @NotNull
+    @CodeType
     private String type;
 
 }
