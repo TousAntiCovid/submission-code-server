@@ -116,10 +116,10 @@ public class GenerateServiceImpl implements IGenerateService {
 
             if(CodeTypeEnum.UUIDv4.equals(cte)) {
                 code = this.uuiDv4CodeService.generateCode();
-                validUntil= getValidityDateUUIDCode(validGenDate);
+                validUntil= getValidityDateUUIDCode(validFrom);
             } else if (CodeTypeEnum.ALPHANUM_6.equals(cte)) {
                 code = this.alphaNumericCodeService.generateCode();
-                validUntil= getValidityDateAlphaNum6(validGenDate);
+                validUntil= getValidityDateAlphaNum6(validFrom);
                 lot=0;
             } else {
                 return generateResponseList;
@@ -136,7 +136,7 @@ public class GenerateServiceImpl implements IGenerateService {
                     .build();
 
             try {
-                final SubmissionCode sc = this.submissionCodeService.saveCodeGenerate(submissionCodeDto);
+                final SubmissionCode sc = this.submissionCodeService.saveCode(submissionCodeDto);
                 generateResponseList.add(GenerateResponseDto.builder()
                         .code(sc.getCode())
                         .typeAsString(cte.getType())
@@ -174,14 +174,14 @@ public class GenerateServiceImpl implements IGenerateService {
                                 .type(CodeTypeEnum.UUIDv4.getTypeCode())
                                 .dateGeneration(validGenDate)
                                 .dateAvailable(validFrom)
-                                .dateEndValidity(getValidityDateUUIDCode(validGenDate))
+                                .dateEndValidity(getValidityDateUUIDCode(validFrom))
                                 .lot(lot)
                                 .used(false)
                                 .build()
                 )
                 .collect(Collectors.toList());
 
-        final Iterable<SubmissionCode> submissionCodes = this.submissionCodeService.saveAllCodeGenerateByBatch(submissionCodeDtos);
+        final Iterable<SubmissionCode> submissionCodes = this.submissionCodeService.saveAllCodes(submissionCodeDtos);
         return IterableUtils.toList(submissionCodes).stream()
                 .map(sc -> GenerateResponseDto.builder()
                         .code(sc.getCode())
@@ -195,15 +195,15 @@ public class GenerateServiceImpl implements IGenerateService {
     }
 
     private String formatOffsetDateTime(OffsetDateTime date){
-        return date.format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
+        return date.format(DateTimeFormatter.ISO_INSTANT);
     }
 
-    private OffsetDateTime getValidityDateUUIDCode(OffsetDateTime generateDate){
-        return generateDate.plusMinutes(TIME_VALIDITY_UUID);
+    private OffsetDateTime getValidityDateUUIDCode(OffsetDateTime validFrom){
+        return validFrom.plusMinutes(TIME_VALIDITY_UUID);
     }
 
-    private OffsetDateTime getValidityDateAlphaNum6(OffsetDateTime generateDate){
-        return generateDate.plusMinutes(TIME_VALIDITY_ALPHANUM);
+    private OffsetDateTime getValidityDateAlphaNum6(OffsetDateTime validFrom){
+        return validFrom.plusMinutes(TIME_VALIDITY_ALPHANUM);
     }
 
 }

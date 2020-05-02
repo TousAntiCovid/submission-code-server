@@ -41,7 +41,7 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
     }
 
     @Override
-    public Iterable<SubmissionCode> saveAllCodeGenerateByBatch(List<SubmissionCodeDto> submissionCodeDtos) {
+    public Iterable<SubmissionCode> saveAllCodes(List<SubmissionCodeDto> submissionCodeDtos) {
         if(submissionCodeDtos.isEmpty()) {
             return null;
         }
@@ -51,7 +51,7 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
     }
 
     @Override
-    public SubmissionCode saveCodeGenerate(SubmissionCodeDto submissionCodeDto) {
+    public SubmissionCode saveCode(SubmissionCodeDto submissionCodeDto) {
         if (Objects.isNull(submissionCodeDto)) {
             return null;
         }
@@ -64,13 +64,13 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
     public boolean updateCodeUsed(SubmissionCodeDto submissionCodeDto) {
         String code = submissionCodeDto.getCode();
         String type = submissionCodeDto.getType();
-        SubmissionCode codepositive = submissionCodeRepository.findByCodeAndType(code, type);
-        if (Objects.isNull(codepositive)){
+        SubmissionCode submissionCode = submissionCodeRepository.findByCodeAndType(code, type);
+        if (Objects.isNull(submissionCode)){
             return false;
         }
-        codepositive.setDateUse(submissionCodeDto.getDateUse());
-        codepositive.setUsed(true);
-        submissionCodeRepository.save(codepositive);
+        submissionCode.setDateUse(submissionCodeDto.getDateUse());
+        submissionCode.setUsed(true);
+        submissionCodeRepository.save(submissionCode);
         return true;
     }
 

@@ -9,9 +9,9 @@ import java.util.Optional;
 public interface ISubmissionCodeService {
       Optional<SubmissionCodeDto> getCodeValidity(String code, String type);
 
-      Iterable<SubmissionCode> saveAllCodeGenerateByBatch(List<SubmissionCodeDto> submissionCodeDtos);
+      Iterable<SubmissionCode> saveAllCodes(List<SubmissionCodeDto> submissionCodeDtos);
 
-      SubmissionCode saveCodeGenerate(SubmissionCodeDto submissionCodeDto);
+      SubmissionCode saveCode(SubmissionCodeDto submissionCodeDto);
 
       boolean updateCodeUsed(SubmissionCodeDto submissionCodeDto);
 

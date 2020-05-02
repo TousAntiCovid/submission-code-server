@@ -38,7 +38,7 @@ public class SubmissionCodeServiceImplTest {
         List<SubmissionCodeDto> submissionCodeDtos = new ArrayList<>();
         SubmissionCodeDto submissionCodeDto = new SubmissionCodeDto();
         submissionCodeDtos.add(submissionCodeDto);
-        Iterable<SubmissionCode> result = submissionCodeServiceTest.saveAllCodeGenerateByBatch(submissionCodeDtos);
+        Iterable<SubmissionCode> result = submissionCodeServiceTest.saveAllCodes(submissionCodeDtos);
         Assert.isTrue(IterableUtils.size(result) != 0);
     }
 
@@ -48,7 +48,7 @@ public class SubmissionCodeServiceImplTest {
         Mockito.when(submissionCodeRepositoryMock.save(submissionCode)).thenReturn(submissionCode);
         SubmissionCodeServiceImpl submissionCodeServiceTest = new SubmissionCodeServiceImpl(submissionCodeRepositoryMock);
         SubmissionCodeDto submissionCodeDto = new SubmissionCodeDto();
-        SubmissionCode result= submissionCodeServiceTest.saveCodeGenerate(submissionCodeDto);
+        SubmissionCode result= submissionCodeServiceTest.saveCode(submissionCodeDto);
         Assert.isTrue(result != null);
     }
 
@@ -65,7 +65,7 @@ public class SubmissionCodeServiceImplTest {
     @Test
     public void saveAllCodeGenerateByBatchEmpty() {
         SubmissionCodeServiceImpl codePositiveServiceTest = new SubmissionCodeServiceImpl(submissionCodeRepositoryMock);
-        Iterable<SubmissionCode> result = codePositiveServiceTest.saveAllCodeGenerateByBatch(new ArrayList<>());
+        Iterable<SubmissionCode> result = codePositiveServiceTest.saveAllCodes(new ArrayList<>());
         Assert.isTrue(result == null);
     }
 
