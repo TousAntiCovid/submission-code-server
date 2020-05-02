@@ -69,7 +69,7 @@ public class GenerateServiceImpl implements IGenerateService {
     public List<GenerateResponseDto> generateUUIDv4Codes(long size) {
         //TODO: Verify that code don't exist in DB before returning
         final ArrayList<GenerateResponseDto> generateResponseList = new ArrayList<>();
-        for (int i = 0; i <size; ) {
+        for (int i = 0; i < size; ) {
 
             final String code = this.uuiDv4CodeService.generateCode();
             SubmissionCodeDto submissionCodeDto = SubmissionCodeDto.builder()
@@ -78,7 +78,7 @@ public class GenerateServiceImpl implements IGenerateService {
                     .build();
             try {
                 final SubmissionCode sc = this.submissionCodeService.saveCodeGenerate(submissionCodeDto);
-                generateResponseList.add( GenerateResponseDto.builder()
+                generateResponseList.add(GenerateResponseDto.builder()
                         .code(sc.getCode())
                         .typeAsString(sc.getCode())
                         .validFrom(sc.getDateAvailable() != null ? sc.getDateAvailable().toString() : "")
@@ -89,38 +89,39 @@ public class GenerateServiceImpl implements IGenerateService {
             } catch (Exception e) {
                 log.error("Caught error : ", e);
             }
-            return generateResponseList;
         }
+        return generateResponseList;
+    }
 
 
 
 
-        @Override
-        public List<GenerateResponseDto> generateAlphaNumericCode() {
-            //TODO: Verify that code don't exist in DB before returning
-            return Arrays.asList(GenerateResponseDto
-                    .builder()
-                    .code(this.alphaNumericCodeService.generateCode())
-                    .build()
-            );
-        }
+    @Override
+    public List<GenerateResponseDto> generateAlphaNumericCode() {
+        //TODO: Verify that code don't exist in DB before returning
+        return Arrays.asList(GenerateResponseDto
+                .builder()
+                .code(this.alphaNumericCodeService.generateCode())
+                .build()
+        );
+    }
 
-        @Override
-        public List<GenerateResponseDto> generateCode(GenerateRequestVo generateRequestVo) throws UnsupportedDataTypeException {
-            if(generateRequestVo == null || generateRequestVo.getType() == null) {
-                //TODO unsupportedError
-                throw new UnsupportedDataTypeException();
-
-            } else if (CodeTypeEnum.UUIDv4.equals(generateRequestVo.getType())) {
-
-                return this.generateUUIDv4Codes(NUMBER_OF_UUIDv4_PER_CALL);
-
-            } else if (CodeTypeEnum.ALPHANUM_6.equals(generateRequestVo.getType())) {
-
-                return this.generateAlphaNumericCode();
-            }
-
+    @Override
+    public List<GenerateResponseDto> generateCode(GenerateRequestVo generateRequestVo) throws UnsupportedDataTypeException {
+        if(generateRequestVo == null || generateRequestVo.getType() == null) {
             //TODO unsupportedError
             throw new UnsupportedDataTypeException();
+
+        } else if (CodeTypeEnum.UUIDv4.equals(generateRequestVo.getType())) {
+
+            return this.generateUUIDv4Codes(NUMBER_OF_UUIDv4_PER_CALL);
+
+        } else if (CodeTypeEnum.ALPHANUM_6.equals(generateRequestVo.getType())) {
+
+            return this.generateAlphaNumericCode();
         }
+
+        //TODO unsupportedError
+        throw new UnsupportedDataTypeException();
     }
+}
