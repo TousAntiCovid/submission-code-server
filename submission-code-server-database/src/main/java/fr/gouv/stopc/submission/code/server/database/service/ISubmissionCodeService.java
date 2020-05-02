@@ -15,10 +15,4 @@ public interface ISubmissionCodeService {
 
       boolean updateCodeUsed(SubmissionCodeDto submissionCodeDto);
 
-      /**
-       * get all the codes that have been generated previously
-       * @return list of codes not uses in bd
-       */
-      List<SubmissionCode> getAvailableUUIDv4Codes();
-
 }

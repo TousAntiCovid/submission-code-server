@@ -74,9 +74,5 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
         return true;
     }
 
-    @Override
-    public List<SubmissionCode> getAvailableUUIDv4Codes() {
-        return this.submissionCodeRepository.findAllByLotNullAndTypeEquals("1");
-    }
 
 }
