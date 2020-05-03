@@ -2,7 +2,6 @@ package fr.gouv.stopc.submission.code.server.ws.controller;
 
 import fr.gouv.stopc.submission.code.server.ws.dto.GenerateResponseDto;
 import fr.gouv.stopc.submission.code.server.ws.vo.GenerateRequestVo;
-import org.modelmapper.internal.Errors;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,6 +9,8 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import javax.ws.rs.Produces;
 import java.util.List;
+
+
 
 @RestController
 @RequestMapping(value = "${controller.path.prefix}")

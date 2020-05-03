@@ -16,6 +16,10 @@ public class VerifyServiceImpl implements IVerifyService {
 
     private ISubmissionCodeService submissionCodeService;
 
+    /**
+     *  Default constructor spring-injecting the needed services.
+     * @param submissionCodeService service from the database module permitting to interface with the data base.
+     */
     @Inject
     public VerifyServiceImpl (ISubmissionCodeService submissionCodeService){
         this.submissionCodeService = submissionCodeService;
@@ -48,9 +52,9 @@ public class VerifyServiceImpl implements IVerifyService {
     }
 
     /**
-     We don't use the code before being available.
-     We don't use the code expired.
-             */
+     * We don't use the code before being available.
+     * We don't use the code expired.
+     */
     private boolean validationDate(OffsetDateTime dateNow, OffsetDateTime dateAvailable, OffsetDateTime dateEndValidity) {
         return (dateAvailable.isAfter(dateNow) || dateNow.isAfter(dateEndValidity));
     }

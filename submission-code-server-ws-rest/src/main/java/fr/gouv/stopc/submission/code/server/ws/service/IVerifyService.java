@@ -1,5 +1,8 @@
 package fr.gouv.stopc.submission.code.server.ws.service;
 
+/**
+ * Bean service used to proceed data from "/verify" endpoint.
+ */
 public interface IVerifyService {
 
     /**
