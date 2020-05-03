@@ -194,14 +194,32 @@ public class GenerateServiceImpl implements IGenerateService {
                 .collect(Collectors.toList());
     }
 
+
+    /**
+     * Method formatting date with standard API date pattern "AAAA-MM-ddThh:mm:ssZ"
+     * @param date value to be stringified.
+     * @return ISO instant formatter of date in parameter
+     */
     private String formatOffsetDateTime(OffsetDateTime date){
         return date.format(DateTimeFormatter.ISO_INSTANT);
     }
 
+    /**
+     * Method gives the validUntil date of UUIDv4 code from the date given in parameter.
+     * It calculates the validity end date of the code using value set in application.properties and inject by Spring. {@link #TIME_VALIDITY_UUID}
+     * @param validFrom the OffsetDateTime start validity applied to calculate end of UUIDv4 code validity
+     * @return OffsetDateTime corresponding to the "validFrom" plus minutes in {@link #TIME_VALIDITY_UUID}
+     */
     private OffsetDateTime getValidityDateUUIDCode(OffsetDateTime validFrom){
         return validFrom.plusMinutes(TIME_VALIDITY_UUID);
     }
 
+    /**
+     * Method gives the validUntil date of 6-alphanum code from the date given in parameter.
+     * It calculates the validity end date of the code using value set in application.properties and inject by Spring. {@link #TIME_VALIDITY_ALPHANUM}
+     * @param validFrom the OffsetDateTime start validity applied to calculate end of 6-alphanum code validity
+     * @return OffsetDateTime corresponding to the "validFrom" plus minutes in {@link #TIME_VALIDITY_ALPHANUM}
+     */
     private OffsetDateTime getValidityDateAlphaNum6(OffsetDateTime validFrom){
         return validFrom.plusMinutes(TIME_VALIDITY_ALPHANUM);
     }
