@@ -1,9 +1,9 @@
 package fr.gouv.stopc.submission.code.server.database.service.impl;
 
+import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
 import fr.gouv.stopc.submission.code.server.database.entity.SubmissionCode;
 import fr.gouv.stopc.submission.code.server.database.repository.SubmissionCodeRepository;
 import fr.gouv.stopc.submission.code.server.database.service.ISubmissionCodeService;
-import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
 import org.apache.logging.log4j.util.Strings;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;

@@ -3,7 +3,10 @@ package fr.gouv.stopc.submission.code.server.commun.service.impl;
 import fr.gouv.stopc.submission.code.server.commun.service.IAlphaNumericCodeService;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 @Service
