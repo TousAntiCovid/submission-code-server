@@ -5,13 +5,12 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
-import javax.validation.constraints.Size;
 
 /**
- * Requests parameters for /generate endpoint
+ * Requests parameters of "/generate" endpoint
  */
 @AllArgsConstructor
 @NoArgsConstructor
@@ -19,6 +18,7 @@ import javax.validation.constraints.Size;
 @Builder
 @Valid
 public class GenerateRequestVo {
+
     /**
      * The type of the provided code
      */

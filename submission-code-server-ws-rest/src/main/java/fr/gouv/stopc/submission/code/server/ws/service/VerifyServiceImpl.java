@@ -8,6 +8,7 @@ import javax.inject.Inject;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -15,6 +16,10 @@ public class VerifyServiceImpl implements IVerifyService {
 
     private ISubmissionCodeService submissionCodeService;
 
+    /**
+     *  Default constructor spring-injecting the needed services.
+     * @param submissionCodeService service from the database module permitting to interface with the data base.
+     */
     @Inject
     public VerifyServiceImpl (ISubmissionCodeService submissionCodeService){
         this.submissionCodeService = submissionCodeService;
@@ -30,14 +35,14 @@ public class VerifyServiceImpl implements IVerifyService {
         /*
             we don't use the code already used.
          */
-        if (codeDto.getUsed().equals(Boolean.TRUE) || codeDto.getDateUse()== null){
+        if (codeDto.getUsed().equals(Boolean.TRUE) || Objects.nonNull(codeDto.getDateUse())){
             return false;
         }
 
         ZoneOffset zoneOffeset = codeDto.getDateAvailable().getOffset();
         OffsetDateTime dateNow = LocalDateTime.now().atOffset(zoneOffeset);
 
-        if(!validationDate(dateNow,codeDto.getDateAvailable(),codeDto.getDateEndValidity())){
+        if(validationDate(dateNow,codeDto.getDateAvailable(),codeDto.getDateEndValidity())){
             return false;
         }
 
@@ -46,16 +51,11 @@ public class VerifyServiceImpl implements IVerifyService {
         return submissionCodeService.updateCodeUsed(codeDto);
     }
 
+    /**
+     * We don't use the code before being available.
+     * We don't use the code expired.
+     */
     private boolean validationDate(OffsetDateTime dateNow, OffsetDateTime dateAvailable, OffsetDateTime dateEndValidity) {
-        if(dateAvailable.isAfter(dateNow)){
-            /*
-              We don't use the code before being available.
-             */
-            return false;
-        }
-            /*
-             We don't use the code expired.
-             */
-        return dateNow.isAfter(dateEndValidity);
+        return (dateAvailable.isAfter(dateNow) || dateNow.isAfter(dateEndValidity));
     }
 }

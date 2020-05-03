@@ -24,19 +24,19 @@ public class SubmissionCode {
     @Column(name = "type_code", nullable = false)
     private String type;
 
-    @Column(name = "date_end_validity")
+    @Column(name = "date_end_validity", nullable = false)
     private OffsetDateTime dateEndValidity;
 
-    @Column(name = "date_available")
+    @Column(name = "date_available", nullable = false)
     private OffsetDateTime dateAvailable;
 
     @Column(name = "date_use")
     private OffsetDateTime dateUse;
 
-    @Column(name = "date_generation")
+    @Column(name = "date_generation", nullable = false)
     private OffsetDateTime dateGeneration;
 
-    @Column(name = "used")
+    @Column(name = "used", nullable = false)
     private Boolean used;
 
 }

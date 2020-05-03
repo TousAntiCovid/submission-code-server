@@ -9,9 +9,9 @@ import java.util.Optional;
 public interface ISubmissionCodeService {
       Optional<SubmissionCodeDto> getCodeValidity(String code, String type);
 
-      Iterable<SubmissionCode> saveAllCodeGenerateByBatch(List<SubmissionCodeDto> submissionCodeDtos);
+      Iterable<SubmissionCode> saveAllCodes(List<SubmissionCodeDto> submissionCodeDtos);
 
-      SubmissionCode saveCodeGenerate(SubmissionCodeDto submissionCodeDto);
+      SubmissionCode saveCode(SubmissionCodeDto submissionCodeDto);
 
       boolean updateCodeUsed(SubmissionCodeDto submissionCodeDto);
 
@@ -23,4 +23,9 @@ public interface ISubmissionCodeService {
        */
       List<SubmissionCode> getAvailableUUIDv4Codes();
 
+      /**
+       * Method calls lastLot and add 1 to give the next one available.
+       * @return next lot.
+       */
+      long nextLot();
 }

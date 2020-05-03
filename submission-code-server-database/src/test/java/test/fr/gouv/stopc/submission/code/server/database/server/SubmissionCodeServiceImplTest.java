@@ -4,7 +4,6 @@ import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
 import fr.gouv.stopc.submission.code.server.database.entity.SubmissionCode;
 import fr.gouv.stopc.submission.code.server.database.repository.SubmissionCodeRepository;
 import fr.gouv.stopc.submission.code.server.database.service.impl.SubmissionCodeServiceImpl;
-
 import org.apache.commons.collections4.IterableUtils;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -38,7 +37,7 @@ public class SubmissionCodeServiceImplTest {
         List<SubmissionCodeDto> submissionCodeDtos = new ArrayList<>();
         SubmissionCodeDto submissionCodeDto = new SubmissionCodeDto();
         submissionCodeDtos.add(submissionCodeDto);
-        Iterable<SubmissionCode> result = submissionCodeServiceTest.saveAllCodeGenerateByBatch(submissionCodeDtos);
+        Iterable<SubmissionCode> result = submissionCodeServiceTest.saveAllCodes(submissionCodeDtos);
         Assert.isTrue(IterableUtils.size(result) != 0);
     }
 
@@ -48,7 +47,7 @@ public class SubmissionCodeServiceImplTest {
         Mockito.when(submissionCodeRepositoryMock.save(submissionCode)).thenReturn(submissionCode);
         SubmissionCodeServiceImpl submissionCodeServiceTest = new SubmissionCodeServiceImpl(submissionCodeRepositoryMock);
         SubmissionCodeDto submissionCodeDto = new SubmissionCodeDto();
-        SubmissionCode result= submissionCodeServiceTest.saveCodeGenerate(submissionCodeDto);
+        SubmissionCode result= submissionCodeServiceTest.saveCode(submissionCodeDto);
         Assert.isTrue(result != null);
     }
 
@@ -65,7 +64,7 @@ public class SubmissionCodeServiceImplTest {
     @Test
     public void saveAllCodeGenerateByBatchEmpty() {
         SubmissionCodeServiceImpl codePositiveServiceTest = new SubmissionCodeServiceImpl(submissionCodeRepositoryMock);
-        Iterable<SubmissionCode> result = codePositiveServiceTest.saveAllCodeGenerateByBatch(new ArrayList<>());
+        Iterable<SubmissionCode> result = codePositiveServiceTest.saveAllCodes(new ArrayList<>());
         Assert.isTrue(result == null);
     }
 

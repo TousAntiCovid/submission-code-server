@@ -5,7 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.UniqueConstraint;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -30,13 +29,17 @@ public class SubmissionCodeDto {
     @NotNull
     private String type;
 
+    @NotNull
     private OffsetDateTime dateEndValidity;
 
+    @NotNull
     private OffsetDateTime dateAvailable;
 
     private OffsetDateTime dateUse;
 
+    @NotNull
     private OffsetDateTime dateGeneration;
 
+    @NotNull
     private Boolean used;
 }
