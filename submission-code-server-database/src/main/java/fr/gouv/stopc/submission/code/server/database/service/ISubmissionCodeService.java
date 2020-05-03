@@ -23,4 +23,9 @@ public interface ISubmissionCodeService {
        */
       List<SubmissionCode> getAvailableUUIDv4Codes();
 
+      /**
+       * Method calls lastLot and add 1 to give the next one available.
+       * @return next lot.
+       */
+      long nextLot();
 }

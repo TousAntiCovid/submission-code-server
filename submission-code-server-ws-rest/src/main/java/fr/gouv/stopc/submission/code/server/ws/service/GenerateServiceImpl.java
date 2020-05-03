@@ -29,54 +29,69 @@ public class GenerateServiceImpl implements IGenerateService {
     private final ISubmissionCodeService submissionCodeService;
     private final IAlphaNumericCodeService alphaNumericCodeService;
 
+    /**
+     * Number of code that should be generated per days for a given lot.
+     * it is set in application.properties file
+     */
     @Value("${generation.code.bulk.num.of.code}")
     private long NUMBER_OF_UUIDv4_PER_CALL;
 
+    /**
+     * Number of try to generate a new code in case of the code is already in db
+     * it is set in application.properties file
+     */
     @Value("${generation.code.num.of.tries}")
     private long NUMBER_OF_TRY_IN_CASE_OF_ERROR;
 
+    /**
+     * Interval in minutes of the validity of an UUIDv4 code
+     * it is set in application.properties file
+     */
     @Value("${generation.code.uuid.validity.minutes}")
     private long TIME_VALIDITY_UUID;
 
+    /**
+     * Interval in minutes of the validity of a 6-alphanum code
+     * it is set in application.properties file
+     */
     @Value("${generation.code.alpha.num.6.validity.minutes}")
     private long TIME_VALIDITY_ALPHANUM;
 
 
-
-
+    /**
+     * Default constructor
+     * @param uuiDv4CodeService Spring-injection of the uuiDv4CodeService generating the code of type UUIDv4
+     * @param alphaNumericCodeService Spring-injection of the alphaNumericCodeService generating the code of type 6-alphanum
+     * @param submissionCodeService Spring-injection of the alphaNumericCodeService giving access to persistence in db.
+     */
     @Inject
-    public GenerateServiceImpl(
-            IUUIDv4CodeService uuiDv4CodeService,
-            IAlphaNumericCodeService alphaNumericCodeService,
-            ISubmissionCodeService submissionCodeService
-    ){
+    public GenerateServiceImpl(IUUIDv4CodeService uuiDv4CodeService,
+                               IAlphaNumericCodeService alphaNumericCodeService,
+                               ISubmissionCodeService submissionCodeService)
+    {
         this.alphaNumericCodeService= alphaNumericCodeService;
         this.uuiDv4CodeService = uuiDv4CodeService;
         this.submissionCodeService = submissionCodeService;
     }
 
-
-
     @Override
-    public List<GenerateResponseDto> generateUUIDv4Codes(long size) {
+    public List<GenerateResponseDto> generateUUIDv4Codes(long size)
+    {
         //TODO: Verify that code don't exist in DB before returning
         return this.generateCodeGeneric(size, CodeTypeEnum.UUIDv4);
     }
 
-
     @Override
-    public List<GenerateResponseDto> generateAlphaNumericCode() {
+    public List<GenerateResponseDto> generateAlphaNumericCode()
+    {
         //TODO: Verify that code don't exist in DB before returning
         return this.generateCodeGeneric(1, CodeTypeEnum.ALPHANUM_6);
     }
 
-    public List<GenerateResponseDto> generateCodeBulk() {
-        return this.generateUUIDv4CodesBulk();
-    }
-
-
     @Override
-    public List<GenerateResponseDto> generateCode(GenerateRequestVo generateRequestVo) throws UnsupportedDataTypeException {
+    public List<GenerateResponseDto> generateCodeFromRequest(GenerateRequestVo generateRequestVo)
+            throws UnsupportedDataTypeException
+    {
         if(generateRequestVo == null || generateRequestVo.getType() == null) {
             //TODO unsupportedError
             throw new UnsupportedDataTypeException();
@@ -92,24 +107,45 @@ public class GenerateServiceImpl implements IGenerateService {
         throw new UnsupportedDataTypeException();
     }
 
+    @Override
+    public List<GenerateResponseDto> generateCodeGeneric(final long size,
+                                                         final CodeTypeEnum cte)
+    {
+        long lot = 0;
+        if(CodeTypeEnum.UUIDv4.equals(cte)) lot = this.submissionCodeService.nextLot();
+        return generateCodeGeneric(size, cte, lot);
+    }
 
-    /**
-     * Method used to sequentially generate codes of codeType in parameter
-     * @param size the desired number of code to be generated*;
-     * @param cte the code type desired
-     * @return list of unique persisted codes
-     */
-    private List<GenerateResponseDto> generateCodeGeneric(long size, CodeTypeEnum cte) {
+    @Override
+    public List<GenerateResponseDto> generateCodeGeneric(final long size,
+                                                         final CodeTypeEnum cte,
+                                                         final long lot)
+    {
+        return generateCodeGeneric(size, cte, OffsetDateTime.now(), lot);
+    }
+
+    @Override
+    public List<GenerateResponseDto> generateCodeGeneric(final long size,
+                                                         final CodeTypeEnum cte,
+                                                         final OffsetDateTime validFrom)
+    {
+        return generateCodeGeneric(size, cte, validFrom, this.submissionCodeService.nextLot());
+    }
+
+    @Override
+    public List<GenerateResponseDto> generateCodeGeneric(final long size,
+                                                         final CodeTypeEnum cte,
+                                                         final OffsetDateTime validFrom,
+                                                         final long lot)
+    {
         final ArrayList<GenerateResponseDto> generateResponseList = new ArrayList<>();
 
         long failCount = 1;
         /*
             The date available/validfrom is date of now in this time
          */
-        OffsetDateTime validFrom =OffsetDateTime.now() ;
         OffsetDateTime validUntil;
         OffsetDateTime validGenDate= OffsetDateTime.now();
-        long lot = submissionCodeService.lastLot() + 1;
 
         for (int i = 0; i < size && failCount <= NUMBER_OF_TRY_IN_CASE_OF_ERROR; ) {
             String code;
@@ -120,7 +156,6 @@ public class GenerateServiceImpl implements IGenerateService {
             } else if (CodeTypeEnum.ALPHANUM_6.equals(cte)) {
                 code = this.alphaNumericCodeService.generateCode();
                 validUntil= getValidityDateAlphaNum6(validFrom);
-                lot=0;
             } else {
                 return generateResponseList;
             }
@@ -157,13 +192,24 @@ public class GenerateServiceImpl implements IGenerateService {
         return generateResponseList;
     }
 
-    public List<GenerateResponseDto> generateUUIDv4CodesBulk() {
-         /*
-            The date available/validfrom is date of now in this time
-         */
-        OffsetDateTime validFrom =OffsetDateTime.now() ;
-        OffsetDateTime validGenDate= OffsetDateTime.now();
-        long lot = submissionCodeService.lastLot() + 1;
+    @Override
+    public List<GenerateResponseDto> generateUUIDv4CodesBulk()
+    {
+        return this.generateUUIDv4CodesBulk(OffsetDateTime.now());
+    }
+
+    @Override
+    public List<GenerateResponseDto> generateUUIDv4CodesBulk(final OffsetDateTime validFrom)
+    {
+        long lot = this.submissionCodeService.nextLot();
+        return generateUUIDv4CodesBulk(validFrom, lot);
+    }
+
+    @Override
+    public List<GenerateResponseDto> generateUUIDv4CodesBulk(final OffsetDateTime validFrom,
+                                                             final long lot)
+    {
+        OffsetDateTime validGenDate = OffsetDateTime.now();
 
         final List<SubmissionCodeDto> submissionCodeDtos = this.uuiDv4CodeService
                 .generateCodes(NUMBER_OF_UUIDv4_PER_CALL)
@@ -194,13 +240,13 @@ public class GenerateServiceImpl implements IGenerateService {
                 .collect(Collectors.toList());
     }
 
-
     /**
      * Method formatting date with standard API date pattern "AAAA-MM-ddThh:mm:ssZ"
      * @param date value to be stringified.
      * @return ISO instant formatter of date in parameter
      */
-    private String formatOffsetDateTime(OffsetDateTime date){
+    private String formatOffsetDateTime(OffsetDateTime date)
+    {
         return date.format(DateTimeFormatter.ISO_INSTANT);
     }
 
@@ -210,7 +256,8 @@ public class GenerateServiceImpl implements IGenerateService {
      * @param validFrom the OffsetDateTime start validity applied to calculate end of UUIDv4 code validity
      * @return OffsetDateTime corresponding to the "validFrom" plus minutes in {@link #TIME_VALIDITY_UUID}
      */
-    private OffsetDateTime getValidityDateUUIDCode(OffsetDateTime validFrom){
+    private OffsetDateTime getValidityDateUUIDCode(OffsetDateTime validFrom)
+    {
         return validFrom.plusMinutes(TIME_VALIDITY_UUID);
     }
 
@@ -220,7 +267,8 @@ public class GenerateServiceImpl implements IGenerateService {
      * @param validFrom the OffsetDateTime start validity applied to calculate end of 6-alphanum code validity
      * @return OffsetDateTime corresponding to the "validFrom" plus minutes in {@link #TIME_VALIDITY_ALPHANUM}
      */
-    private OffsetDateTime getValidityDateAlphaNum6(OffsetDateTime validFrom){
+    private OffsetDateTime getValidityDateAlphaNum6(OffsetDateTime validFrom)
+    {
         return validFrom.plusMinutes(TIME_VALIDITY_ALPHANUM);
     }
 

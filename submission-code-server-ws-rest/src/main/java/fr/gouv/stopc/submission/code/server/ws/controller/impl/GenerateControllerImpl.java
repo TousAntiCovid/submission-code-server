@@ -30,7 +30,7 @@ public class GenerateControllerImpl implements IGenerateController {
 		try {
 
 			log.info("Trying to generate code with sequential method for {}", generateRequestVo);
-			return ResponseEntity.ok(this.generateService.generateCode(generateRequestVo));
+			return ResponseEntity.ok(this.generateService.generateCodeFromRequest(generateRequestVo));
 
 		} catch (UnsupportedDataTypeException e) {
 
@@ -43,7 +43,7 @@ public class GenerateControllerImpl implements IGenerateController {
 
 	public ResponseEntity<List<GenerateResponseDto>> generateCodeBulk(GenerateRequestVo generateRequestVo) {
 		log.info("Trying to generate code with bulk method for {}", generateRequestVo);
-		return ResponseEntity.ok(this.generateService.generateCodeBulk());
+		return ResponseEntity.ok(this.generateService.generateUUIDv4CodesBulk());
 	}
 
 
