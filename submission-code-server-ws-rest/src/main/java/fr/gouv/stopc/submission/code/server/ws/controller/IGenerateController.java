@@ -16,9 +16,19 @@ import java.util.List;
 @Produces(MediaType.APPLICATION_JSON_VALUE)
 public interface IGenerateController {
 
+    /**
+     * Generate a new submission code. Codes are one-time use and have a validity date
+     * @param generateRequestVo with type Available values : UUIDv4, 6-alphanum
+     * @return
+     */
     @GetMapping(value = "/generate")
     ResponseEntity<List<GenerateResponseDto>> generateCode(@Valid @RequestBody GenerateRequestVo generateRequestVo);
 
+    /**
+     * TODO: Remove endpoint if bulk error handling is not made.
+     * @param generateRequestVo
+     * @return
+     */
     @GetMapping(value = "/generate-bulk")
     ResponseEntity<List<GenerateResponseDto>> generateCodeBulk(GenerateRequestVo generateRequestVo);
 

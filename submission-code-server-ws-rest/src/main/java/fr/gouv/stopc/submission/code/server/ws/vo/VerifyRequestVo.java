@@ -1,5 +1,6 @@
 package fr.gouv.stopc.submission.code.server.ws.vo;
 
+import fr.gouv.stopc.submission.code.server.ws.annotations.CodeType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,7 +12,7 @@ import javax.validation.constraints.Size;
 
 
 /**
- * Requests parameters for /verify endpoint
+ * Requests parameters of "/verify" endpoint
  */
 @AllArgsConstructor
 @NoArgsConstructor
@@ -24,10 +25,12 @@ public class VerifyRequestVo {
      */
    @NotNull
    private String code;
+
     /**
      * The type of the provided code
      */
     @NotNull
+    @CodeType
     private String type;
 
 }
