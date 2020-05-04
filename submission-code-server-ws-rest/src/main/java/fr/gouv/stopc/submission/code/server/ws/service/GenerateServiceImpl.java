@@ -19,7 +19,10 @@ import org.springframework.stereotype.Service;
 import javax.activation.UnsupportedDataTypeException;
 import javax.inject.Inject;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -251,6 +254,39 @@ public class GenerateServiceImpl implements IGenerateService {
                         .build()
                 )
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<OffsetDateTime> getValidFromList(int size, OffsetDateTime validFromFirstValue)
+    {
+        final ArrayList<OffsetDateTime> validFromList = new ArrayList<>();
+
+
+        // convert to zulu zoneoffset
+        validFromList.add(validFromFirstValue.withOffsetSameInstant(ZoneOffset.of("Z")));
+
+        final OffsetDateTime nowInParis = OffsetDateTime.now(ZoneId.of("Europe/Paris"));
+        final ZoneOffset offsetInParis = nowInParis.getOffset();
+
+        // assuring validFromFirstValue is OffsetInParis
+        validFromFirstValue = validFromFirstValue.withOffsetSameInstant(offsetInParis);
+
+        for (int i = 1; i < size; i++) {
+            // OffsetDateTime is immutable so it can be copy
+            OffsetDateTime oft = validFromFirstValue;
+
+            // set 00 after day (2020-05-03T23:48:24.830+02:00 -> 2020-05-03T00:00+02:00)
+            oft = oft.truncatedTo(ChronoUnit.DAYS);
+
+            // add incremental day  e.g. : 2020-05-03T00:00+02:00 + (i = 2) -> 2020-05-05T00:00+02:00 + 2
+            oft = oft.plusDays(i);
+
+            // converting to zulu zone offset
+            oft = oft.withOffsetSameInstant(ZoneOffset.of("Z"));
+
+            validFromList.add(oft);
+        }
+        return validFromList;
     }
 
     /**
