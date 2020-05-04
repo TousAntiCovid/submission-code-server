@@ -17,12 +17,12 @@ import java.util.List;
 
 @Slf4j
 @Service
-public class CsvExportImpl  implements ICsvService {
+public class CsvExportServiceImpl implements ICsvService {
     public static final String HEADER_CSV = "Lot, Code, Type, DateEndValidity, DateAvailable \n";
     private ISubmissionCodeService submissionCodeService;
 
     @Inject
-    public CsvExportImpl (ISubmissionCodeService submissionCodeService){
+    public CsvExportServiceImpl(ISubmissionCodeService submissionCodeService){
         this.submissionCodeService = submissionCodeService;
     }
 
@@ -55,6 +55,7 @@ public class CsvExportImpl  implements ICsvService {
         catch (Exception e) {
             e.printStackTrace();
         }finally {
+            fileWriter.flush();
             fileWriter.close();
         }
         return  file;
