@@ -1,5 +1,6 @@
 package fr.gouv.stopc.submission.code.server.ws.controller;
 
+import fr.gouv.stopc.submission.code.server.ws.dto.ViewLotCodeDetailPageDto;
 import fr.gouv.stopc.submission.code.server.ws.dto.ViewLotInformationDto;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -18,5 +19,11 @@ public interface IViewController {
 
     @GetMapping(path="/lots/{lotIdentifier}/information")
     ResponseEntity<ViewLotInformationDto> getLotInformation(@PathVariable long lotIdentifier);
-    
+
+    @GetMapping(path="/lots/{lotIdentifier}/page/{page}/by/{elementByPage}")
+    ResponseEntity<ViewLotCodeDetailPageDto> getCodeValuesForPage(
+            @PathVariable long lotIdentifier,
+            @PathVariable int page,
+            @PathVariable int elementByPage
+    );
 }

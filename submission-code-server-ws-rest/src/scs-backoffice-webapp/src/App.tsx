@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-  BrowserRouter as Router,
-  Switch,
-  Route,
-  Link,
-} from 'react-router-dom';
+import {BrowserRouter as Router, Link, Route, Switch,} from 'react-router-dom';
 import Header from './components/header';
 import MainContainer from "./components/main-container";
 import Home from "./components/home";
