@@ -11,7 +11,7 @@ public interface ISubmissionCodeService {
 
       Iterable<SubmissionCode> saveAllCodes(List<SubmissionCodeDto> submissionCodeDtos);
 
-      SubmissionCode saveCode(SubmissionCodeDto submissionCodeDto);
+      Optional<SubmissionCode> saveCode(SubmissionCodeDto submissionCodeDto);
 
       boolean updateCodeUsed(SubmissionCodeDto submissionCodeDto);
 
@@ -23,4 +23,5 @@ public interface ISubmissionCodeService {
       long nextLot();
 
       List<SubmissionCodeDto> getCodeUUIDv4CodesForCsv(String lot, String type);
+
 }

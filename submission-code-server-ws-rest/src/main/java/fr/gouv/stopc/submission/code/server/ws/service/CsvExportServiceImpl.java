@@ -10,9 +10,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
-import java.io.File;
-import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 
 @Slf4j
@@ -28,17 +29,13 @@ public class CsvExportServiceImpl implements ICsvService {
 
 
     @Override
-    public File csvExport(String lots) {
+    public Optional<StringWriter> csvExport(String lots) {
         List<SubmissionCodeDto> submissionCodeDtos = submissionCodeService.getCodeUUIDv4CodesForCsv(lots, CodeTypeEnum.UUIDv4.getTypeCode());
-        if (submissionCodeDtos.isEmpty()){
-            return null;
+        if (Objects.isNull(submissionCodeDtos) || submissionCodeDtos.isEmpty()){
+            return Optional.empty();
         }
-        PrintWriter fileWriter = null;
-        File file= null;
+        StringWriter fileWriter = new StringWriter();
         try {
-            final String csvFile = "lot"+lots+".csv";
-            file= new File(csvFile);
-            fileWriter = new PrintWriter(file);
             fileWriter.append(HEADER_CSV);
             ColumnPositionMappingStrategy mappingStrategy = new ColumnPositionMappingStrategy();
             mappingStrategy.setType(SubmissionCodeDto.class);
@@ -53,11 +50,8 @@ public class CsvExportServiceImpl implements ICsvService {
 
         }
         catch (Exception e) {
-            e.printStackTrace();
-        }finally {
-            fileWriter.flush();
-            fileWriter.close();
+            log.info("Problem create CSV");
         }
-        return  file;
+        return  Optional.of(fileWriter);
     }
 }
