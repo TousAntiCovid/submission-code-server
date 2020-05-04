@@ -1,5 +1,6 @@
 package fr.gouv.stopc.submission.code.server.ws.controller.impl;
 
+import fr.gouv.stopc.submission.code.server.ws.controller.ICsvController;
 import fr.gouv.stopc.submission.code.server.ws.service.ICsvService;
 import fr.gouv.stopc.submission.code.server.ws.vo.RequestCsvVo;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +16,7 @@ import java.io.File;
 
 @Service
 @Slf4j
-public class CsvControllerImpl {
+public class CsvControllerImpl implements ICsvController {
     private ICsvService csvService;
 
     @Inject
@@ -24,14 +25,14 @@ public class CsvControllerImpl {
     }
 
 
-    public ResponseEntity readCsvbyLots(RequestCsvVo requestCsvVo) {
+    public ResponseEntity readCsvByLot(RequestCsvVo requestCsvVo) {
         try {
             File file = csvService.csvExport(requestCsvVo.getLot());
             if (file == null) {
                 String message = "The lot is not exist";
                 return ResponseEntity.badRequest().body(message);
             }
-            String csvName = "test";
+            String csvName = file.getName();
             return ResponseEntity.ok().header("Content-Disposition", "attachment; filename=" + csvName + ".csv").contentLength(file.length())
                     .contentType(MediaType.parseMediaType("text/csv")).body(new FileSystemResource(file));
         } catch (Exception ex) {

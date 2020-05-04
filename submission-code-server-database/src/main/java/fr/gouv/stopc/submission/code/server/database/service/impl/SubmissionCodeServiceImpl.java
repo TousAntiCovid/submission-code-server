@@ -90,7 +90,7 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
 
     @Override
     public List<SubmissionCodeDto> getCodeUUIDv4CodesForCsv(String lot, String type) {
-        List<SubmissionCode> submissionCodes = submissionCodeRepository.findAllByLotAndTypeEquals(lot, type);
+        List<SubmissionCode> submissionCodes = submissionCodeRepository.findAllByLotAndTypeEquals(Long.parseLong(lot), type);
         if (submissionCodes.isEmpty()){
             return null;
         }
