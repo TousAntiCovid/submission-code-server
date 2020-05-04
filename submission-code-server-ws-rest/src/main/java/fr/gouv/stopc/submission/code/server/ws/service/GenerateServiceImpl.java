@@ -49,10 +49,10 @@ public class GenerateServiceImpl implements IGenerateService {
     private long NUMBER_OF_TRY_IN_CASE_OF_ERROR;
 
     /**
-     * Interval in minutes of the validity of an UUIDv4 code
+     * Interval in days of the validity of an UUIDv4 code
      * it is set in application.properties file
      */
-    @Value("${generation.code.uuid.validity.minutes}")
+    @Value("${generation.code.uuid.validity.days}")
     private long TIME_VALIDITY_UUID;
 
     /**
@@ -302,23 +302,49 @@ public class GenerateServiceImpl implements IGenerateService {
     /**
      * Method gives the validUntil date of UUIDv4 code from the date given in parameter.
      * It calculates the validity end date of the code using value set in application.properties and inject by Spring. {@link #TIME_VALIDITY_UUID}
+     * The ValidUntil should be hh:mm formatted as 23:59 in paris.
      * @param validFrom the OffsetDateTime start validity applied to calculate end of UUIDv4 code validity
-     * @return OffsetDateTime corresponding to the "validFrom" plus minutes in {@link #TIME_VALIDITY_UUID}
+     * @return OffsetDateTime corresponding to the "validFrom" plus days in {@link #TIME_VALIDITY_UUID} at Zulu Offset
      */
     private OffsetDateTime getValidityDateUUIDCode(OffsetDateTime validFrom)
     {
-        return validFrom.plusMinutes(TIME_VALIDITY_UUID);
+        // ensuring that validFrom is based
+        validFrom =  validFrom.withOffsetSameInstant(this.getParisOffset());
+        return validFrom
+                .withOffsetSameInstant(this.getParisOffset())
+                .plusDays(TIME_VALIDITY_UUID + 1)
+                .truncatedTo(ChronoUnit.DAYS)
+                .minusMinutes(1)
+                .withOffsetSameInstant(this.getZuluOffset());
     }
+
+    /**
+     * @return return current offset of paris
+     */
+    private ZoneOffset getParisOffset() {
+        return OffsetDateTime.now(ZoneId.of("Europe/Paris")).getOffset();
+    }
+
+    /**
+     * @return return current offset of zulu
+     */
+    private ZoneOffset getZuluOffset() {
+        return ZoneOffset.of("Z");
+    }
+
 
     /**
      * Method gives the validUntil date of 6-alphanum code from the date given in parameter.
      * It calculates the validity end date of the code using value set in application.properties and inject by Spring. {@link #TIME_VALIDITY_ALPHANUM}
      * @param validFrom the OffsetDateTime start validity applied to calculate end of 6-alphanum code validity
-     * @return OffsetDateTime corresponding to the "validFrom" plus minutes in {@link #TIME_VALIDITY_ALPHANUM}
+     * @return OffsetDateTime corresponding to the "validFrom" plus minutes in {@link #TIME_VALIDITY_ALPHANUM} at Zulu Offset
      */
     private OffsetDateTime getValidityDateAlphaNum6(OffsetDateTime validFrom)
     {
-        return validFrom.plusMinutes(TIME_VALIDITY_ALPHANUM);
+        return validFrom
+                .plusMinutes(TIME_VALIDITY_ALPHANUM)
+                .truncatedTo(ChronoUnit.MINUTES)
+                .withOffsetSameInstant(this.getZuluOffset());
     }
 
 }
