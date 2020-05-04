@@ -7,9 +7,11 @@ import fr.gouv.stopc.submission.code.server.database.entity.SubmissionCode;
 import fr.gouv.stopc.submission.code.server.database.service.ISubmissionCodeService;
 import fr.gouv.stopc.submission.code.server.ws.dto.GenerateResponseDto;
 import fr.gouv.stopc.submission.code.server.ws.enums.CodeTypeEnum;
+import fr.gouv.stopc.submission.code.server.ws.errors.NumberOfTryGenerateCodeExceededExcetion;
 import fr.gouv.stopc.submission.code.server.ws.vo.GenerateRequestVo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.IterableUtils;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -76,6 +78,7 @@ public class GenerateServiceImpl implements IGenerateService {
 
     @Override
     public List<GenerateResponseDto> generateUUIDv4Codes(long size)
+            throws NumberOfTryGenerateCodeExceededExcetion
     {
         //TODO: Verify that code don't exist in DB before returning
         return this.generateCodeGeneric(size, CodeTypeEnum.UUIDv4);
@@ -83,6 +86,7 @@ public class GenerateServiceImpl implements IGenerateService {
 
     @Override
     public List<GenerateResponseDto> generateAlphaNumericCode()
+            throws NumberOfTryGenerateCodeExceededExcetion
     {
         //TODO: Verify that code don't exist in DB before returning
         return this.generateCodeGeneric(1, CodeTypeEnum.ALPHANUM_6);
@@ -90,10 +94,10 @@ public class GenerateServiceImpl implements IGenerateService {
 
     @Override
     public List<GenerateResponseDto> generateCodeFromRequest(GenerateRequestVo generateRequestVo)
-            throws UnsupportedDataTypeException
+            throws UnsupportedDataTypeException,
+            NumberOfTryGenerateCodeExceededExcetion
     {
-        if(generateRequestVo == null || generateRequestVo.getType() == null) {
-            //TODO unsupportedError
+        if(generateRequestVo == null || Strings.isBlank(generateRequestVo.getType())) {
             throw new UnsupportedDataTypeException();
 
         } else if (CodeTypeEnum.UUIDv4.equals(generateRequestVo.getType())) {
@@ -101,15 +105,16 @@ public class GenerateServiceImpl implements IGenerateService {
             return this.generateUUIDv4Codes(NUMBER_OF_UUIDv4_PER_CALL);
 
         } else if (CodeTypeEnum.ALPHANUM_6.equals(generateRequestVo.getType())) {
+
             return this.generateAlphaNumericCode();
         }
-        //TODO unsupportedError
         throw new UnsupportedDataTypeException();
     }
 
     @Override
     public List<GenerateResponseDto> generateCodeGeneric(final long size,
                                                          final CodeTypeEnum cte)
+            throws NumberOfTryGenerateCodeExceededExcetion
     {
         long lot = 0;
         if(CodeTypeEnum.UUIDv4.equals(cte)) lot = this.submissionCodeService.nextLot();
@@ -120,6 +125,7 @@ public class GenerateServiceImpl implements IGenerateService {
     public List<GenerateResponseDto> generateCodeGeneric(final long size,
                                                          final CodeTypeEnum cte,
                                                          final long lot)
+            throws NumberOfTryGenerateCodeExceededExcetion
     {
         return generateCodeGeneric(size, cte, OffsetDateTime.now(), lot);
     }
@@ -128,6 +134,7 @@ public class GenerateServiceImpl implements IGenerateService {
     public List<GenerateResponseDto> generateCodeGeneric(final long size,
                                                          final CodeTypeEnum cte,
                                                          final OffsetDateTime validFrom)
+            throws NumberOfTryGenerateCodeExceededExcetion
     {
         return generateCodeGeneric(size, cte, validFrom, this.submissionCodeService.nextLot());
     }
@@ -137,6 +144,7 @@ public class GenerateServiceImpl implements IGenerateService {
                                                          final CodeTypeEnum cte,
                                                          final OffsetDateTime validFrom,
                                                          final long lot)
+            throws NumberOfTryGenerateCodeExceededExcetion
     {
         final ArrayList<GenerateResponseDto> generateResponseList = new ArrayList<>();
 
@@ -147,7 +155,7 @@ public class GenerateServiceImpl implements IGenerateService {
         OffsetDateTime validUntil;
         OffsetDateTime validGenDate= OffsetDateTime.now();
 
-        for (int i = 0; i < size && failCount <= NUMBER_OF_TRY_IN_CASE_OF_ERROR; ) {
+        for (int i = 0; i < size && failCount <= NUMBER_OF_TRY_IN_CASE_OF_ERROR + 1; ) {
             String code;
 
             if(CodeTypeEnum.UUIDv4.equals(cte)) {
@@ -159,6 +167,8 @@ public class GenerateServiceImpl implements IGenerateService {
             } else {
                 return generateResponseList;
             }
+
+            log.info("generating code {}", code);
 
             SubmissionCodeDto submissionCodeDto = SubmissionCodeDto.builder()
                     .code(code)
@@ -181,14 +191,17 @@ public class GenerateServiceImpl implements IGenerateService {
                         .build()
                 );
                 i++;
-                failCount = 0;
+                failCount = 1;
             } catch (DataIntegrityViolationException divException) {
-                // TODO: caught dedicated error here.
-                // TODO: Handle only not unique error here.
                 log.error("code generated is not unique try  -> {}/{}", failCount, NUMBER_OF_TRY_IN_CASE_OF_ERROR);
                 failCount++;
             }
+            // In case of tries of generating code were exceeded an error should be raised.
+            log.info("20200305 -- failCount {}", failCount);
+            if(failCount > 1 ) throw new NumberOfTryGenerateCodeExceededExcetion();
         }
+
+
         return generateResponseList;
     }
 
