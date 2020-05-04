@@ -2,6 +2,7 @@ package fr.gouv.stopc.submission.code.server.ws.controller.impl;
 
 import fr.gouv.stopc.submission.code.server.ws.controller.IGenerateController;
 import fr.gouv.stopc.submission.code.server.ws.dto.GenerateResponseDto;
+import fr.gouv.stopc.submission.code.server.ws.errors.NumberOfTryGenerateCodeExceededExcetion;
 import fr.gouv.stopc.submission.code.server.ws.service.IGenerateService;
 import fr.gouv.stopc.submission.code.server.ws.vo.GenerateRequestVo;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +33,7 @@ public class GenerateControllerImpl implements IGenerateController {
 			log.info("Trying to generate code with sequential method for {}", generateRequestVo);
 			return ResponseEntity.ok(this.generateService.generateCodeFromRequest(generateRequestVo));
 
-		} catch (UnsupportedDataTypeException e) {
+		} catch (UnsupportedDataTypeException | NumberOfTryGenerateCodeExceededExcetion e) {
 
 			log.error("Unprocessable data trying generating code {} \n {}", generateRequestVo, e);
 			//TODO: define strategy in case of the method is failing.
