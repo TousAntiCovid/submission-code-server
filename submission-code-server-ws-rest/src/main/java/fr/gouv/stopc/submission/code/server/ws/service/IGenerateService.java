@@ -108,5 +108,11 @@ public interface IGenerateService {
      */
     List<GenerateResponseDto> generateUUIDv4CodesBulk(final OffsetDateTime validFrom, final long lot);
 
-
+    /**
+     * Method return List of OffsetDateTime increment by day and truncate to day
+     * @param size give size of the list to be returned included validFromFirstValue
+     * @param validFromFirstValue seed time from the list should be generated from.
+     * @return List of OffsetDateTime increment by day and truncate to day.
+     */
+     List<OffsetDateTime> getValidFromList(int size, OffsetDateTime validFromFirstValue);
 }
