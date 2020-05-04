@@ -9,7 +9,6 @@ import fr.gouv.stopc.submission.code.server.ws.errors.NumberOfTryGenerateCodeExc
 import fr.gouv.stopc.submission.code.server.ws.service.GenerateServiceImpl;
 import fr.gouv.stopc.submission.code.server.ws.vo.GenerateRequestVo;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.logging.log4j.util.Strings;
 import org.junit.Before;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
@@ -21,11 +20,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import javax.activation.UnsupportedDataTypeException;
-import java.time.OffsetDateTime;
-import java.util.HashMap;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static fr.gouv.stopc.submission.code.server.ws.service.generateservice.GenerateServiceTestHelper.assertingALPHANUM6Code;
 import static fr.gouv.stopc.submission.code.server.ws.service.generateservice.GenerateServiceTestHelper.assertingUUIDv4Code;

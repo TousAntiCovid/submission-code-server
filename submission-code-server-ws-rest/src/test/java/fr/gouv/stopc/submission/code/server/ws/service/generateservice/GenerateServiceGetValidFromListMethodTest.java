@@ -1,5 +1,6 @@
-package fr.gouv.stopc.submission.code.server.ws.service;
+package fr.gouv.stopc.submission.code.server.ws.service.generateservice;
 
+import fr.gouv.stopc.submission.code.server.ws.service.GenerateServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 
@@ -11,7 +12,7 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 
 @Slf4j
-public class GenerateServiceValidFromTest {
+public class GenerateServiceGetValidFromListMethodTest {
 
 
     /**

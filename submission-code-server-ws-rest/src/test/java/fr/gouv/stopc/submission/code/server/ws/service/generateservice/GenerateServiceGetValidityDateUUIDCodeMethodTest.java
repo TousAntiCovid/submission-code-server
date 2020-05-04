@@ -1,8 +1,9 @@
-package fr.gouv.stopc.submission.code.server.ws.service;
+package fr.gouv.stopc.submission.code.server.ws.service.generateservice;
 
 import fr.gouv.stopc.submission.code.server.ws.dto.GenerateResponseDto;
 import fr.gouv.stopc.submission.code.server.ws.enums.CodeTypeEnum;
 import fr.gouv.stopc.submission.code.server.ws.errors.NumberOfTryGenerateCodeExceededExcetion;
+import fr.gouv.stopc.submission.code.server.ws.service.GenerateServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +21,7 @@ import static org.junit.Assert.assertFalse;
 
 @Slf4j
 @SpringBootTest
-public class GenerateServiceValidUntilTest {
+public class GenerateServiceGetValidityDateUUIDCodeMethodTest {
 
 
     /**
@@ -30,7 +31,7 @@ public class GenerateServiceValidUntilTest {
     private GenerateServiceImpl gsi;
 
     @Test
-    void getValidityDateUUIDCodeTest0001() throws NumberOfTryGenerateCodeExceededExcetion {
+    void checkValidUntilFormatTest() throws NumberOfTryGenerateCodeExceededExcetion {
 
         final long validityDays = 10;
         ReflectionTestUtils.setField(this.gsi, "TIME_VALIDITY_UUID", validityDays);
