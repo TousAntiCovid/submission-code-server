@@ -4,13 +4,11 @@ import fr.gouv.stopc.submission.code.server.ws.dto.ViewLotCodeDetailPageDto;
 import fr.gouv.stopc.submission.code.server.ws.dto.ViewLotInformationDto;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.ws.rs.Produces;
 
+@CrossOrigin
 @RestController
 @RequestMapping(value = "${controller.path.prefix}/views")
 @Produces(MediaType.APPLICATION_JSON_VALUE)

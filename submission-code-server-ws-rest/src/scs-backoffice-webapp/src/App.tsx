@@ -5,8 +5,11 @@ import MainContainer from "./components/main-container";
 import Home from "./components/home";
 import About from "./components/about";
 import Topics from "./components/topics";
+/* The following line can be included in your src/index.js or App.js file */
+import './style/App.scss';
 
 export default function App() {
+
   return (
       <Router>
         <Header>
@@ -39,7 +42,6 @@ export default function App() {
             <Route path="/">
               <Home />
             </Route>
-
           </Switch>
         </MainContainer>
 
