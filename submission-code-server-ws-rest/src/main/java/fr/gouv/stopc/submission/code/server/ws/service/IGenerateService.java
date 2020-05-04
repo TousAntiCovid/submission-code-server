@@ -2,6 +2,7 @@ package fr.gouv.stopc.submission.code.server.ws.service;
 
 import fr.gouv.stopc.submission.code.server.ws.dto.GenerateResponseDto;
 import fr.gouv.stopc.submission.code.server.ws.enums.CodeTypeEnum;
+import fr.gouv.stopc.submission.code.server.ws.errors.NumberOfTryGenerateCodeExceededExcetion;
 import fr.gouv.stopc.submission.code.server.ws.vo.GenerateRequestVo;
 
 import javax.activation.UnsupportedDataTypeException;
@@ -12,12 +13,12 @@ public interface IGenerateService {
     /**
      * @return UUIDv4 code certified unique in DB
      */
-    List<GenerateResponseDto> generateUUIDv4Codes(final long size);
+    List<GenerateResponseDto> generateUUIDv4Codes(final long size) throws NumberOfTryGenerateCodeExceededExcetion;
 
     /**
      * @return alphanum-6 code certified unique in DB
      */
-    List<GenerateResponseDto> generateAlphaNumericCode();
+    List<GenerateResponseDto> generateAlphaNumericCode() throws NumberOfTryGenerateCodeExceededExcetion;
 
     /**
      * Method calls {@link #generateAlphaNumericCode()} if #TypeEnum.ALPHANUM_6
@@ -26,7 +27,7 @@ public interface IGenerateService {
      * @return return a list of codes depending of the generateRequestVo given in parameter.
      * @throws UnsupportedDataTypeException in case of the GeneratedRequestVo is not processable.
      */
-    List<GenerateResponseDto> generateCodeFromRequest(final GenerateRequestVo generateRequestVo) throws UnsupportedDataTypeException;
+    List<GenerateResponseDto> generateCodeFromRequest(final GenerateRequestVo generateRequestVo) throws UnsupportedDataTypeException, NumberOfTryGenerateCodeExceededExcetion;
 
     /**
      * Method used to sequentially generate codes of codeType in parameter
@@ -39,7 +40,7 @@ public interface IGenerateService {
      */
     List<GenerateResponseDto> generateCodeGeneric(final long size,
                                                   final CodeTypeEnum cte
-    );
+    ) throws NumberOfTryGenerateCodeExceededExcetion;
 
 
     /**
@@ -54,7 +55,7 @@ public interface IGenerateService {
     List<GenerateResponseDto> generateCodeGeneric(final long size,
                                                   final CodeTypeEnum cte,
                                                   final long lot
-    );
+    ) throws NumberOfTryGenerateCodeExceededExcetion;
 
     /**
      * Method used to sequentially generate codes of codeType in parameter
@@ -68,7 +69,7 @@ public interface IGenerateService {
     List<GenerateResponseDto> generateCodeGeneric(final long size,
                                                   final CodeTypeEnum cte,
                                                   final OffsetDateTime validFrom
-    );
+    ) throws NumberOfTryGenerateCodeExceededExcetion;
 
     /**
      * Method used to sequentially generate codes of codeType in parameter
@@ -82,7 +83,7 @@ public interface IGenerateService {
                                                   final CodeTypeEnum cte,
                                                   final OffsetDateTime validFrom,
                                                   final long lot
-    );
+    ) throws NumberOfTryGenerateCodeExceededExcetion;
 
     /**
      * Method calling {@link #generateUUIDv4CodesBulk(OffsetDateTime)} with validForm parameter as actual date called in method.
@@ -107,5 +108,11 @@ public interface IGenerateService {
      */
     List<GenerateResponseDto> generateUUIDv4CodesBulk(final OffsetDateTime validFrom, final long lot);
 
-
+    /**
+     * Method return List of OffsetDateTime increment by day and truncate to day
+     * @param size give size of the list to be returned included validFromFirstValue
+     * @param validFromFirstValue seed time from the list should be generated from.
+     * @return List of OffsetDateTime increment by day and truncate to day.
+     */
+     List<OffsetDateTime> getValidFromList(int size, OffsetDateTime validFromFirstValue);
 }

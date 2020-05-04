@@ -12,14 +12,14 @@ import java.util.stream.Collectors;
 @Service
 public class AlphaNumericCodeServiceImpl implements IAlphaNumericCodeService {
 
-    private static final String ALPHA_LOWER_CASE = "abcdefghijklmnopqrstuvwxyz";
+    private static final String ALPHA_UPPER_CASE = "abcdefghijklmnopqrstuvwxyz".toUpperCase();
     private static final String NUMERIC= "0123456789";
     private static final Integer CODE_SIZE = 6;
 
     private static final List<Character> ALPHA_NUMERIC_CHAR_ARRAY = String
             .format(
                     "%s%s",
-                    ALPHA_LOWER_CASE,
+                    ALPHA_UPPER_CASE,
                     NUMERIC)
             .chars()
             .mapToObj(c -> (char) c)
