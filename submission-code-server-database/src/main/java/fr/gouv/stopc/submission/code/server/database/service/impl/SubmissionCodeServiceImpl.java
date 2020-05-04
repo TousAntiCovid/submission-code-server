@@ -92,4 +92,9 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
     public long nextLot() {
         return this.lastLot() +1;
     }
+
+    @Override
+    public long getNumberOfCodesForLotIdentifier(long lotIdentifier) {
+        return this.submissionCodeRepository.countSubmissionCodeByLot(lotIdentifier);
+    }
 }

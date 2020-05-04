@@ -28,4 +28,11 @@ public interface ISubmissionCodeService {
        * @return next lot.
        */
       long nextLot();
+
+      /**
+       * Return number of code for the given lot identifier.
+        * @param lotIdentifier lot identifier in db
+       * @return return number of code with the given lot identifier
+       */
+    long getNumberOfCodesForLotIdentifier(long lotIdentifier);
 }

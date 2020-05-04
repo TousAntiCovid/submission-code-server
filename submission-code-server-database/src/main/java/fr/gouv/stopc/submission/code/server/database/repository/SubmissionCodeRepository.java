@@ -13,5 +13,7 @@ public interface SubmissionCodeRepository extends CrudRepository<SubmissionCode,
 
      @Query(value = "SELECT max(lot) FROM SubmissionCode ")
      String lastLot();
+
+     long countSubmissionCodeByLot(long lotIdentifier);
      
 }
