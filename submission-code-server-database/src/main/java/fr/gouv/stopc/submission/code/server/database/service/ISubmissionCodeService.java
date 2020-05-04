@@ -16,16 +16,11 @@ public interface ISubmissionCodeService {
       boolean updateCodeUsed(SubmissionCodeDto submissionCodeDto);
 
       long lastLot();
-
-      /**
-       * get all the codes that have been generated previously
-       * @return list of codes not uses in bd
-       */
-      List<SubmissionCode> getAvailableUUIDv4Codes();
-
       /**
        * Method calls lastLot and add 1 to give the next one available.
        * @return next lot.
        */
       long nextLot();
+
+      List<SubmissionCodeDto> getCodeUUIDv4CodesForCsv(String lot, String type);
 }
