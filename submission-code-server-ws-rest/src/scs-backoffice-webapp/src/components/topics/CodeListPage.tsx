@@ -4,15 +4,16 @@ import CodeTable from "./sub-component/codetable";
 
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
+import Table from "../table";
 
 
-export default function Topics()  {
+export default function CodeListPage()  {
     const match = useRouteMatch();
     let history = useHistory();
     const [lotIdentifier, setLotIdentifier] = useState("");
 
     return <div>
-        <h2>Topics</h2>
+        <h2>CODES</h2>
 
         <Form >
             <Form.Group>
@@ -30,7 +31,7 @@ export default function Topics()  {
 
         <Switch>
             <Route path={`${match.path}/:lotIdentifier`}>
-                <CodeTable/>
+                <Table/>
             </Route>
             <Route path={match.path}>
                 <h3>Please select a topic.</h3>

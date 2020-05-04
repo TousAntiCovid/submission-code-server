@@ -1,3 +1,3 @@
-import Topics from './Topics';
+import CodeListPage from './CodeListPage';
 
-export default Topics;
+export default CodeListPage;
