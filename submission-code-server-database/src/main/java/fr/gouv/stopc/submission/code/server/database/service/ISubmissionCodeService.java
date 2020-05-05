@@ -23,7 +23,6 @@ public interface ISubmissionCodeService {
        */
       long nextLot();
 
-<<<<<<< submission-code-server-database/src/main/java/fr/gouv/stopc/submission/code/server/database/service/ISubmissionCodeService.java
       /**
        * Return number of code for the given lot identifier.
         * @param lotIdentifier lot identifier in db
@@ -39,7 +38,5 @@ public interface ISubmissionCodeService {
        * @return list of code page row "page" elementsByPage rows "elementsByPage" e.g. : page = 10 and elementsByPage = 12 , size list is 3 and has only row 10, 11, 12
        */
       Page<SubmissionCode> getSubmissionCodesFor(long lotIdentifier, int page, int elementsByPage);
-=======
       List<SubmissionCodeDto> getCodeUUIDv4CodesForCsv(String lot, String type);
->>>>>>> submission-code-server-database/src/main/java/fr/gouv/stopc/submission/code/server/database/service/ISubmissionCodeService.java
 }
