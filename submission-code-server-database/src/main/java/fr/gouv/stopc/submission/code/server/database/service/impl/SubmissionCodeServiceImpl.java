@@ -6,6 +6,8 @@ import fr.gouv.stopc.submission.code.server.database.repository.SubmissionCodeRe
 import fr.gouv.stopc.submission.code.server.database.service.ISubmissionCodeService;
 import org.apache.logging.log4j.util.Strings;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -98,5 +100,18 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
         }
         ModelMapper modelMapper = new ModelMapper();
         return submissionCodes.stream().map(tmp->modelMapper.map(tmp, SubmissionCodeDto.class)).collect(Collectors.toList());
+    }
+
+    @Override
+    public long getNumberOfCodesForLotIdentifier(long lotIdentifier) {
+        return this.submissionCodeRepository.countSubmissionCodeByLot(lotIdentifier);
+    }
+
+    @Override
+    public Page<SubmissionCode> getSubmissionCodesFor(long lotIdentifier, int page, int elementsByPage) {
+        return this.submissionCodeRepository
+                .findAllByLot(lotIdentifier, PageRequest.of(page, elementsByPage));
+
+
     }
 }
