@@ -1,50 +1,65 @@
 import React from 'react';
-import {BrowserRouter as Router, Link, Route, Switch,} from 'react-router-dom';
+import {BrowserRouter as Router, Link, Route, Switch} from 'react-router-dom';
 import Header from './components/header';
-import MainContainer from "./components/main-container";
-import Home from "./components/home";
-import About from "./components/about";
-import CodeListPage from "./components/topics";
+import MainContainer from './components/main-container';
+import Home from './components/home';
+import About from './components/about';
+import SearchCodePage from './components/search-codes-page';
 /* The following line can be included in your src/index.js or App.js file */
-import './style/App.scss';
-import Table from "./components/table";
+import './styles/app.sass';
+import {Nav, Navbar} from 'react-bootstrap';
 
 export default function App() {
+  return (
+    <div style={{height: '100vh', width: '100vw'}}>
+      <Router>
+        <Header>
+          <Navbar
+            variant="dark"
+            bg="dark"
+            expand="lg"
+          >
+            <Navbar.Brand href="/">Submission Code Server</Navbar.Brand>
 
-    return (
-        <Router>
-            <Header>
-                <div>
-                    <ul>
-                        <li>
-                            <Link to="/">Home</Link>
-                        </li>
-                        <li>
-                            <Link to="/about">About</Link>
-                        </li>
-                        <li>
-                            <Link to="/codes">Codes</Link>
-                        </li>
-                    </ul>
-                </div>
-            </Header>
+            <Navbar.Toggle
+              aria-controls="basic-navbar-nav"
+            />
 
-            <MainContainer>
-                <Switch>
-                    <Route path="/about">
-                        <About/>
-                    </Route>
+            <Navbar.Collapse id="basic-navbar-nav">
+              <Nav className="mr-auto">
+                <Nav.Link>
+                  <Link to="/">Home</Link>
+                </Nav.Link>
+                <Nav.Link>
+                  <Link to="/codes">Codes</Link>
+                </Nav.Link>
+                <Nav.Link>
+                  <Link to="/about">About</Link>
+                </Nav.Link>
+              </Nav>
+            </Navbar.Collapse>
 
-                    <Route path="/codes">
-                        <CodeListPage/>
-                    </Route>
+          </Navbar>
+        </Header>
 
-                    <Route path="/">
-                        <Home />
-                    </Route>
-                </Switch>
-            </MainContainer>
+        <MainContainer>
+          <Switch>
+            <Route path="/about">
+              <About/>
+            </Route>
 
-        </Router>
-    );
+            <Route path="/codes">
+              <SearchCodePage/>
+            </Route>
+
+            <Route path="/">
+              <Home />
+            </Route>
+          </Switch>
+        </MainContainer>
+
+      </Router>
+    </div>
+
+  );
 }

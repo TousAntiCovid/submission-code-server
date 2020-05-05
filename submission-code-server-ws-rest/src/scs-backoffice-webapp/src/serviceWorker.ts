@@ -1,4 +1,4 @@
-    // This optional code is used to register a service worker.
+// This optional code is used to register a service worker.
 // register() is not called by default.
 
 // This lets the app load faster on subsequent visits in production, and gives
@@ -29,7 +29,7 @@ export function register(config?: Config) {
   if (process.env.NODE_ENV === 'production' && 'serviceWorker' in navigator) {
     // The URL constructor is available in all browsers that support SW.
     const publicUrl = new URL(
-        process.env.PUBLIC_URL || "",
+        process.env.PUBLIC_URL || '',
         window.location.href,
     );
     if (publicUrl.origin !== window.location.origin) {
