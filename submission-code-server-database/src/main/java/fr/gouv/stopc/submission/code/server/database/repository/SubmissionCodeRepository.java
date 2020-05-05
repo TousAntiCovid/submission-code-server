@@ -13,7 +13,7 @@ import java.util.List;
 public interface SubmissionCodeRepository extends PagingAndSortingRepository<SubmissionCode, Long> {
      SubmissionCode findByCodeAndType(String code, String type);
 
-     List<SubmissionCode> findAllByLotNullAndTypeEquals(String type);
+     List<SubmissionCode> findAllByLotAndTypeEquals(long lot, String type);
 
      @Query(value = "SELECT max(lot) FROM SubmissionCode ")
      String lastLot();

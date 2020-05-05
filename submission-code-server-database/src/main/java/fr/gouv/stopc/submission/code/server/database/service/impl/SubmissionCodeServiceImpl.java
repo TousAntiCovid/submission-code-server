@@ -86,13 +86,18 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
     }
 
     @Override
-    public List<SubmissionCode> getAvailableUUIDv4Codes() {
-        return this.submissionCodeRepository.findAllByLotNullAndTypeEquals("1");
+    public long nextLot() {
+        return this.lastLot() +1;
     }
 
     @Override
-    public long nextLot() {
-        return this.lastLot() +1;
+    public List<SubmissionCodeDto> getCodeUUIDv4CodesForCsv(String lot, String type) {
+        List<SubmissionCode> submissionCodes = submissionCodeRepository.findAllByLotAndTypeEquals(Long.parseLong(lot), type);
+        if (submissionCodes.isEmpty()){
+            return null;
+        }
+        ModelMapper modelMapper = new ModelMapper();
+        return submissionCodes.stream().map(tmp->modelMapper.map(tmp, SubmissionCodeDto.class)).collect(Collectors.toList());
     }
 
     @Override
