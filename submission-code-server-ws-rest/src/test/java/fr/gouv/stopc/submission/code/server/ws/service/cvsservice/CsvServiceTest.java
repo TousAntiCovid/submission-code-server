@@ -1,7 +1,6 @@
 package fr.gouv.stopc.submission.code.server.ws.service.cvsservice;
 
 import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
-import fr.gouv.stopc.submission.code.server.database.entity.SubmissionCode;
 import fr.gouv.stopc.submission.code.server.database.service.ISubmissionCodeService;
 import fr.gouv.stopc.submission.code.server.ws.enums.CodeTypeEnum;
 import fr.gouv.stopc.submission.code.server.ws.service.CsvExportServiceImpl;
@@ -13,13 +12,11 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.modelmapper.internal.util.Assert;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
+import java.io.*;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @RunWith(MockitoJUnitRunner.class)
@@ -34,8 +31,8 @@ public class CsvServiceTest {
         String lot="1";
         Mockito.when(submissionCodeServiceMock.getCodeUUIDv4CodesForCsv(lot,type)).thenReturn(new ArrayList<>());
         CsvExportServiceImpl csvExportService = new CsvExportServiceImpl(submissionCodeServiceMock);
-        File file = csvExportService.csvExport(lot);
-        Assert.isNull(file);
+        Optional<StringWriter> result = csvExportService.csvExport(lot);
+        Assert.isTrue(!result.isPresent());
 
     }
     @Test
@@ -46,9 +43,8 @@ public class CsvServiceTest {
         codesTest= init(codesTest);
         Mockito.when(submissionCodeServiceMock.getCodeUUIDv4CodesForCsv(lot,type)).thenReturn(codesTest);
         CsvExportServiceImpl csvExportService = new CsvExportServiceImpl(submissionCodeServiceMock);
-        File file = csvExportService.csvExport(lot);
-        Assert.notNull(file.getName());
-        Assert.notNull(file.length());
+        Optional<StringWriter> result = csvExportService.csvExport(lot);
+        Assert.isTrue(result.isPresent());
 
 
     }

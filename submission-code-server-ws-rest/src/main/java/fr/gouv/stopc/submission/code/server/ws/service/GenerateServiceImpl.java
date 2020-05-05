@@ -184,7 +184,7 @@ public class GenerateServiceImpl implements IGenerateService {
                     .build();
 
             try {
-                final SubmissionCode sc = this.submissionCodeService.saveCode(submissionCodeDto);
+                final SubmissionCode sc = this.submissionCodeService.saveCode(submissionCodeDto).get();
                 generateResponseList.add(GenerateResponseDto.builder()
                         .code(sc.getCode())
                         .typeAsString(cte.getType())

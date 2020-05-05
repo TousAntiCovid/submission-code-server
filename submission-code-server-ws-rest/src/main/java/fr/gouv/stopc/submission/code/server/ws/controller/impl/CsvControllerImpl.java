@@ -13,6 +13,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.StringWriter;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -27,14 +30,18 @@ public class CsvControllerImpl implements ICsvController {
 
     public ResponseEntity readCsvByLot(RequestCsvVo requestCsvVo) {
         try {
-            File file = csvService.csvExport(requestCsvVo.getLot());
-            if (file == null) {
+            Optional<StringWriter> fileOptional = csvService.csvExport(requestCsvVo.getLot());
+            if (!fileOptional.isPresent()) {
                 String message = "The lot is not exist";
                 return ResponseEntity.badRequest().body(message);
             }
-            String csvName = file.getName();
-            return ResponseEntity.ok().header("Content-Disposition", "attachment; filename=" + csvName + ".csv").contentLength(file.length())
-                    .contentType(MediaType.parseMediaType("text/csv")).body(new FileSystemResource(file));
+
+            String csvName = "lot"+requestCsvVo.getLot()+".csv";
+            StringWriter file=fileOptional.get();
+            byte[] bytesArray = file.toString().getBytes("UTF-8");
+
+            return ResponseEntity.ok().header("Content-Disposition", "attachment; filename=" + csvName).contentLength(bytesArray.length)
+                    .contentType(MediaType.parseMediaType("text/csv")).body(bytesArray);
         } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to generate report");
         }

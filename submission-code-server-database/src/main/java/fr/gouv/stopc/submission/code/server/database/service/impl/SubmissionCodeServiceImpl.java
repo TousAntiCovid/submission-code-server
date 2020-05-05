@@ -7,9 +7,11 @@ import fr.gouv.stopc.submission.code.server.database.service.ISubmissionCodeServ
 import org.apache.logging.log4j.util.Strings;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -43,7 +45,7 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
     @Override
     public Iterable<SubmissionCode> saveAllCodes(List<SubmissionCodeDto> submissionCodeDtos) {
         if(submissionCodeDtos.isEmpty()) {
-            return null;
+            return Collections.EMPTY_LIST;
         }
         ModelMapper modelMapper = new ModelMapper();
         List<SubmissionCode> submissionCodes = submissionCodeDtos.stream().map(tmp-> modelMapper.map(tmp, SubmissionCode.class)).collect(Collectors.toList());
@@ -51,13 +53,13 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
     }
 
     @Override
-    public SubmissionCode saveCode(SubmissionCodeDto submissionCodeDto) {
+    public Optional<SubmissionCode> saveCode(SubmissionCodeDto submissionCodeDto) {
         if (Objects.isNull(submissionCodeDto)) {
-            return null;
+            return Optional.empty();
         }
         ModelMapper modelMapper = new ModelMapper();
         SubmissionCode submissionCode = modelMapper.map(submissionCodeDto, SubmissionCode.class);
-        return submissionCodeRepository.save(submissionCode);
+        return Optional.of(submissionCodeRepository.save(submissionCode));
     }
 
     @Override
@@ -91,8 +93,8 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
     @Override
     public List<SubmissionCodeDto> getCodeUUIDv4CodesForCsv(String lot, String type) {
         List<SubmissionCode> submissionCodes = submissionCodeRepository.findAllByLotAndTypeEquals(Long.parseLong(lot), type);
-        if (submissionCodes.isEmpty()){
-            return null;
+        if (CollectionUtils.isEmpty(submissionCodes)){
+            return Collections.emptyList();
         }
         ModelMapper modelMapper = new ModelMapper();
         return submissionCodes.stream().map(tmp->modelMapper.map(tmp, SubmissionCodeDto.class)).collect(Collectors.toList());

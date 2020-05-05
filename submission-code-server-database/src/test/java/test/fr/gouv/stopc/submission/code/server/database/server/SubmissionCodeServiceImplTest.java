@@ -9,9 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.modelmapper.internal.util.Assert;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 
 public class SubmissionCodeServiceImplTest {
@@ -47,7 +45,7 @@ public class SubmissionCodeServiceImplTest {
         Mockito.when(submissionCodeRepositoryMock.save(submissionCode)).thenReturn(submissionCode);
         SubmissionCodeServiceImpl submissionCodeServiceTest = new SubmissionCodeServiceImpl(submissionCodeRepositoryMock);
         SubmissionCodeDto submissionCodeDto = new SubmissionCodeDto();
-        SubmissionCode result= submissionCodeServiceTest.saveCode(submissionCodeDto);
+        SubmissionCode result= submissionCodeServiceTest.saveCode(submissionCodeDto).get();
         Assert.isTrue(result != null);
     }
 
@@ -65,7 +63,7 @@ public class SubmissionCodeServiceImplTest {
     public void saveAllCodeGenerateByBatchEmpty() {
         SubmissionCodeServiceImpl codePositiveServiceTest = new SubmissionCodeServiceImpl(submissionCodeRepositoryMock);
         Iterable<SubmissionCode> result = codePositiveServiceTest.saveAllCodes(new ArrayList<>());
-        Assert.isTrue(result == null);
+        Assert.isTrue(Objects.nonNull(result));
     }
 
 
