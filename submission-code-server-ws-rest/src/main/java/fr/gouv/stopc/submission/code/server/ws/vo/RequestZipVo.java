@@ -6,17 +6,20 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 @Builder
 @Valid
-public class RequestCsvVo {
+public class RequestZipVo {
+    //TODO
+    private String lot;
 
-    @Pattern(regexp = "[0-9]+")
-    @NotNull
-    String lot;
+    private String dateFrom;
+
+    private String dateTo;
+
+
+
 }
