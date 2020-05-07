@@ -10,15 +10,19 @@ import org.modelmapper.internal.util.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.io.*;
 import java.security.SecureRandom;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
-import java.util.zip.ZipOutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 @Slf4j
 @SpringBootTest
 class FileExportServiceTest {
+
+    private static final String TEST_FILE_ZIP = "testFile.zip";
 
     @Autowired
     private FileExportServiceImpl fileExportService;
@@ -33,9 +37,9 @@ class FileExportServiceTest {
     public static final SecureRandom sr = new SecureRandom();
 
     @Test
-    public void createZipComplete(){
+    public void createZipComplete() throws IOException {
         // String numberCodeDay, String lot, String dateFrom, String dateTo
-        Optional<ZipOutputStream> result = Optional.empty();
+        Optional<ByteArrayOutputStream> result = Optional.empty();
 
         String nowDay = OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         String endDay = OffsetDateTime.now().plusDays(4L).format(DateTimeFormatter.ISO_DATE_TIME);
@@ -46,14 +50,42 @@ class FileExportServiceTest {
         {
             Assert.isTrue(false);
         }
-        Assert.notNull(result.get());
+
+        ByteArrayOutputStream byteArray;
+        if(result.isPresent()) {
+            byteArray = result.get();
+
+            OutputStream outputStream = new FileOutputStream(TEST_FILE_ZIP);
+            byteArray.writeTo(outputStream);
+
+            //unzip
+            FileInputStream fis = new FileInputStream(TEST_FILE_ZIP);
+            ZipInputStream zis = new ZipInputStream(fis);
+
+            ZipEntry ze = zis.getNextEntry();
+            int countCsv = 0;
+            while (ze != null) {
+                countCsv = countCsv + 1;
+                ze = zis.getNextEntry();
+            }
+            Assert.isTrue(countCsv != 0);
+            fis.close();
+            outputStream.flush();
+            outputStream.close();
+            File fileToDelete = new File(TEST_FILE_ZIP);
+            fileToDelete.deleteOnExit();
+
+        } else{
+            Assert.isTrue(false);
+        }
+
 
     }
 
     @Test
     public void createZipCompleteOneDay() throws Exception {
         // String numberCodeDay, String lot, String dateFrom, String dateTo
-        Optional<ZipOutputStream> result = Optional.empty();
+        Optional<ByteArrayOutputStream> result;
 
         String nowDay = OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         String endDay = nowDay;
@@ -70,7 +102,7 @@ class FileExportServiceTest {
         Assertions.assertThrows(Exception.class, () -> {
             String startDay = OffsetDateTime.now().minusDays(1l).format(DateTimeFormatter.ISO_DATE_TIME);
             String endDay = OffsetDateTime.now().plusDays(4L).format(DateTimeFormatter.ISO_DATE_TIME);
-            Optional<ZipOutputStream> result = fileExportService.zipExport("10", "2", startDay, endDay);
+            Optional<ByteArrayOutputStream> result = fileExportService.zipExport("10", "2", startDay, endDay);
         });
 
     }

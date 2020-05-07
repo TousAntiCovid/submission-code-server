@@ -6,6 +6,7 @@ import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
 import fr.gouv.stopc.submission.code.server.ws.errors.NumberOfTryGenerateCodeExceededExcetion;
 
 import javax.validation.constraints.NotNull;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -28,7 +29,7 @@ public interface IFileService {
      * @param dateTo
      * @return
      */
-     Optional<ZipOutputStream> zipExport(String numberCodeDay, String lot, String dateFrom, String dateTo) throws Exception;
+     Optional<ByteArrayOutputStream> zipExport(String numberCodeDay, String lot, String dateFrom, String dateTo) throws Exception;
 
 
     /**
@@ -55,6 +56,6 @@ public interface IFileService {
      * @param files csv files to be zipped.
      * @return ZipOutputStream instance containing csv files.
      */
-     ZipOutputStream packagingCsvFilesToZipFile(List<File> files) throws IOException;
+    ByteArrayOutputStream packagingCsvFilesToZipFile(List<File> files) throws IOException;
 
     }
