@@ -10,6 +10,7 @@ import org.modelmapper.internal.util.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.security.SecureRandom;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
@@ -29,6 +30,8 @@ class FileExportServiceTest {
         MockitoAnnotations.initMocks(this);
     }
 
+    public static final SecureRandom sr = new SecureRandom();
+
     @Test
     public void createZipComplete(){
         // String numberCodeDay, String lot, String dateFrom, String dateTo
@@ -37,8 +40,8 @@ class FileExportServiceTest {
         String nowDay = OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         String endDay = OffsetDateTime.now().plusDays(4L).format(DateTimeFormatter.ISO_DATE_TIME);
         try{
-             result = fileExportService.zipExport("10", "2", nowDay, endDay);
-            
+            result = fileExportService.zipExport("10", Long.toString(sr.nextLong()), nowDay, endDay);
+
         } catch (Exception e)
         {
             Assert.isTrue(false);
@@ -48,19 +51,15 @@ class FileExportServiceTest {
     }
 
     @Test
-    public void createZipCompleteOneDay(){
+    public void createZipCompleteOneDay() throws Exception {
         // String numberCodeDay, String lot, String dateFrom, String dateTo
         Optional<ZipOutputStream> result = Optional.empty();
 
         String nowDay = OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         String endDay = nowDay;
-        try{
-            result = fileExportService.zipExport("10", "2", nowDay, endDay);
 
-        } catch (Exception e)
-        {
-            Assert.isTrue(false);
-        }
+        result = fileExportService.zipExport("10", Long.toString(sr.nextLong()), nowDay, endDay);
+
         Assert.notNull(result.get());
 
     }
