@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
 import javax.ws.rs.Produces;
 
 @RestController
@@ -22,5 +23,5 @@ public interface IVerifyController {
      * @return
      */
     @GetMapping(value="/verify")
-     ResponseEntity verifySubmissionCode(@RequestBody VerifyRequestVo verifyRequestVo);
+     ResponseEntity verifySubmissionCode(@RequestBody @Valid VerifyRequestVo verifyRequestVo);
 }
