@@ -1,5 +1,6 @@
 package fr.gouv.stopc.submission.code.server.ws.enums;
 
+import antlr.StringUtils;
 import lombok.Getter;
 
 import java.util.Arrays;
@@ -10,8 +11,8 @@ import java.util.Arrays;
 @Getter
 public enum CodeTypeEnum {
 
-    UUIDv4("1", "UUIDv4"),
-    ALPHANUM_6 ("2", "6-alphanum");
+    UUIDv4("1", "UUIDv4", Pattern.UUIDV4),
+    ALPHANUM_6 ("2", "6-alphanum", Pattern.ALPHANUM_6);
 
 
     /**
@@ -25,13 +26,19 @@ public enum CodeTypeEnum {
     private final String type;
 
     /**
+     * pattern code matching regexp
+     */
+    private final String pattern;
+
+    /**
      * Default and only constructor
      * @param typeCode {@link #typeCode}
      * @param type {@link #type}
      */
-    CodeTypeEnum(String typeCode, String type) {
+    CodeTypeEnum(final String typeCode, final String type, final String pattern) {
         this.typeCode = typeCode;
         this.type = type;
+        this.pattern = pattern;
     }
 
 
@@ -55,5 +62,10 @@ public enum CodeTypeEnum {
             if(et.equals(typeOrTypeCode)) return true;
         }
         return false;
+    }
+
+    public interface Pattern {
+        String ALPHANUM_6 = "([a-zA-Z0-9]{6})";
+        String UUIDV4 = "([a-f0-9]{8}(-[a-f0-9]{4}){4}[a-f0-9]{8})";
     }
 }

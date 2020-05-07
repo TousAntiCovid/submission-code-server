@@ -1,0 +1,3 @@
+import CreateCodeGenerationRequestPage from "./CreateCodeGenerationRequestPage";
+
+export default CreateCodeGenerationRequestPage;

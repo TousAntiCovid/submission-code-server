@@ -1,24 +1,20 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {Link, useLocation, useRouteMatch} from "react-router-dom";
 
 import {Button, Form, FormControl, InputGroup, Navbar} from 'react-bootstrap';
+import {parseBasePath} from "./tools/CodeSearchFormHelper";
 
 
-export default function CodeSearchForm()  {
+export default function CodeSearchForm({basePath}:any)  {
     const match = useRouteMatch();
     let location = useLocation();
 
-    let initialLot = "";
-    let initialElementPerpage = 10;
-
-    if (location.pathname.startsWith("/codes")) {
-        const splittedPath = location.pathname.split("/")
-        if(splittedPath.length > 2) initialLot = splittedPath[2]
-        if(splittedPath.length >= 3) initialElementPerpage = parseInt(splittedPath[3])
-    }
-
-    const [lotIdentifier, setLotIdentifier] = useState(initialLot);
-    const [elementsPerPage, setElementByPages] = useState(initialElementPerpage);
+    const [lotIdentifier, setLotIdentifier] = useState("");
+    const [elementsPerPage, setElementByPages] = useState(10);
+    useEffect(() => {
+        parseBasePath(location.pathname, basePath, setLotIdentifier, setElementByPages);
+        }, [location]
+    )
 
     return(
         <>

@@ -7,59 +7,72 @@ import About from './components/about';
 import SearchCodePage from './components/search-codes-page';
 /* The following line can be included in your src/index.js or App.js file */
 import './styles/app.sass';
-import {Nav, Navbar} from 'react-bootstrap';
+import {Nav, Navbar, NavDropdown} from 'react-bootstrap';
+import CreateCodeGenerationRequestPage from "./components/create-code-generation-request-page";
 
 export default function App() {
   return (
-    <div style={{height: '100vh', width: '100vw'}}>
-      <Router>
-        <Header>
-          <Navbar
-            variant="dark"
-            bg="dark"
-            expand="lg"
-          >
-            <Navbar.Brand href="/">Submission Code Server</Navbar.Brand>
+      <div style={{height: '100vh', width: '100vw'}}>
+        <Router>
+          <Header>
+            <Navbar
+                variant="dark"
+                bg="dark"
+                expand="lg"
+            >
+              <Navbar.Brand href="/">Submission Code Server</Navbar.Brand>
 
-            <Navbar.Toggle
-              aria-controls="basic-navbar-nav"
-            />
+              <Navbar.Toggle
+                  aria-controls="basic-navbar-nav"
+              />
 
-            <Navbar.Collapse id="basic-navbar-nav">
-              <Nav className="mr-auto">
-                <Nav.Link>
-                  <Link to="/">Home</Link>
-                </Nav.Link>
-                <Nav.Link>
-                  <Link to="/codes">Codes</Link>
-                </Nav.Link>
-                <Nav.Link>
-                  <Link to="/about">About</Link>
-                </Nav.Link>
-              </Nav>
-            </Navbar.Collapse>
+              <Navbar.Collapse id="basic-navbar-nav">
+                <Nav className="mr-auto">
+                  <Nav.Link>
+                    <Link to="/">Home</Link>
+                  </Nav.Link>
 
-          </Navbar>
-        </Header>
 
-        <MainContainer>
-          <Switch>
-            <Route path="/about">
-              <About/>
-            </Route>
+                  <NavDropdown title="Codes" id="basic-nav-dropdown">
+                    <NavDropdown.Item href="/codes/search">search</NavDropdown.Item>
+                    <NavDropdown.Divider />
+                    <NavDropdown.Item href="/codes/create">create request</NavDropdown.Item>
+                  </NavDropdown>
+                  <Nav.Link>
+                    <Link to="/about">About</Link>
+                  </Nav.Link>
+                </Nav>
+              </Navbar.Collapse>
 
-            <Route path="/codes">
-              <SearchCodePage/>
-            </Route>
+            </Navbar>
+          </Header>
 
-            <Route path="/">
-              <Home />
-            </Route>
-          </Switch>
-        </MainContainer>
+          <MainContainer>
+            <Switch>
+              <Route path="/about">
+                <About/>
+              </Route>
 
-      </Router>
-    </div>
+              <Route path="/codes/search">
+                <SearchCodePage
+                    basePath="/codes/search"
+                />
+
+              </Route>
+
+              <Route path="/codes/create">
+                <CreateCodeGenerationRequestPage
+                />
+              </Route>
+
+              <Route path="/">
+                <Home />
+              </Route>
+            </Switch>
+          </MainContainer>
+
+        </Router>
+      </div>
 
   );
 }
