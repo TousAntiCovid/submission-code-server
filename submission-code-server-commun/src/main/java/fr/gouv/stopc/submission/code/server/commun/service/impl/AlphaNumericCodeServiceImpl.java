@@ -3,6 +3,7 @@ package fr.gouv.stopc.submission.code.server.commun.service.impl;
 import fr.gouv.stopc.submission.code.server.commun.service.IAlphaNumericCodeService;
 import org.springframework.stereotype.Service;
 
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -16,6 +17,8 @@ public class AlphaNumericCodeServiceImpl implements IAlphaNumericCodeService {
     private static final String NUMERIC= "0123456789";
     private static final Integer CODE_SIZE = 6;
 
+    private static final SecureRandom sRandom = new SecureRandom();
+
     private static final List<Character> ALPHA_NUMERIC_CHAR_ARRAY = String
             .format(
                     "%s%s",
@@ -28,10 +31,9 @@ public class AlphaNumericCodeServiceImpl implements IAlphaNumericCodeService {
     public String generateCode() {
         final List<Character> characters = getShuffledAlphaNumList();
 
-        final Random random = new Random();
         String alphaNum = "";
         for (int i = 0; i < CODE_SIZE; i++) {
-            alphaNum += characters.get(random.nextInt(ALPHA_NUMERIC_CHAR_ARRAY.size()-1)).toString();
+            alphaNum += characters.get(sRandom.nextInt(ALPHA_NUMERIC_CHAR_ARRAY.size()-1)).toString();
         }
         return alphaNum;
     }
@@ -40,9 +42,8 @@ public class AlphaNumericCodeServiceImpl implements IAlphaNumericCodeService {
      * @return return a shuffled copy of ALPHA_NUMERIC_CHAR_ARRAY
      */
     protected static List<Character> getShuffledAlphaNumList() {
-        final Random random = new Random();
         final ArrayList<Character> tempAlphaNumList = new ArrayList<>(ALPHA_NUMERIC_CHAR_ARRAY);
-        Collections.shuffle(ALPHA_NUMERIC_CHAR_ARRAY,random);
+        Collections.shuffle(ALPHA_NUMERIC_CHAR_ARRAY,sRandom);
         return tempAlphaNumList;
     }
 
