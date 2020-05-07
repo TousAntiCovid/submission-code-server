@@ -40,7 +40,7 @@ public interface ISubmissionCodeService {
       Page<SubmissionCode> getSubmissionCodesFor(long lotIdentifier, int page, int elementsByPage);
 
     /**
-     * TODO: add comment here
+     * Get specific lot of submissionCodes for extract in CSV file.
      * @param lot
      * @param type
      * @return

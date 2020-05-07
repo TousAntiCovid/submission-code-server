@@ -114,7 +114,7 @@ public class FileExportServiceImpl implements IFileService {
         return files;
     }
 
-   @Override
+    @Override
     public ZipOutputStream packagingCsvFilesToZipFile(List<File> files) throws IOException {
         ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
         ZipOutputStream zipOutputStream = new ZipOutputStream(byteOutputStream);
@@ -132,13 +132,10 @@ public class FileExportServiceImpl implements IFileService {
     }
 
     /**
-     * TODO: Add commment
-     * @param submissionCodeDtoList
-     * @param date
-     * @return
-     * @throws CsvDataTypeMismatchException
-     * @throws CsvRequiredFieldEmptyException
-     * @throws IOException
+     * Create one file csv for the list of submissionCodes with date of available equal to dateTimeFrom
+     * @param submissionCodeDtoList list of submissionCodes for a day specific
+     * @param date the date of available of submissionCode
+     * @return submissionCodeDtoList parsed into a csv file
      */
     private File transformInFile(List<SubmissionCodeDto> submissionCodeDtoList, OffsetDateTime date) throws CsvDataTypeMismatchException, CsvRequiredFieldEmptyException, IOException {
 
@@ -170,7 +167,6 @@ public class FileExportServiceImpl implements IFileService {
     }
 
     /**
-     * TODO: add comment
      * @param dateFrom
      * @param dateTo
      * @throws Exception
