@@ -7,6 +7,7 @@ import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
 import fr.gouv.stopc.submission.code.server.database.service.ISubmissionCodeService;
 import fr.gouv.stopc.submission.code.server.ws.enums.CodeTypeEnum;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
@@ -31,7 +32,7 @@ public class CsvExportServiceImpl implements ICsvService {
     @Override
     public Optional<StringWriter> csvExport(String lots) {
         List<SubmissionCodeDto> submissionCodeDtos = submissionCodeService.getCodeUUIDv4CodesForCsv(lots, CodeTypeEnum.UUIDv4.getTypeCode());
-        if (Objects.isNull(submissionCodeDtos) || submissionCodeDtos.isEmpty()){
+        if (CollectionUtils.isEmpty(submissionCodeDtos)){
             return Optional.empty();
         }
         StringWriter fileWriter = new StringWriter();
