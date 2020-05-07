@@ -7,6 +7,7 @@ import fr.gouv.stopc.submission.code.server.ws.service.GenerateServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -24,6 +25,9 @@ import static org.junit.Assert.assertFalse;
 public class GenerateServiceGetValidityDateUUIDCodeMethodTest {
 
 
+    @Value("${stop.covid.qr.code.target.zone}")
+    private String targetZoneId;
+
     /**
      * GenerateServiceImpl No need of external services here.
      */
@@ -35,8 +39,9 @@ public class GenerateServiceGetValidityDateUUIDCodeMethodTest {
 
         final long validityDays = 10;
         ReflectionTestUtils.setField(this.gsi, "TIME_VALIDITY_UUID", validityDays);
+        ReflectionTestUtils.setField(this.gsi, "TARGET_ZONE_ID", "Europe/Paris");
 
-        OffsetDateTime testedValidFrom = OffsetDateTime.now(ZoneId.of("Europe/Paris"));
+        OffsetDateTime testedValidFrom = OffsetDateTime.now(ZoneId.of(this.targetZoneId));
 
 
         testedValidFrom = testedValidFrom.withMonth(01).withDayOfMonth(01).withHour(1).withMinute(12).truncatedTo(ChronoUnit.MINUTES);
@@ -51,12 +56,12 @@ public class GenerateServiceGetValidityDateUUIDCodeMethodTest {
 
         final OffsetDateTime validUntil = OffsetDateTime.parse(grd.getValidUntil())
                 .withOffsetSameInstant(
-                        OffsetDateTime.now(ZoneId.of("Europe/Paris")).getOffset()
+                        OffsetDateTime.now(ZoneId.of(this.targetZoneId)).getOffset()
                 );
 
         final OffsetDateTime validFrom= OffsetDateTime.parse(grd.getValidFrom())
                 .withOffsetSameInstant(
-                        OffsetDateTime.now(ZoneId.of("Europe/Paris")).getOffset()
+                        OffsetDateTime.now(ZoneId.of(this.targetZoneId)).getOffset()
                 );
 
         // asserting Hours is 23

@@ -46,6 +46,8 @@ class GenerateServiceGenerateUUIDv4CodesBulkMethodTest {
         final long lot = Long.parseLong("1");
 
         ReflectionTestUtils.setField(this.gsi, "NUMBER_OF_UUIDv4_PER_CALL", size);
+        ReflectionTestUtils.setField(this.gsi, "TARGET_ZONE_ID", "Europe/Paris");
+
 
 
         final List<GenerateResponseDto> generateResponseDtoList = this.gsi.generateUUIDv4CodesBulk(validFrom, lot);
@@ -77,6 +79,7 @@ class GenerateServiceGenerateUUIDv4CodesBulkMethodTest {
         final OffsetDateTime validFrom = OffsetDateTime.now();
 
         ReflectionTestUtils.setField(this.gsi, "NUMBER_OF_UUIDv4_PER_CALL", size);
+        ReflectionTestUtils.setField(this.gsi, "TARGET_ZONE_ID", "Europe/Paris");
 
         final List<GenerateResponseDto> generateResponseDtoList = this.gsi.generateUUIDv4CodesBulk(validFrom);
 
@@ -106,6 +109,7 @@ class GenerateServiceGenerateUUIDv4CodesBulkMethodTest {
         final long size = Long.parseLong("3");
 
         ReflectionTestUtils.setField(this.gsi, "NUMBER_OF_UUIDv4_PER_CALL", size);
+        ReflectionTestUtils.setField(this.gsi, "TARGET_ZONE_ID", "Europe/Paris");
 
         final List<GenerateResponseDto> generateResponseDtoList = this.gsi.generateUUIDv4CodesBulk();
 

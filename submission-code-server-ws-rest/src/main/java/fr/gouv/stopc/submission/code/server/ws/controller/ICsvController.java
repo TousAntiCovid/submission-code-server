@@ -12,6 +12,6 @@ import javax.ws.rs.Produces;
 @Produces(MediaType.APPLICATION_JSON_VALUE)
 public interface ICsvController {
 
-    @GetMapping(value = "export", produces = "text/csv")
-    public ResponseEntity readCsvByLot(@RequestBody RequestCsvVo requestCsvVo);
+   // @GetMapping(value = "export", produces = "text/csv")
+   // public ResponseEntity readCsvByLot(@RequestBody RequestCsvVo requestCsvVo);
 }
