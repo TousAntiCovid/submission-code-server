@@ -296,7 +296,8 @@ class GenerateServiceGenerateCodeGenericMethodTest {
         Mockito.when(uuiDv4CodeService.generateCode())
                 .thenReturn("1234-123-123-123-123-1234");
 
-        ReflectionTestUtils.setField(gsiMocked, "NUMBER_OF_TRY_IN_CASE_OF_ERROR", 0);
+        ReflectionTestUtils.setField(gsiMocked, "TARGET_ZONE_ID", "Europe/Paris");
+    ReflectionTestUtils.setField(gsiMocked, "NUMBER_OF_TRY_IN_CASE_OF_ERROR", 0);
 
 
         NumberOfTryGenerateCodeExceededExcetion notgcee = null;
@@ -331,6 +332,7 @@ class GenerateServiceGenerateCodeGenericMethodTest {
         Mockito.when(uuiDv4CodeService.generateCode())
                 .thenReturn("1234-123-123-123-123-1234");
 
+        ReflectionTestUtils.setField(this.gsiMocked, "TARGET_ZONE_ID", "Europe/Paris");
         ReflectionTestUtils.setField(gsiMocked, "NUMBER_OF_TRY_IN_CASE_OF_ERROR", 0);
 
 

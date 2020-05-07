@@ -34,6 +34,9 @@ public class GenerateServiceImpl implements IGenerateService {
     private final ISubmissionCodeService submissionCodeService;
     private final IAlphaNumericCodeService alphaNumericCodeService;
 
+    @Value("${stop.covid.qr.code.target.zone}")
+    private String TARGET_ZONE_ID;
+    
     /**
      * Number of code that should be generated per days for a given lot.
      * it is set in application.properties file
@@ -265,7 +268,7 @@ public class GenerateServiceImpl implements IGenerateService {
         // convert to zulu zoneoffset
         validFromList.add(validFromFirstValue.withOffsetSameInstant(ZoneOffset.of("Z")));
 
-        final OffsetDateTime nowInParis = OffsetDateTime.now(ZoneId.of("Europe/Paris"));
+        final OffsetDateTime nowInParis = OffsetDateTime.now(ZoneId.of(this.TARGET_ZONE_ID));
         final ZoneOffset offsetInParis = nowInParis.getOffset();
 
         // assuring validFromFirstValue is OffsetInParis
@@ -322,7 +325,7 @@ public class GenerateServiceImpl implements IGenerateService {
      * @return return current offset of paris
      */
     private ZoneOffset getParisOffset() {
-        return OffsetDateTime.now(ZoneId.of("Europe/Paris")).getOffset();
+        return OffsetDateTime.now(ZoneId.of(this.TARGET_ZONE_ID)).getOffset();
     }
 
     /**

@@ -4,12 +4,21 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
 
+import javax.annotation.PostConstruct;
+import java.util.TimeZone;
+
 @ComponentScan(basePackages  = "fr.gouv.stopc")
 @SpringBootApplication
 public class SubmissionCodeServerClientApiWsRestApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(SubmissionCodeServerClientApiWsRestApplication.class, args);
+	}
+
+	@PostConstruct
+	void started() {
+		// set JVM timezone as UTC
+		TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
 	}
 
 }

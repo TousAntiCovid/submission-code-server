@@ -23,7 +23,7 @@ import static org.junit.Assert.assertTrue;
 public class VerifyServiceVerifyCodeMethodTest {
 
     @Autowired
-   private GenerateServiceImpl gsi;
+    private GenerateServiceImpl gsi;
 
     @Autowired
     private VerifyServiceImpl vsi;
@@ -94,6 +94,7 @@ public class VerifyServiceVerifyCodeMethodTest {
         final OffsetDateTime offsetDateTime = OffsetDateTime.now().withYear(0);
 
         // set validity time of ALPHANUM TO 1 minute
+        ReflectionTestUtils.setField(this.gsi, "TARGET_ZONE_ID", "Europe/Paris");
         ReflectionTestUtils.setField(this.gsi, "TIME_VALIDITY_ALPHANUM", 1);
 
         final List<GenerateResponseDto> grdList = this.gsi.generateCodeGeneric(

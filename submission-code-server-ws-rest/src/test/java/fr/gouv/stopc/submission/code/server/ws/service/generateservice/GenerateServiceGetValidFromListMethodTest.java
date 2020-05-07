@@ -3,6 +3,9 @@ package fr.gouv.stopc.submission.code.server.ws.service.generateservice;
 import fr.gouv.stopc.submission.code.server.ws.service.GenerateServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
@@ -12,8 +15,11 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 
 @Slf4j
+@SpringBootTest
 public class GenerateServiceGetValidFromListMethodTest {
 
+    @Value("${stop.covid.qr.code.target.zone}")
+    private String targetZoneId;
 
     /**
      * GenerateServiceImpl No need of external services here.
@@ -29,7 +35,7 @@ public class GenerateServiceGetValidFromListMethodTest {
     @Test
     void validFromList() {
         final int size = 10;
-        final ZoneId parisZoneId = ZoneId.of("Europe/Paris");
+        final ZoneId parisZoneId = ZoneId.of(this.targetZoneId);
 
         // to prevent days, month, and year changes this time has been specially chosen for the test.
         final OffsetDateTime validFromFirstValue = OffsetDateTime.now(parisZoneId)
@@ -39,6 +45,9 @@ public class GenerateServiceGetValidFromListMethodTest {
                 .withMinute(00);
 
         log.info("initial time : {}", validFromFirstValue);
+
+        ReflectionTestUtils.setField(this.gsi, "TARGET_ZONE_ID", "Europe/Paris");
+
 
         // Tested method call
         List<OffsetDateTime> validFromList = this.gsi.getValidFromList(size, validFromFirstValue);

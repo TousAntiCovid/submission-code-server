@@ -190,6 +190,7 @@ class GenerateServiceGenerateCodeFromRequestMethodTest {
 
         ReflectionTestUtils.setField(gsiMocked, "NUMBER_OF_TRY_IN_CASE_OF_ERROR", 0);
         ReflectionTestUtils.setField(gsiMocked, "NUMBER_OF_UUIDv4_PER_CALL", 2);
+        ReflectionTestUtils.setField(gsiMocked, "TARGET_ZONE_ID", "Europe/Paris");
 
         NumberOfTryGenerateCodeExceededExcetion notgcee = null;
 
@@ -224,6 +225,7 @@ class GenerateServiceGenerateCodeFromRequestMethodTest {
 
         ReflectionTestUtils.setField(gsiMocked, "NUMBER_OF_TRY_IN_CASE_OF_ERROR", 0);
         ReflectionTestUtils.setField(gsiMocked, "NUMBER_OF_UUIDv4_PER_CALL", 2);
+        ReflectionTestUtils.setField(this.gsiMocked, "TARGET_ZONE_ID", "Europe/Paris");
 
         NumberOfTryGenerateCodeExceededExcetion notgcee = null;
         try {
