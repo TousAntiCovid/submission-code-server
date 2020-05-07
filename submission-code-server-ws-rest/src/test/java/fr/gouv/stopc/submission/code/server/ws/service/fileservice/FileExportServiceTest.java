@@ -44,6 +44,7 @@ class FileExportServiceTest {
             Assert.isTrue(false);
         }
         Assert.notNull(result.get());
+        ZipOutputStream fileZip = result.get();
 
     }
 
@@ -62,6 +63,7 @@ class FileExportServiceTest {
             Assert.isTrue(false);
         }
         Assert.notNull(result.get());
+        result.get();
 
     }
 

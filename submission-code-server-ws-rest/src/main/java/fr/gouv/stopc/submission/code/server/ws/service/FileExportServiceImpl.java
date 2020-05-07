@@ -98,9 +98,9 @@ public class FileExportServiceImpl implements IFileService {
     }
 
     /**
-     * TODO: Add commment
-     * @param listForDay
-     * @param dateTimeFrom
+     * Create one file csv for each day of the list of submissionCodes with date of available equal to dateTimeFrom
+     * @param listForDay list of submissionCodes for a day specific
+     * @param dateTimeFrom the date of available of submissionCode
      * @return
      * @throws CsvDataTypeMismatchException
      * @throws CsvRequiredFieldEmptyException
@@ -136,7 +136,6 @@ public class FileExportServiceImpl implements IFileService {
     }
 
     /**
-     * TODO: add comment
      * @param dateFrom
      * @param dateTo
      * @throws Exception
