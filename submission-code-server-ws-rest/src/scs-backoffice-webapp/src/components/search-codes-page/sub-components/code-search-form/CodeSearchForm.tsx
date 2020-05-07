@@ -13,7 +13,7 @@ export default function CodeSearchForm({basePath}:any)  {
     const [elementsPerPage, setElementByPages] = useState(10);
     useEffect(() => {
         parseBasePath(location.pathname, basePath, setLotIdentifier, setElementByPages);
-        }, [location]
+        }, [location, basePath]
     )
 
     return(

@@ -1,5 +1,5 @@
 import React from "react";
-import {Route, Switch, useLocation, useRouteMatch} from "react-router-dom";
+import {Route, Switch, useRouteMatch} from "react-router-dom";
 
 
 import CodeSearchForm from "./sub-components/code-search-form/CodeSearchForm";
