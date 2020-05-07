@@ -10,6 +10,7 @@ import org.modelmapper.internal.util.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.io.ByteArrayOutputStream;
 import java.security.SecureRandom;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
@@ -35,7 +36,7 @@ class FileExportServiceTest {
     @Test
     public void createZipComplete(){
         // String numberCodeDay, String lot, String dateFrom, String dateTo
-        Optional<ZipOutputStream> result = Optional.empty();
+        Optional<ByteArrayOutputStream> result = Optional.empty();
 
         String nowDay = OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         String endDay = OffsetDateTime.now().plusDays(4L).format(DateTimeFormatter.ISO_DATE_TIME);
@@ -53,7 +54,7 @@ class FileExportServiceTest {
     @Test
     public void createZipCompleteOneDay() throws Exception {
         // String numberCodeDay, String lot, String dateFrom, String dateTo
-        Optional<ZipOutputStream> result = Optional.empty();
+        Optional<ByteArrayOutputStream> result = Optional.empty();
 
         String nowDay = OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         String endDay = nowDay;
@@ -70,7 +71,7 @@ class FileExportServiceTest {
         Assertions.assertThrows(Exception.class, () -> {
             String startDay = OffsetDateTime.now().minusDays(1l).format(DateTimeFormatter.ISO_DATE_TIME);
             String endDay = OffsetDateTime.now().plusDays(4L).format(DateTimeFormatter.ISO_DATE_TIME);
-            Optional<ZipOutputStream> result = fileExportService.zipExport("10", "2", startDay, endDay);
+            Optional<ByteArrayOutputStream> result = fileExportService.zipExport("10", "2", startDay, endDay);
         });
 
     }

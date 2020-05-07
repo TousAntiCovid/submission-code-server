@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import java.time.OffsetDateTime;
 import java.util.Date;
 
 public class ViewVo {
@@ -18,11 +19,11 @@ public class ViewVo {
 
         @NotNull
         @PresentOrFutureTruncateDay
-        private Date from;
+        private OffsetDateTime from;
 
         @NotNull
         @PresentOrFutureTruncateDay
-        private Date to;
+        private OffsetDateTime to;
 
         @NotNull
         @CodePerDay

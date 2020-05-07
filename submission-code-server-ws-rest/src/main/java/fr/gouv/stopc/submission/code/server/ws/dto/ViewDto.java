@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.ByteArrayOutputStream;
 import java.util.List;
 
 public class ViewDto {
@@ -13,6 +14,7 @@ public class ViewDto {
     public static class CodeGenerationRequest {
         private Boolean isSubmitted;
         private String message;
+        private byte[] baos;
     }
 
     @AllArgsConstructor @NoArgsConstructor @Data @Builder

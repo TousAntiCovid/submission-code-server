@@ -53,7 +53,7 @@ public class FileExportServiceImpl implements IFileService {
     }
 
     @Override
-    public Optional<ZipOutputStream> zipExport(String numberCodeDay, String lot, String dateFrom, String dateTo) throws Exception {
+    public Optional<ByteArrayOutputStream> zipExport(String numberCodeDay, String lot, String dateFrom, String dateTo) throws Exception {
 
         OffsetDateTime dateTimeFrom;
         OffsetDateTime dateTimeTo;
@@ -83,16 +83,20 @@ public class FileExportServiceImpl implements IFileService {
 
 
         // STEP 3 packaging csv files
-        ZipOutputStream zipOutputStream = packagingCsvFilesToZipFile(files);
+        ByteArrayOutputStream baos = packagingCsvFilesToZipFile(files);
 
-        return  Optional.of(zipOutputStream);
+        return  Optional.of(baos);
     }
 
 
     @Override
     public void persistUUIDv4CodesFor(String codePerDays, String lotIdentifier, OffsetDateTime from, OffsetDateTime to) throws NumberOfTryGenerateCodeExceededExcetion {
-        int diffDays= Math.toIntExact(ChronoUnit.DAYS.between(from, to))+1;
-        List<OffsetDateTime> datesFromList = generateService.getValidFromList(diffDays, from);
+        OffsetDateTime fromWithoutHours = from.truncatedTo(ChronoUnit.DAYS);
+        OffsetDateTime toWithoutHours = to.truncatedTo(ChronoUnit.DAYS);
+
+        long diffDays= ChronoUnit.DAYS.between(fromWithoutHours, toWithoutHours) + 1;
+        int diff = Integer.parseInt(Long.toString(diffDays));
+        List<OffsetDateTime> datesFromList = generateService.getValidFromList(diff, from);
 
         for(OffsetDateTime dateFromDay: datesFromList) {
             generateService.generateCodeGeneric(Long.parseLong(codePerDays), CodeTypeEnum.UUIDv4, dateFromDay, Long.parseLong(lotIdentifier));
@@ -115,7 +119,7 @@ public class FileExportServiceImpl implements IFileService {
     }
 
     @Override
-    public ZipOutputStream packagingCsvFilesToZipFile(List<File> files) throws IOException {
+    public ByteArrayOutputStream packagingCsvFilesToZipFile(List<File> files) throws IOException {
         ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
         ZipOutputStream zipOutputStream = new ZipOutputStream(byteOutputStream);
 
@@ -128,7 +132,7 @@ public class FileExportServiceImpl implements IFileService {
             file.deleteOnExit();
         }
         zipOutputStream.close();
-        return zipOutputStream;
+        return byteOutputStream;
     }
 
     /**
