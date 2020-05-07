@@ -9,6 +9,7 @@ import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
 import fr.gouv.stopc.submission.code.server.database.service.ISubmissionCodeService;
 import fr.gouv.stopc.submission.code.server.ws.dto.SubmissionCodeCsvDto;
 import fr.gouv.stopc.submission.code.server.ws.enums.CodeTypeEnum;
+import fr.gouv.stopc.submission.code.server.ws.errors.NumberOfTryGenerateCodeExceededExcetion;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
@@ -17,6 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
+import javax.validation.constraints.NotNull;
 import java.io.*;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
@@ -55,34 +57,67 @@ public class FileExportServiceImpl implements IFileService {
 
         OffsetDateTime dateTimeFrom;
         OffsetDateTime dateTimeTo;
-        List<File> files = new ArrayList<>();
-        ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
-        ZipOutputStream zipOutputStream = new ZipOutputStream(byteOutputStream);
-
-
         dateTimeFrom= OffsetDateTime.parse(dateFrom, DateTimeFormatter.ISO_DATE_TIME);
         dateTimeTo= OffsetDateTime.parse(dateTo, DateTimeFormatter.ISO_DATE_TIME);
+
         validationDates(dateTimeFrom,dateTimeTo);
 
-        //create codes
-        int diffDays= Math.toIntExact(ChronoUnit.DAYS.between(dateTimeFrom,dateTimeTo))+1;
-        List<OffsetDateTime> datesFromList = generateService.getValidFromList(diffDays, dateTimeFrom);
+        // STEP 1 - create codes
+        this.persistUUIDv4CodesFor(numberCodeDay, lot, dateTimeFrom, dateTimeTo);
 
-        for(OffsetDateTime dateFromDay: datesFromList) {
-            generateService.generateCodeGeneric(Long.parseLong(numberCodeDay), CodeTypeEnum.UUIDv4, dateFromDay, Long.parseLong(lot));
-        }
+        // STEP 1 BIS Retrieve data
+        List<SubmissionCodeDto> submissionCodeDtos = submissionCodeService
+                .getCodeUUIDv4CodesForCsv(lot, CodeTypeEnum.UUIDv4.getTypeCode());
 
-        //get codes
-        List<SubmissionCodeDto> submissionCodeDtos = submissionCodeService.getCodeUUIDv4CodesForCsv(lot, CodeTypeEnum.UUIDv4.getTypeCode());
+        // TODO: Throw error here instead
         if (CollectionUtils.isEmpty(submissionCodeDtos)){
             return Optional.empty();
         }
 
-        for(OffsetDateTime dateTime : datesFromList){
-            List<SubmissionCodeDto> listForDay= submissionCodeDtos.stream().filter(tmp-> tmp.getDateAvailable().isEqual(dateTime)).collect(Collectors.toList());
-            File file= transformInFile(listForDay, dateTime);
+        //get distinct dates
+        final List<@NotNull OffsetDateTime> availableDates = submissionCodeDtos
+                .stream().map(s -> s.getDateAvailable()).distinct().collect(Collectors.toList());
+
+        // STEP 2 parsing codes to csv files
+        List<File> files = codeAsCsvFiles(submissionCodeDtos, availableDates);
+
+
+        // STEP 3 packaging csv files
+        ZipOutputStream zipOutputStream = packagingCsvFilesToZipFile(files);
+
+        return  Optional.of(zipOutputStream);
+    }
+
+
+    @Override
+    public void persistUUIDv4CodesFor(String codePerDays, String lotIdentifier, OffsetDateTime from, OffsetDateTime to) throws NumberOfTryGenerateCodeExceededExcetion {
+        int diffDays= Math.toIntExact(ChronoUnit.DAYS.between(from, to))+1;
+        List<OffsetDateTime> datesFromList = generateService.getValidFromList(diffDays, from);
+
+        for(OffsetDateTime dateFromDay: datesFromList) {
+            generateService.generateCodeGeneric(Long.parseLong(codePerDays), CodeTypeEnum.UUIDv4, dateFromDay, Long.parseLong(lotIdentifier));
+        }
+    }
+
+    @Override
+    public List<File> codeAsCsvFiles(List<SubmissionCodeDto> submissionCodeDtos, List<@NotNull OffsetDateTime> dates) throws CsvDataTypeMismatchException, CsvRequiredFieldEmptyException, IOException {
+        List<File> files = new ArrayList<>();
+
+        for(OffsetDateTime dateTime : dates){
+            List<SubmissionCodeDto> listForDay= submissionCodeDtos
+                    .stream().filter(tmp-> dateTime.isEqual(tmp.getDateAvailable()))
+                    .collect(Collectors.toList());
+
+            File file = transformInFile(listForDay, dateTime);
             files.add(file);
         }
+        return files;
+    }
+
+   @Override
+    public ZipOutputStream packagingCsvFilesToZipFile(List<File> files) throws IOException {
+        ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
+        ZipOutputStream zipOutputStream = new ZipOutputStream(byteOutputStream);
 
         for (File file: files){
             zipOutputStream.putNextEntry(new ZipEntry(file.getName()));
@@ -93,28 +128,27 @@ public class FileExportServiceImpl implements IFileService {
             file.deleteOnExit();
         }
         zipOutputStream.close();
-
-        return  Optional.of(zipOutputStream);
+        return zipOutputStream;
     }
 
     /**
      * TODO: Add commment
-     * @param listForDay
-     * @param dateTimeFrom
+     * @param submissionCodeDtoList
+     * @param date
      * @return
      * @throws CsvDataTypeMismatchException
      * @throws CsvRequiredFieldEmptyException
      * @throws IOException
      */
-    private File transformInFile(List<SubmissionCodeDto> listForDay, OffsetDateTime dateTimeFrom) throws CsvDataTypeMismatchException, CsvRequiredFieldEmptyException, IOException {
+    private File transformInFile(List<SubmissionCodeDto> submissionCodeDtoList, OffsetDateTime date) throws CsvDataTypeMismatchException, CsvRequiredFieldEmptyException, IOException {
 
         // name of the file should be built from the date at target Zone publication
         final OffsetDateTime nowInParis = OffsetDateTime.now(ZoneId.of(this.targetZoneId));
         final ZoneOffset offsetInParis = nowInParis.getOffset();
-        String fileName = dateTimeFrom.withOffsetSameInstant(offsetInParis).format(DateTimeFormatter.ISO_LOCAL_DATE) + ".csv";
+        String fileName = date.withOffsetSameInstant(offsetInParis).format(DateTimeFormatter.ISO_LOCAL_DATE) + ".csv";
 
         // converting list SubmissionCodeDto to SubmissionCodeCsvDto to be proceeded in csv generator
-        final List<SubmissionCodeCsvDto> submissionCodeCsvDtos = convert(listForDay);
+        final List<SubmissionCodeCsvDto> submissionCodeCsvDtos = convert(submissionCodeDtoList);
 
         File file = new File(fileName);
         StringWriter fileWriter = new StringWriter();
