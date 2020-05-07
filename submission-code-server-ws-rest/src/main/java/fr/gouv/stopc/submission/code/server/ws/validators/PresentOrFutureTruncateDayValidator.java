@@ -1,0 +1,28 @@
+package fr.gouv.stopc.submission.code.server.ws.validators;
+
+import fr.gouv.stopc.submission.code.server.ws.annotations.PresentOrFutureTruncateDay;
+import lombok.extern.slf4j.Slf4j;
+
+import javax.validation.ConstraintValidator;
+import javax.validation.ConstraintValidatorContext;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
+
+@Slf4j
+public class PresentOrFutureTruncateDayValidator implements ConstraintValidator<PresentOrFutureTruncateDay, Date> {
+
+    /**
+     * @param date date to test
+     * @return return true if date is sup or equals by day of server date.
+     */
+    @Override
+    public boolean isValid(Date date, ConstraintValidatorContext constraintValidatorContext) {
+        final OffsetDateTime now = OffsetDateTime.now().truncatedTo(ChronoUnit.DAYS);
+        final ZoneOffset offset = now.getOffset();
+        final OffsetDateTime dateToTest = date.toInstant().atOffset(offset).truncatedTo(ChronoUnit.DAYS);
+        log.info("days between {}", ChronoUnit.DAYS.between(dateToTest, now));
+        return ChronoUnit.DAYS.between(dateToTest, now) <= 0;
+    }
+}
