@@ -11,6 +11,16 @@ class SubmissionServerCodeApi {
         console.log('trying to reach : ' + url);
         return axios.get(url, header);
     }
+
+    static async POST(
+        path: string,
+        data : any,
+        header = {headers: {'Content-Type': 'application/json'}}
+    ) {
+        const url = new URL(BASE_URL.concat(path)).toString();
+        console.log('trying to reach : ' + url);
+        return axios.post(url, data, header);
+    }
 }
 
 export default SubmissionServerCodeApi;

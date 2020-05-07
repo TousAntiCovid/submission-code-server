@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import CodeTable from './sub-components/code-table';
 import TablePagination from './sub-components/pagination-table';
 import {useParams} from "react-router-dom";
@@ -18,26 +18,26 @@ const CodeDisplayerTable = () => {
 
     const delay = (ms : number) => new Promise(res => setTimeout(res, ms));
 
-    const fetchPosts = () => {
+    const fetchPosts = useCallback(() => {
         setLoading(true);
 
-        ListCodeByLotPageAndElementPerPages( {
+        ListCodeByLotPageAndElementPerPages({
             lotIdentifier:lotIdentifier,
             currentPage:currentPage,
             elementsPerPage:elementsPerPage,
-        }) .then(response => {
+        }).then(response => {
             setCodes(response.codes);
             setNumberOfPages(response.numberOfPages)
             delay(1000).then(() => {
                 setLoading(false);
             })
         })
-    };
+    }, [currentPage, elementsPerPage, lotIdentifier]);
 
     // Reloading when lotIdentifier or elementsPerPage changed.
     useEffect(() => {
         fetchPosts();
-    }, [lotIdentifier, elementsPerPage]);
+    }, [lotIdentifier, elementsPerPage, fetchPosts]);
 
     // Get current codes
     const currentCodes = codes;
