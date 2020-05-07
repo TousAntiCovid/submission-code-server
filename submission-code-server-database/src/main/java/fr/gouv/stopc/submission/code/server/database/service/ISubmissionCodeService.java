@@ -38,6 +38,13 @@ public interface ISubmissionCodeService {
        * @return list of code page row "page" elementsByPage rows "elementsByPage" e.g. : page = 10 and elementsByPage = 12 , size list is 3 and has only row 10, 11, 12
        */
       Page<SubmissionCode> getSubmissionCodesFor(long lotIdentifier, int page, int elementsByPage);
+
+    /**
+     * TODO: add comment here
+     * @param lot
+     * @param type
+     * @return
+     */
       List<SubmissionCodeDto> getCodeUUIDv4CodesForCsv(String lot, String type);
 
 }
