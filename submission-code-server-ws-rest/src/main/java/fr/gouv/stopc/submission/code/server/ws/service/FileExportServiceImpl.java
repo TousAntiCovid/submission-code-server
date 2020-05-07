@@ -3,6 +3,8 @@ package fr.gouv.stopc.submission.code.server.ws.service;
 import com.opencsv.bean.ColumnPositionMappingStrategy;
 import com.opencsv.bean.StatefulBeanToCsv;
 import com.opencsv.bean.StatefulBeanToCsvBuilder;
+import com.opencsv.exceptions.CsvDataTypeMismatchException;
+import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
 import fr.gouv.stopc.submission.code.server.database.service.ISubmissionCodeService;
 import fr.gouv.stopc.submission.code.server.ws.enums.CodeTypeEnum;
@@ -14,6 +16,8 @@ import org.springframework.stereotype.Service;
 import javax.inject.Inject;
 import java.io.*;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -27,7 +31,7 @@ import java.util.zip.ZipOutputStream;
 @Slf4j
 @Service
 public class FileExportServiceImpl implements IFileService {
-    public static final String HEADER_CSV = "Lot, Code, Type, DateEndValidity, DateAvailable \n";
+    private static final String HEADER_CSV = "Lot, Code, Type, DateEndValidity, DateAvailable \n";
     private ISubmissionCodeService submissionCodeService;
     private IGenerateService generateService;
 
@@ -39,92 +43,81 @@ public class FileExportServiceImpl implements IFileService {
 
 
     @Override
-    public Optional<ZipOutputStream> zipExport(String numberCodeDay, String lot, String dateFrom, String dateTo) {
+    public Optional<ZipOutputStream> zipExport(String numberCodeDay, String lot, String dateFrom, String dateTo) throws Exception {
 
 
         OffsetDateTime dateTimeFrom;
-        OffsetDateTime dateTimeTo = null;
+        OffsetDateTime dateTimeTo;
         List<File> files = new ArrayList<>();
         ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
         ZipOutputStream zipOutputStream = new ZipOutputStream(byteOutputStream);
 
-        try {
 
-            dateTimeFrom= OffsetDateTime.parse(dateFrom, DateTimeFormatter.ISO_DATE_TIME);
-            dateTimeTo= OffsetDateTime.parse(dateTo, DateTimeFormatter.ISO_DATE_TIME);
-            validationDates(dateTimeFrom,dateTimeTo);
+        dateTimeFrom= OffsetDateTime.parse(dateFrom, DateTimeFormatter.ISO_DATE_TIME);
+        dateTimeTo= OffsetDateTime.parse(dateTo, DateTimeFormatter.ISO_DATE_TIME);
+        validationDates(dateTimeFrom,dateTimeTo);
 
-            //create codes
-            int diffDays= Math.toIntExact(ChronoUnit.DAYS.between(dateTimeFrom,dateTimeTo));
-            List<OffsetDateTime> datesFromList = generateService.getValidFromList(diffDays, dateTimeFrom);
+        //create codes
+        int diffDays= Math.toIntExact(ChronoUnit.DAYS.between(dateTimeFrom,dateTimeTo))+1;
+        List<OffsetDateTime> datesFromList = generateService.getValidFromList(diffDays, dateTimeFrom);
 
-            for(OffsetDateTime dateFromDay: datesFromList) {
-                generateService.generateCodeGeneric(Long.parseLong(numberCodeDay), CodeTypeEnum.UUIDv4, dateFromDay, Long.parseLong(lot));
-            }
-
-            //get codes
-            List<SubmissionCodeDto> submissionCodeDtos = submissionCodeService.getCodeUUIDv4CodesForCsv(lot, CodeTypeEnum.UUIDv4.getTypeCode());
-            if (CollectionUtils.isEmpty(submissionCodeDtos)){
-                return Optional.empty();
-            }
-             while(dateTimeFrom.isBefore(dateTimeTo)){
-                OffsetDateTime finalDateTimeFrom = dateTimeFrom;
-                List<SubmissionCodeDto> listForDay= submissionCodeDtos.stream().filter(tmp-> tmp.getDateAvailable().isEqual(finalDateTimeFrom)).collect(Collectors.toList());
-                File file= transformInFile(listForDay, dateTimeFrom);
-                files.add(file);
-                dateTimeFrom=dateTimeFrom.plusDays(1L);
-            }
-
-            for (File file: files){
-                zipOutputStream.putNextEntry(new ZipEntry(file.getName()));
-                FileInputStream fileInputStream = new FileInputStream(file);
-                IOUtils.copy(fileInputStream, zipOutputStream);
-                fileInputStream.close();
-                zipOutputStream.closeEntry();
-            }
-            zipOutputStream.close();
+        for(OffsetDateTime dateFromDay: datesFromList) {
+            generateService.generateCodeGeneric(Long.parseLong(numberCodeDay), CodeTypeEnum.UUIDv4, dateFromDay, Long.parseLong(lot));
         }
-        catch (IOException i){
-            log.info("Problem de conversion et creation file");
+
+        //get codes
+        List<SubmissionCodeDto> submissionCodeDtos = submissionCodeService.getCodeUUIDv4CodesForCsv(lot, CodeTypeEnum.UUIDv4.getTypeCode());
+        if (CollectionUtils.isEmpty(submissionCodeDtos)){
+            return Optional.empty();
         }
-        catch (Exception e) {
-            log.info("Problem create CSV");
+
+         for(OffsetDateTime dateTime : datesFromList){
+            List<SubmissionCodeDto> listForDay= submissionCodeDtos.stream().filter(tmp-> tmp.getDateAvailable().isEqual(dateTime)).collect(Collectors.toList());
+            File file= transformInFile(listForDay, dateTime);
+            files.add(file);
         }
+
+        for (File file: files){
+            zipOutputStream.putNextEntry(new ZipEntry(file.getName()));
+            FileInputStream fileInputStream = new FileInputStream(file);
+            IOUtils.copy(fileInputStream, zipOutputStream);
+            fileInputStream.close();
+            zipOutputStream.closeEntry();
+            file.deleteOnExit();
+        }
+        zipOutputStream.close();
+
         return  Optional.of(zipOutputStream);
     }
 
-    private File transformInFile(List<SubmissionCodeDto> listForDay, OffsetDateTime dateTimeFrom) throws IOException {
+    private File transformInFile(List<SubmissionCodeDto> listForDay, OffsetDateTime dateTimeFrom) throws CsvDataTypeMismatchException, CsvRequiredFieldEmptyException, IOException {
 
-        String fileName = dateTimeFrom.format(DateTimeFormatter.ISO_DATE) + ".csv";
+        final OffsetDateTime nowInParis = OffsetDateTime.now(ZoneId.of("Europe/Paris"));
+        final ZoneOffset offsetInParis = nowInParis.getOffset();
+        String fileName = dateTimeFrom.withOffsetSameInstant(offsetInParis).format(DateTimeFormatter.ISO_LOCAL_DATE) + ".csv";
+
         File file = new File(fileName);
-        OutputStream os = null;
-        try {
+        StringWriter fileWriter = new StringWriter();
+        fileWriter.append(HEADER_CSV);
+        ColumnPositionMappingStrategy mappingStrategy = new ColumnPositionMappingStrategy();
+        mappingStrategy.setType(SubmissionCodeDto.class);
 
-            StringWriter fileWriter = new StringWriter();
+        String[] columns = new String[]{"lot", "code", "type", "dateEndValidity", "dateAvailable"};
+        mappingStrategy.setColumnMapping(columns);
+        StatefulBeanToCsvBuilder<SubmissionCodeDto> builder = new StatefulBeanToCsvBuilder<>(fileWriter);
+        StatefulBeanToCsv statefulBeanToCsv = builder.withMappingStrategy(mappingStrategy).build();
+        statefulBeanToCsv.write(listForDay);
 
-            fileWriter.append(HEADER_CSV);
-            ColumnPositionMappingStrategy mappingStrategy = new ColumnPositionMappingStrategy();
-            mappingStrategy.setType(SubmissionCodeDto.class);
-
-            String[] columns = new String[]{"lot", "code", "type", "dateEndValidity", "dateAvailable"};
-            mappingStrategy.setColumnMapping(columns);
-
-            StatefulBeanToCsvBuilder<SubmissionCodeDto> builder = new StatefulBeanToCsvBuilder<>(fileWriter);
-            StatefulBeanToCsv statefulBeanToCsv = builder.withMappingStrategy(mappingStrategy).build();
-            statefulBeanToCsv.write(listForDay);
-            byte[] bytesArray = fileWriter.toString().getBytes("UTF-8");
-            os = new FileOutputStream(file);
-            os.write(bytesArray);
-            os.close();
-        }
-        catch (Exception e){
-            throw new IOException();
-        }
+        byte[] bytesArray = fileWriter.toString().getBytes("UTF-8");
+        OutputStream os = new FileOutputStream(file);
+        os.write(bytesArray);
+        os.close();
         return file;
     }
 
     private void validationDates(OffsetDateTime dateFrom, OffsetDateTime dateTo) throws Exception {
-        if(OffsetDateTime.now().compareTo(dateFrom) ==1 || dateFrom.isAfter(dateTo)){
+
+        if(OffsetDateTime.now().toLocalDate().compareTo(dateFrom.toLocalDate()) == 1 || dateFrom.isAfter(dateTo)){
             throw new Exception("Dates not Corrects");
         }
 

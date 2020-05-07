@@ -1,23 +1,23 @@
 package fr.gouv.stopc.submission.code.server.ws.service.fileservice;
 
 import fr.gouv.stopc.submission.code.server.ws.service.FileExportServiceImpl;
-import fr.gouv.stopc.submission.code.server.ws.service.GenerateServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.modelmapper.internal.util.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-@Slf4j
-@RunWith(MockitoJUnitRunner.class)
-@SpringBootTest
-public class FileExportServiceTest {
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Optional;
+import java.util.zip.ZipOutputStream;
 
-    @Autowired
-    private GenerateServiceImpl generateService;
+@Slf4j
+@SpringBootTest
+class FileExportServiceTest {
 
     @Autowired
     private FileExportServiceImpl fileExportService;
@@ -31,16 +31,48 @@ public class FileExportServiceTest {
 
     @Test
     public void createZipComplete(){
-       //initValues codes in table
-       //TODO
-
         // String numberCodeDay, String lot, String dateFrom, String dateTo
+        Optional<ZipOutputStream> result = Optional.empty();
 
-        //fileExportService.zipExport()
+        String nowDay = OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
+        String endDay = OffsetDateTime.now().plusDays(4L).format(DateTimeFormatter.ISO_DATE_TIME);
+        try{
+             result = fileExportService.zipExport("10", "2", nowDay, endDay);
+            
+        } catch (Exception e)
+        {
+            Assert.isTrue(false);
+        }
+        Assert.notNull(result.get());
 
+    }
 
+    @Test
+    public void createZipCompleteOneDay(){
+        // String numberCodeDay, String lot, String dateFrom, String dateTo
+        Optional<ZipOutputStream> result = Optional.empty();
 
+        String nowDay = OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
+        String endDay = nowDay;
+        try{
+            result = fileExportService.zipExport("10", "2", nowDay, endDay);
 
+        } catch (Exception e)
+        {
+            Assert.isTrue(false);
+        }
+        Assert.notNull(result.get());
+
+    }
+
+    @Test
+    public void checkDatesValidation(){
+
+        Assertions.assertThrows(Exception.class, () -> {
+            String startDay = OffsetDateTime.now().minusDays(1l).format(DateTimeFormatter.ISO_DATE_TIME);
+            String endDay = OffsetDateTime.now().plusDays(4L).format(DateTimeFormatter.ISO_DATE_TIME);
+            Optional<ZipOutputStream> result = fileExportService.zipExport("10", "2", startDay, endDay);
+        });
 
     }
 }
