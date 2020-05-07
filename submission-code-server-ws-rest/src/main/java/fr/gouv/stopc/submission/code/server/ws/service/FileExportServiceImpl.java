@@ -53,7 +53,7 @@ public class FileExportServiceImpl implements IFileService {
     }
 
     @Override
-    public Optional<ZipOutputStream> zipExport(String numberCodeDay, String lot, String dateFrom, String dateTo) throws Exception {
+    public Optional<ByteArrayOutputStream> zipExport(String numberCodeDay, String lot, String dateFrom, String dateTo) throws Exception {
 
         OffsetDateTime dateTimeFrom;
         OffsetDateTime dateTimeTo;
@@ -83,7 +83,7 @@ public class FileExportServiceImpl implements IFileService {
 
 
         // STEP 3 packaging csv files
-        ZipOutputStream zipOutputStream = packagingCsvFilesToZipFile(files);
+        ByteArrayOutputStream zipOutputStream = packagingCsvFilesToZipFile(files);
 
         return  Optional.of(zipOutputStream);
     }
@@ -115,7 +115,7 @@ public class FileExportServiceImpl implements IFileService {
     }
 
     @Override
-    public ZipOutputStream packagingCsvFilesToZipFile(List<File> files) throws IOException {
+    public ByteArrayOutputStream packagingCsvFilesToZipFile(List<File> files) throws IOException {
         ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
         ZipOutputStream zipOutputStream = new ZipOutputStream(byteOutputStream);
 
@@ -128,7 +128,7 @@ public class FileExportServiceImpl implements IFileService {
             file.deleteOnExit();
         }
         zipOutputStream.close();
-        return zipOutputStream;
+        return byteOutputStream;
     }
 
     /**
