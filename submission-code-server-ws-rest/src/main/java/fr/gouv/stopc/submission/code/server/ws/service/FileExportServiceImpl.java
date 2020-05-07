@@ -83,9 +83,9 @@ public class FileExportServiceImpl implements IFileService {
 
 
         // STEP 3 packaging csv files
-        ByteArrayOutputStream baos = packagingCsvFilesToZipFile(files);
+        ByteArrayOutputStream zipOutputStream = packagingCsvFilesToZipFile(files);
 
-        return  Optional.of(baos);
+        return  Optional.of(zipOutputStream);
     }
 
 

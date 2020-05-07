@@ -54,6 +54,6 @@ public interface IFileService {
      * @param files csv files to be zipped.
      * @return ZipOutputStream instance containing csv files.
      */
-     ByteArrayOutputStream packagingCsvFilesToZipFile(List<File> files) throws IOException;
+    ByteArrayOutputStream packagingCsvFilesToZipFile(List<File> files) throws IOException;
 
     }
