@@ -22,7 +22,6 @@ import javax.validation.constraints.NotNull;
 import java.io.*;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -46,10 +45,31 @@ public class FileExportServiceImpl implements IFileService {
     @Value("${stop.covid.qr.code.target.zone}")
     private String targetZoneId;
 
+    @Value("${generation.code.csv.separator}")
+    private Character CSV_SEPARATOR;
+
+    @Value("${generation.code.csv.delimiter}")
+    private Character CSV_DELIMITER;
+
+    @Value("${generation.code.csv.filename.formatter}")
+    private String CSV_FILENAME_FORMAT;
+
+    @Value("${generation.code.zip.filename.formatter}")
+    private String ZIP_FILENAME_FORMAT;
+
     @Inject
     public FileExportServiceImpl(ISubmissionCodeService submissionCodeService, IGenerateService generateService){
         this.submissionCodeService = submissionCodeService;
         this.generateService=generateService;
+    }
+
+    private String csvFilename(OffsetDateTime date) {
+        date = date.withOffsetSameInstant(OffsetDateTime.now(ZoneId.of(this.targetZoneId)).getOffset());
+        return  String.format(CSV_FILENAME_FORMAT ,date.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+    }
+    private String zipFilename(OffsetDateTime date) {
+        date = date.withOffsetSameInstant(OffsetDateTime.now(ZoneId.of(this.targetZoneId)).getOffset());
+        return String.format(ZIP_FILENAME_FORMAT , date.format(DateTimeFormatter.ofPattern("yyyyMMddhhmmss")));
     }
 
     @Override
@@ -144,9 +164,7 @@ public class FileExportServiceImpl implements IFileService {
     private File transformInFile(List<SubmissionCodeDto> submissionCodeDtoList, OffsetDateTime date) throws CsvDataTypeMismatchException, CsvRequiredFieldEmptyException, IOException {
 
         // name of the file should be built from the date at target Zone publication
-        final OffsetDateTime nowInParis = OffsetDateTime.now(ZoneId.of(this.targetZoneId));
-        final ZoneOffset offsetInParis = nowInParis.getOffset();
-        String fileName = date.withOffsetSameInstant(offsetInParis).format(DateTimeFormatter.ISO_LOCAL_DATE) + ".csv";
+        String fileName = this.csvFilename(date);
 
         // converting list SubmissionCodeDto to SubmissionCodeCsvDto to be proceeded in csv generator
         final List<SubmissionCodeCsvDto> submissionCodeCsvDtos = convert(submissionCodeDtoList);
@@ -154,12 +172,15 @@ public class FileExportServiceImpl implements IFileService {
         File file = new File(fileName);
         StringWriter fileWriter = new StringWriter();
         fileWriter.append(HEADER_CSV);
+
         ColumnPositionMappingStrategy mappingStrategy = new ColumnPositionMappingStrategy();
         mappingStrategy.setType(SubmissionCodeCsvDto.class);
 
         String[] columns = new String[]{"qrcode", "code", "dateAvailable", "dateEndValidity"};
         mappingStrategy.setColumnMapping(columns);
-        StatefulBeanToCsvBuilder<SubmissionCodeDto> builder = new StatefulBeanToCsvBuilder<>(fileWriter);
+        StatefulBeanToCsvBuilder<SubmissionCodeDto> builder = new StatefulBeanToCsvBuilder<SubmissionCodeDto>(fileWriter)
+                .withSeparator(CSV_SEPARATOR).withQuotechar(CSV_DELIMITER);
+
         StatefulBeanToCsv statefulBeanToCsv = builder.withMappingStrategy(mappingStrategy).build();
         statefulBeanToCsv.write(submissionCodeCsvDtos);
 
