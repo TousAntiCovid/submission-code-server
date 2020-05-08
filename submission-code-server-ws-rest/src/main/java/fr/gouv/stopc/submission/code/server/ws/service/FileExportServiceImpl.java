@@ -63,15 +63,6 @@ public class FileExportServiceImpl implements IFileService {
         this.generateService=generateService;
     }
 
-    private String csvFilename(OffsetDateTime date) {
-        date = date.withOffsetSameInstant(OffsetDateTime.now(ZoneId.of(this.targetZoneId)).getOffset());
-        return  String.format(CSV_FILENAME_FORMAT ,date.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
-    }
-    private String zipFilename(OffsetDateTime date) {
-        date = date.withOffsetSameInstant(OffsetDateTime.now(ZoneId.of(this.targetZoneId)).getOffset());
-        return String.format(ZIP_FILENAME_FORMAT , date.format(DateTimeFormatter.ofPattern("yyyyMMddhhmmss")));
-    }
-
     @Override
     public Optional<ByteArrayOutputStream> zipExport(String numberCodeDay, String lot, String dateFrom, String dateTo) throws Exception {
 
@@ -217,4 +208,25 @@ public class FileExportServiceImpl implements IFileService {
             return csvDto;
         }).collect(Collectors.toList());
     }
+
+    /**
+     * Formats csv file name from date and pattern set in application.properties.
+     * @param date date of the file to generate
+     * @return  formatted csv file name from date and pattern set in application.properties.
+     */
+    private String csvFilename(OffsetDateTime date) {
+        date = date.withOffsetSameInstant(OffsetDateTime.now(ZoneId.of(this.targetZoneId)).getOffset());
+        return  String.format(CSV_FILENAME_FORMAT ,date.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+    }
+
+    /**
+     * Formats zip file name from date and pattern set in application.properties.
+     * @param date date of the file to generate
+     * @return  formatted zip file name from date and pattern set in application.properties.
+     */
+    private String zipFilename(OffsetDateTime date) {
+        date = date.withOffsetSameInstant(OffsetDateTime.now(ZoneId.of(this.targetZoneId)).getOffset());
+        return String.format(ZIP_FILENAME_FORMAT , date.format(DateTimeFormatter.ofPattern("yyyyMMddhhmmss")));
+    }
+
 }
