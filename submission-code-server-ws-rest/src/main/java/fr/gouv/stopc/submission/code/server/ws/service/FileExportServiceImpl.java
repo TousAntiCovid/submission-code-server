@@ -99,7 +99,9 @@ public class FileExportServiceImpl implements IFileService {
 
 
     @Override
-    public void persistUUIDv4CodesFor(String codePerDays, String lotIdentifier, OffsetDateTime from, OffsetDateTime to) throws NumberOfTryGenerateCodeExceededExcetion {
+    public void persistUUIDv4CodesFor(String codePerDays, String lotIdentifier, OffsetDateTime from, OffsetDateTime to)
+            throws NumberOfTryGenerateCodeExceededExcetion
+    {
         OffsetDateTime fromWithoutHours = from.truncatedTo(ChronoUnit.DAYS);
         OffsetDateTime toWithoutHours = to.truncatedTo(ChronoUnit.DAYS);
 
@@ -113,7 +115,14 @@ public class FileExportServiceImpl implements IFileService {
     }
 
     @Override
-    public Map<String, byte[]> codeAsCsvData(List<SubmissionCodeDto> submissionCodeDtos, List<@NotNull OffsetDateTime> dates) throws CsvDataTypeMismatchException, CsvRequiredFieldEmptyException, IOException {
+    public Map<String, byte[]> codeAsCsvData (
+            List<SubmissionCodeDto> submissionCodeDtos,
+            List<@NotNull OffsetDateTime> dates
+    )
+            throws CsvDataTypeMismatchException,
+            CsvRequiredFieldEmptyException,
+            IOException
+    {
         Map<String, byte[]> dataByFilename = new HashMap<>();
 
         for(OffsetDateTime dateTime : dates){
