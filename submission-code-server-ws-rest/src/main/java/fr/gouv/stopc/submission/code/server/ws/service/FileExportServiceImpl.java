@@ -24,9 +24,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -89,12 +87,12 @@ public class FileExportServiceImpl implements IFileService {
         final List<@NotNull OffsetDateTime> availableDates = submissionCodeDtos
                 .stream().map(s -> s.getDateAvailable()).distinct().collect(Collectors.toList());
 
-        // STEP 2 parsing codes to csv files
-        List<File> files = codeAsCsvFiles(submissionCodeDtos, availableDates);
+        // STEP 2 parsing codes to csv dataByFilename
+        Map<String, byte[]> dataByFilename = codeAsCsvData(submissionCodeDtos, availableDates);
 
 
-        // STEP 3 packaging csv files
-        ByteArrayOutputStream zipOutputStream = packagingCsvFilesToZipFile(files);
+        // STEP 3 packaging csv data
+        ByteArrayOutputStream zipOutputStream = packagingCsvDataToZipFile(dataByFilename);
 
         return  Optional.of(zipOutputStream);
     }
@@ -115,32 +113,32 @@ public class FileExportServiceImpl implements IFileService {
     }
 
     @Override
-    public List<File> codeAsCsvFiles(List<SubmissionCodeDto> submissionCodeDtos, List<@NotNull OffsetDateTime> dates) throws CsvDataTypeMismatchException, CsvRequiredFieldEmptyException, IOException {
-        List<File> files = new ArrayList<>();
+    public Map<String, byte[]> codeAsCsvData(List<SubmissionCodeDto> submissionCodeDtos, List<@NotNull OffsetDateTime> dates) throws CsvDataTypeMismatchException, CsvRequiredFieldEmptyException, IOException {
+        Map<String, byte[]> dataByFilename = new HashMap<>();
 
         for(OffsetDateTime dateTime : dates){
             List<SubmissionCodeDto> listForDay= submissionCodeDtos
                     .stream().filter(tmp-> dateTime.isEqual(tmp.getDateAvailable()))
                     .collect(Collectors.toList());
 
-            File file = transformInFile(listForDay, dateTime);
-            files.add(file);
+            byte[] file = transformInFile(listForDay, dateTime);
+            dataByFilename.put(this.csvFilename(dateTime), file );
         }
-        return files;
+        return dataByFilename;
     }
 
     @Override
-    public ByteArrayOutputStream packagingCsvFilesToZipFile(List<File> files) throws IOException {
+    public ByteArrayOutputStream packagingCsvDataToZipFile(Map<String, byte[]> dataByFilename) throws IOException {
         ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
         ZipOutputStream zipOutputStream = new ZipOutputStream(byteOutputStream);
 
-        for (File file: files){
-            zipOutputStream.putNextEntry(new ZipEntry(file.getName()));
-            FileInputStream fileInputStream = new FileInputStream(file);
-            IOUtils.copy(fileInputStream, zipOutputStream);
-            fileInputStream.close();
+        for (String filename: dataByFilename.keySet()){
+            zipOutputStream.putNextEntry(new ZipEntry(filename));
+
+            final ByteArrayInputStream inputByteArray = new ByteArrayInputStream(dataByFilename.get(filename));
+            IOUtils.copy(inputByteArray, zipOutputStream);
+            inputByteArray.close();
             zipOutputStream.closeEntry();
-            file.deleteOnExit();
         }
         zipOutputStream.close();
         return byteOutputStream;
@@ -152,7 +150,7 @@ public class FileExportServiceImpl implements IFileService {
      * @param date the date of available of submissionCode
      * @return submissionCodeDtoList parsed into a csv file
      */
-    private File transformInFile(List<SubmissionCodeDto> submissionCodeDtoList, OffsetDateTime date) throws CsvDataTypeMismatchException, CsvRequiredFieldEmptyException, IOException {
+    private byte[] transformInFile(List<SubmissionCodeDto> submissionCodeDtoList, OffsetDateTime date) throws CsvDataTypeMismatchException, CsvRequiredFieldEmptyException, IOException {
 
         // name of the file should be built from the date at target Zone publication
         String fileName = this.csvFilename(date);
@@ -176,10 +174,7 @@ public class FileExportServiceImpl implements IFileService {
         statefulBeanToCsv.write(submissionCodeCsvDtos);
 
         byte[] bytesArray = fileWriter.toString().getBytes("UTF-8");
-        OutputStream os = new FileOutputStream(file);
-        os.write(bytesArray);
-        os.close();
-        return file;
+        return bytesArray;
     }
 
     /**

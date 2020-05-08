@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface IFileService {
@@ -41,19 +42,19 @@ public interface IFileService {
      void persistUUIDv4CodesFor(String codePerDays, String lotIdentifier, OffsetDateTime from, OffsetDateTime to) throws NumberOfTryGenerateCodeExceededExcetion;
 
     /**
-     * STEP 2 - [ PARSING DATA TO CSV files ]
+     * STEP 2 - [ PARSING DATA TO CSV Data ]
      * @param submissionCodeDtos
      * @param dates
-     * @return List of csv files named as AAAA-MM-DD.csv
+     * @return List of csv dataByFilename
      */
-     List<File> codeAsCsvFiles(List<SubmissionCodeDto> submissionCodeDtos, List<@NotNull OffsetDateTime> dates) throws CsvDataTypeMismatchException, CsvRequiredFieldEmptyException, IOException;
+    Map<String, byte[]> codeAsCsvData(List<SubmissionCodeDto> submissionCodeDtos, List<@NotNull OffsetDateTime> dates) throws CsvDataTypeMismatchException, CsvRequiredFieldEmptyException, IOException;
 
 
     /**
-     * STEP 3 - [ Packaging files in a Zip ]
-     * @param files csv files to be zipped.
-     * @return ZipOutputStream instance containing csv files.
+     * STEP 3 - [ Packaging dataByFilename in a Zip ]
+     * @param dataByFilename csv data to be zipped.
+     * @return ZipOutputStream instance containing csv data.
      */
-    ByteArrayOutputStream packagingCsvFilesToZipFile(List<File> files) throws IOException;
+    ByteArrayOutputStream packagingCsvDataToZipFile(Map<String, byte[]> dataByFilename) throws IOException;
 
     }
