@@ -1,5 +1,6 @@
 package fr.gouv.stopc.submission.code.server.ws.service.fileservice;
 
+import fr.gouv.stopc.submission.code.server.database.entity.Lot;
 import fr.gouv.stopc.submission.code.server.ws.service.FileExportServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
@@ -44,7 +45,7 @@ class FileExportServiceTest {
         String nowDay = OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         String endDay = OffsetDateTime.now().plusDays(4L).format(DateTimeFormatter.ISO_DATE_TIME);
         try{
-            result = fileExportService.zipExport("10", Long.toString(sr.nextLong()), nowDay, endDay);
+            result = fileExportService.zipExport("10", new Lot(), nowDay, endDay);
 
         } catch (Exception e)
         {
@@ -90,7 +91,7 @@ class FileExportServiceTest {
         String nowDay = OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         String endDay = nowDay;
 
-        result = fileExportService.zipExport("10", Long.toString(sr.nextLong()), nowDay, endDay);
+        result = fileExportService.zipExport("10", new Lot(), nowDay, endDay);
 
         Assert.notNull(result.get());
 
@@ -102,7 +103,7 @@ class FileExportServiceTest {
         Assertions.assertThrows(Exception.class, () -> {
             String startDay = OffsetDateTime.now().minusDays(1l).format(DateTimeFormatter.ISO_DATE_TIME);
             String endDay = OffsetDateTime.now().plusDays(4L).format(DateTimeFormatter.ISO_DATE_TIME);
-            Optional<ByteArrayOutputStream> result = fileExportService.zipExport("10", "2", startDay, endDay);
+            Optional<ByteArrayOutputStream> result = fileExportService.zipExport("10", new Lot(), startDay, endDay);
         });
 
     }

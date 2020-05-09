@@ -6,6 +6,7 @@ import com.opencsv.bean.StatefulBeanToCsvBuilder;
 import com.opencsv.exceptions.CsvDataTypeMismatchException;
 import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
+import fr.gouv.stopc.submission.code.server.database.entity.Lot;
 import fr.gouv.stopc.submission.code.server.database.service.ISubmissionCodeService;
 import fr.gouv.stopc.submission.code.server.ws.dto.SubmissionCodeCsvDto;
 import fr.gouv.stopc.submission.code.server.ws.enums.CodeTypeEnum;
@@ -62,7 +63,7 @@ public class FileExportServiceImpl implements IFileService {
     }
 
     @Override
-    public Optional<ByteArrayOutputStream> zipExport(String numberCodeDay, String lot, String dateFrom, String dateTo) throws Exception {
+    public Optional<ByteArrayOutputStream> zipExport(String numberCodeDay, Lot lotObject, String dateFrom, String dateTo) throws Exception {
 
         OffsetDateTime dateTimeFrom;
         OffsetDateTime dateTimeTo;
@@ -72,11 +73,11 @@ public class FileExportServiceImpl implements IFileService {
         validationDates(dateTimeFrom,dateTimeTo);
 
         // STEP 1 - create codes
-        this.persistUUIDv4CodesFor(numberCodeDay, lot, dateTimeFrom, dateTimeTo);
+        this.persistUUIDv4CodesFor(numberCodeDay, lotObject, dateTimeFrom, dateTimeTo);
 
         // STEP 1 BIS Retrieve data
         List<SubmissionCodeDto> submissionCodeDtos = submissionCodeService
-                .getCodeUUIDv4CodesForCsv(lot, CodeTypeEnum.UUIDv4.getTypeCode());
+                .getCodeUUIDv4CodesForCsv(Long.toString(lotObject.getId()), CodeTypeEnum.UUIDv4.getTypeCode());
 
         // TODO: Throw error here instead
         if (CollectionUtils.isEmpty(submissionCodeDtos)){
@@ -99,7 +100,7 @@ public class FileExportServiceImpl implements IFileService {
 
 
     @Override
-    public void persistUUIDv4CodesFor(String codePerDays, String lotIdentifier, OffsetDateTime from, OffsetDateTime to)
+    public void persistUUIDv4CodesFor(String codePerDays, Lot lotObject, OffsetDateTime from, OffsetDateTime to)
             throws NumberOfTryGenerateCodeExceededExcetion
     {
         OffsetDateTime fromWithoutHours = from.truncatedTo(ChronoUnit.DAYS);
@@ -108,9 +109,13 @@ public class FileExportServiceImpl implements IFileService {
         long diffDays= ChronoUnit.DAYS.between(fromWithoutHours, toWithoutHours) + 1;
         int diff = Integer.parseInt(Long.toString(diffDays));
         List<OffsetDateTime> datesFromList = generateService.getValidFromList(diff, from);
-
         for(OffsetDateTime dateFromDay: datesFromList) {
-            generateService.generateCodeGeneric(Long.parseLong(codePerDays), CodeTypeEnum.UUIDv4, dateFromDay, Long.parseLong(lotIdentifier));
+            generateService.generateCodeGeneric(
+                    Long.parseLong(codePerDays),
+                    CodeTypeEnum.UUIDv4,
+                    dateFromDay,
+                    lotObject
+            );
         }
     }
 

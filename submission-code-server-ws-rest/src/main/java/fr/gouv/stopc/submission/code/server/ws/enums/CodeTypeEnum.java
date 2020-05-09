@@ -5,9 +5,6 @@ import lombok.Getter;
 
 import java.util.Arrays;
 
-/**
- * @author cllange
- */
 @Getter
 public enum CodeTypeEnum {
 
