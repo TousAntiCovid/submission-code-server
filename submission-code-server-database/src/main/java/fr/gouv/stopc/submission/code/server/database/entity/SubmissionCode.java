@@ -15,8 +15,8 @@ public class SubmissionCode {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
 
-    @Column(name = "lot")
-    private long lot;
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private Lot lotkey;
 
     @Column(name = "code", nullable = false, unique = true)
     private String code;

@@ -2,6 +2,7 @@ package fr.gouv.stopc.submission.code.server.ws.service.generateservice;
 
 import fr.gouv.stopc.submission.code.server.commun.service.impl.UUIDv4CodeServiceImpl;
 import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
+import fr.gouv.stopc.submission.code.server.database.entity.Lot;
 import fr.gouv.stopc.submission.code.server.database.service.ISubmissionCodeService;
 import fr.gouv.stopc.submission.code.server.ws.dto.GenerateResponseDto;
 import fr.gouv.stopc.submission.code.server.ws.enums.CodeTypeEnum;
@@ -64,7 +65,7 @@ class GenerateServiceGenerateCodeGenericMethodTest {
         final long size = Long.parseLong("10");
         final CodeTypeEnum cte = CodeTypeEnum.UUIDv4;
         final OffsetDateTime validFrom = OffsetDateTime.now();
-        final long lot = Long.parseLong("123456");
+        final Lot lot = new Lot();
 
         final List<GenerateResponseDto> generateResponseDtoList = this.gsi.generateCodeGeneric(
                 size, cte, validFrom, lot
@@ -86,7 +87,7 @@ class GenerateServiceGenerateCodeGenericMethodTest {
         final long size = Long.parseLong("1");
         final CodeTypeEnum cte = CodeTypeEnum.UUIDv4;
         final OffsetDateTime validFrom = OffsetDateTime.now();
-        final long lot = Long.parseLong("123456");
+        final Lot lot = new Lot();
 
         final List<GenerateResponseDto> generateResponseDtoList = this.gsi.generateCodeGeneric(
                 size, cte, validFrom, lot
@@ -116,7 +117,7 @@ class GenerateServiceGenerateCodeGenericMethodTest {
         final long size = Long.parseLong("1");
         final CodeTypeEnum cte = CodeTypeEnum.UUIDv4;
         final OffsetDateTime validFrom = OffsetDateTime.now();
-        final long lot = Long.parseLong("123456");
+        final Lot lot = new Lot();
 
         final List<GenerateResponseDto> generateResponseDtoList = this.gsi.generateCodeGeneric(
                 size, cte, validFrom, lot
@@ -150,7 +151,7 @@ class GenerateServiceGenerateCodeGenericMethodTest {
         final long size = Long.parseLong("1");
         final CodeTypeEnum cte = CodeTypeEnum.ALPHANUM_6;
         final OffsetDateTime validFrom = OffsetDateTime.now();
-        final long lot = Long.parseLong("123456");
+        final Lot lot = new Lot();
 
         final List<GenerateResponseDto> generateResponseDtoList = this.gsi.generateCodeGeneric(
                 size, cte, validFrom, lot
@@ -184,7 +185,7 @@ class GenerateServiceGenerateCodeGenericMethodTest {
         final long size = Long.parseLong("1");
         final CodeTypeEnum cte = CodeTypeEnum.UUIDv4;
         final OffsetDateTime validFrom = OffsetDateTime.now();
-        final long lot = Long.parseLong("123456");
+        final Lot lot = new Lot();
 
         final List<GenerateResponseDto> generateResponseDtoList = this.gsi.generateCodeGeneric(
                 size, cte, validFrom, lot
@@ -216,7 +217,7 @@ class GenerateServiceGenerateCodeGenericMethodTest {
         final long size = Long.parseLong("1");
         final CodeTypeEnum cte = CodeTypeEnum.UUIDv4;
         final OffsetDateTime validFrom = OffsetDateTime.now();
-        final long lot = Long.parseLong("123456");
+        final Lot lot = new Lot();
 
         final List<GenerateResponseDto> generateResponseDtoList = this.gsi.generateCodeGeneric(
                 size, cte, validFrom, lot
@@ -258,7 +259,7 @@ class GenerateServiceGenerateCodeGenericMethodTest {
         final long size = Long.parseLong("10");
         final CodeTypeEnum cte = CodeTypeEnum.UUIDv4;
         final OffsetDateTime validFrom = OffsetDateTime.now();
-        final long lot = Long.parseLong("1");
+        final Lot lot = new Lot();
 
         final List<GenerateResponseDto> generateResponseDtoList = this.gsi.generateCodeGeneric(
                 size, cte, validFrom, lot
@@ -288,7 +289,7 @@ class GenerateServiceGenerateCodeGenericMethodTest {
         final long size = Long.parseLong("10");
         final CodeTypeEnum cte = CodeTypeEnum.UUIDv4;
         final OffsetDateTime validFrom = OffsetDateTime.now();
-        final long lot = Long.parseLong("123456");
+        final Lot lot = new Lot();
 
         Mockito.when(submissionCodeServiceMock.saveCode(Mockito.any(SubmissionCodeDto.class)))
                 .thenThrow(DataIntegrityViolationException.class);
@@ -324,7 +325,7 @@ class GenerateServiceGenerateCodeGenericMethodTest {
         final long size = Long.parseLong("10");
         final CodeTypeEnum cte = CodeTypeEnum.UUIDv4;
         final OffsetDateTime validFrom = OffsetDateTime.now();
-        final long lot = Long.parseLong("123456");
+        final Lot lot = new Lot();
 
         Mockito.when(submissionCodeServiceMock.saveCode(Mockito.any(SubmissionCodeDto.class)))
                 .thenThrow(DataIntegrityViolationException.class);
@@ -360,7 +361,7 @@ class GenerateServiceGenerateCodeGenericMethodTest {
         final long size = Long.parseLong("10");
         final CodeTypeEnum cte = CodeTypeEnum.UUIDv4;
         final OffsetDateTime validFrom = OffsetDateTime.now();
-        final long lot = Long.parseLong("1");
+        final Lot lot = new Lot();
 
         final List<GenerateResponseDto> generateResponseDtoList = this.gsi.generateCodeGeneric(
                 size, cte, validFrom

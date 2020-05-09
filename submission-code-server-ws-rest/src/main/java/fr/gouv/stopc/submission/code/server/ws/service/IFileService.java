@@ -3,6 +3,7 @@ package fr.gouv.stopc.submission.code.server.ws.service;
 import com.opencsv.exceptions.CsvDataTypeMismatchException;
 import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
+import fr.gouv.stopc.submission.code.server.database.entity.Lot;
 import fr.gouv.stopc.submission.code.server.ws.errors.NumberOfTryGenerateCodeExceededExcetion;
 
 import javax.validation.constraints.NotNull;
@@ -23,23 +24,23 @@ public interface IFileService {
      * 3) create one csv file each day between dateFrom to dateTo
      * 4) create file zip with csv files
      * @param numberCodeDay
-     * @param lot
+     * @param lotObject
      * @param dateFrom
      * @param dateTo
      * @return
      */
-     Optional<ByteArrayOutputStream> zipExport(String numberCodeDay, String lot, String dateFrom, String dateTo) throws Exception;
+     Optional<ByteArrayOutputStream> zipExport(String numberCodeDay, Lot lotObject, String dateFrom, String dateTo) throws Exception;
 
 
     /**
      * STEP - 1 [ PERSISTING ]
      * @param codePerDays code per days to be generated
-     * @param lotIdentifier lot identifier that the series should take
+     * @param lotObject lot identifier that the series should take
      * @param from start date of the series of days code generation
      * @param to end date of the series of days code generation
      * @throws NumberOfTryGenerateCodeExceededExcetion
      */
-     void persistUUIDv4CodesFor(String codePerDays, String lotIdentifier, OffsetDateTime from, OffsetDateTime to) throws NumberOfTryGenerateCodeExceededExcetion;
+     void persistUUIDv4CodesFor(String codePerDays, Lot lotObject, OffsetDateTime from, OffsetDateTime to) throws NumberOfTryGenerateCodeExceededExcetion;
 
     /**
      * STEP 2 - [ PARSING DATA TO CSV Data ]

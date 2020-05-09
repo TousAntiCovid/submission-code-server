@@ -19,7 +19,6 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Constraint(validatedBy = {CodePerDayValidator.class})
 /**
  * @see CodePerDayValidator description
- * @author cllange
  */
 public @interface CodePerDay {
     String message() default "{value} error";

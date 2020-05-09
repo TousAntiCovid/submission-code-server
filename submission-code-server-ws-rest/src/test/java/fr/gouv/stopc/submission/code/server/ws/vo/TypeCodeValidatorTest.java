@@ -13,9 +13,6 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * @author cllange
- */
 @ExtendWith(SpringExtension.class)
 class TypeCodeValidatorTest {
 

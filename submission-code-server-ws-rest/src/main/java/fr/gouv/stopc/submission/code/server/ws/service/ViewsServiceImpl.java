@@ -1,6 +1,7 @@
 package fr.gouv.stopc.submission.code.server.ws.service;
 
 
+import fr.gouv.stopc.submission.code.server.database.entity.Lot;
 import fr.gouv.stopc.submission.code.server.database.entity.SubmissionCode;
 import fr.gouv.stopc.submission.code.server.database.service.ISubmissionCodeService;
 import fr.gouv.stopc.submission.code.server.ws.dto.ViewDto;
@@ -94,7 +95,7 @@ public class ViewsServiceImpl {
         try {
             final Optional<ByteArrayOutputStream> baos = this.fileExportService.zipExport(
                     Long.toString(codePerDay),
-                    Long.toString(sr.nextLong()),
+                    new Lot(),
                     from.toString(),
                     to.toString()
             );

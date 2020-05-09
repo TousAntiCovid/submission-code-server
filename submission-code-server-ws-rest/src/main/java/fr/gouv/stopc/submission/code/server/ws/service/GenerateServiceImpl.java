@@ -3,6 +3,7 @@ package fr.gouv.stopc.submission.code.server.ws.service;
 import fr.gouv.stopc.submission.code.server.commun.service.IAlphaNumericCodeService;
 import fr.gouv.stopc.submission.code.server.commun.service.IUUIDv4CodeService;
 import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
+import fr.gouv.stopc.submission.code.server.database.entity.Lot;
 import fr.gouv.stopc.submission.code.server.database.entity.SubmissionCode;
 import fr.gouv.stopc.submission.code.server.database.service.ISubmissionCodeService;
 import fr.gouv.stopc.submission.code.server.ws.dto.GenerateResponseDto;
@@ -122,18 +123,7 @@ public class GenerateServiceImpl implements IGenerateService {
                                                          final CodeTypeEnum cte)
             throws NumberOfTryGenerateCodeExceededExcetion
     {
-        long lot = 0;
-        if(CodeTypeEnum.UUIDv4.equals(cte)) lot = this.submissionCodeService.nextLot();
-        return generateCodeGeneric(size, cte, lot);
-    }
-
-    @Override
-    public List<GenerateResponseDto> generateCodeGeneric(final long size,
-                                                         final CodeTypeEnum cte,
-                                                         final long lot)
-            throws NumberOfTryGenerateCodeExceededExcetion
-    {
-        return generateCodeGeneric(size, cte, OffsetDateTime.now(), lot);
+        return generateCodeGeneric(size, cte, OffsetDateTime.now());
     }
 
     @Override
@@ -142,14 +132,14 @@ public class GenerateServiceImpl implements IGenerateService {
                                                          final OffsetDateTime validFrom)
             throws NumberOfTryGenerateCodeExceededExcetion
     {
-        return generateCodeGeneric(size, cte, validFrom, this.submissionCodeService.nextLot());
+        return this.generateCodeGeneric(size, cte, validFrom, new Lot());
     }
 
     @Override
     public List<GenerateResponseDto> generateCodeGeneric(final long size,
                                                          final CodeTypeEnum cte,
                                                          final OffsetDateTime validFrom,
-                                                         final long lot)
+                                                         final Lot lotObject)
             throws NumberOfTryGenerateCodeExceededExcetion
     {
         final ArrayList<GenerateResponseDto> generateResponseList = new ArrayList<>();
@@ -183,11 +173,11 @@ public class GenerateServiceImpl implements IGenerateService {
                     .dateEndValidity(validUntil)
                     .dateGeneration(validGenDate)
                     .used(false)
-                    .lot(lot)
                     .build();
 
             try {
-                final SubmissionCode sc = this.submissionCodeService.saveCode(submissionCodeDto).get();
+                final SubmissionCode sc = this.submissionCodeService.saveCode(submissionCodeDto, lotObject).get();
+                lotObject.setId(sc.getLotkey().getId());
                 generateResponseList.add(GenerateResponseDto.builder()
                         .code(sc.getCode())
                         .typeAsString(cte.getType())
@@ -220,14 +210,6 @@ public class GenerateServiceImpl implements IGenerateService {
     @Override
     public List<GenerateResponseDto> generateUUIDv4CodesBulk(final OffsetDateTime validFrom)
     {
-        long lot = this.submissionCodeService.nextLot();
-        return generateUUIDv4CodesBulk(validFrom, lot);
-    }
-
-    @Override
-    public List<GenerateResponseDto> generateUUIDv4CodesBulk(final OffsetDateTime validFrom,
-                                                             final long lot)
-    {
         OffsetDateTime validGenDate = OffsetDateTime.now();
 
         final List<SubmissionCodeDto> submissionCodeDtos = this.uuiDv4CodeService
@@ -240,13 +222,12 @@ public class GenerateServiceImpl implements IGenerateService {
                                 .dateGeneration(validGenDate)
                                 .dateAvailable(validFrom)
                                 .dateEndValidity(getValidityDateUUIDCode(validFrom))
-                                .lot(lot)
                                 .used(false)
                                 .build()
                 )
                 .collect(Collectors.toList());
 
-        final Iterable<SubmissionCode> submissionCodes = this.submissionCodeService.saveAllCodes(submissionCodeDtos);
+        final Iterable<SubmissionCode> submissionCodes = this.submissionCodeService.saveAllCodes(submissionCodeDtos, new Lot());
         return IterableUtils.toList(submissionCodes).stream()
                 .map(sc -> GenerateResponseDto.builder()
                         .code(sc.getCode())
