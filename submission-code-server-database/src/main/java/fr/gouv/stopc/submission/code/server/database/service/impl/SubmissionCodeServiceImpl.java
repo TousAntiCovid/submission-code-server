@@ -1,6 +1,7 @@
 package fr.gouv.stopc.submission.code.server.database.service.impl;
 
 import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
+import fr.gouv.stopc.submission.code.server.database.entity.Lot;
 import fr.gouv.stopc.submission.code.server.database.entity.SubmissionCode;
 import fr.gouv.stopc.submission.code.server.database.repository.SubmissionCodeRepository;
 import fr.gouv.stopc.submission.code.server.database.service.ISubmissionCodeService;
@@ -46,11 +47,22 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
 
     @Override
     public Iterable<SubmissionCode> saveAllCodes(List<SubmissionCodeDto> submissionCodeDtos) {
+        return this.saveAllCodes(submissionCodeDtos, new Lot());
+    }
+
+    @Override
+    public Iterable<SubmissionCode> saveAllCodes(List<SubmissionCodeDto> submissionCodeDtos, Lot lot) {
         if(submissionCodeDtos.isEmpty()) {
             return Collections.EMPTY_LIST;
         }
         ModelMapper modelMapper = new ModelMapper();
-        List<SubmissionCode> submissionCodes = submissionCodeDtos.stream().map(tmp-> modelMapper.map(tmp, SubmissionCode.class)).collect(Collectors.toList());
+        List<SubmissionCode> submissionCodes = submissionCodeDtos.stream()
+                .map(tmp -> {
+                    final SubmissionCode sc = modelMapper.map(tmp, SubmissionCode.class);
+                    sc.setLotkey(lot);
+                    return sc;
+                })
+                .collect(Collectors.toList());
        return submissionCodeRepository.saveAll(submissionCodes);
     }
 
@@ -61,6 +73,19 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
         }
         ModelMapper modelMapper = new ModelMapper();
         SubmissionCode submissionCode = modelMapper.map(submissionCodeDto, SubmissionCode.class);
+        return Optional.of(submissionCodeRepository.save(submissionCode));
+    }
+
+    @Override
+    public Optional<SubmissionCode> saveCode(SubmissionCodeDto submissionCodeDto, Lot lot) {
+        if (Objects.isNull(submissionCodeDto)) {
+            return Optional.empty();
+        }
+        ModelMapper modelMapper = new ModelMapper();
+
+        SubmissionCode submissionCode = modelMapper.map(submissionCodeDto, SubmissionCode.class);
+        submissionCode.setLotkey(lot);
+
         return Optional.of(submissionCodeRepository.save(submissionCode));
     }
 
@@ -78,23 +103,10 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
         return true;
     }
 
-    @Override
-    public long lastLot() {
-        String lot = submissionCodeRepository.lastLot();
-         if(Objects.isNull(lot)) {
-            return 0;
-        }
-         return Long.valueOf(lot);
-    }
-
-    @Override
-    public long nextLot() {
-        return this.lastLot() +1;
-    }
 
     @Override
     public List<SubmissionCodeDto> getCodeUUIDv4CodesForCsv(String lot, String type) {
-        List<SubmissionCode> submissionCodes = submissionCodeRepository.findAllByLotAndTypeEquals(Long.parseLong(lot), type);
+        List<SubmissionCode> submissionCodes = submissionCodeRepository.findAllByLotkey_IdAndTypeEquals(Long.parseLong(lot), type);
         if (CollectionUtils.isEmpty(submissionCodes)){
             return Collections.emptyList();
         }
@@ -104,14 +116,17 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
 
     @Override
     public long getNumberOfCodesForLotIdentifier(long lotIdentifier) {
-        return this.submissionCodeRepository.countSubmissionCodeByLot(lotIdentifier);
+        return this.submissionCodeRepository.countSubmissionCodeByLotkey_Id(lotIdentifier);
     }
 
     @Override
     public Page<SubmissionCode> getSubmissionCodesFor(long lotIdentifier, int page, int elementsByPage) {
         return this.submissionCodeRepository
-                .findAllByLot(lotIdentifier, PageRequest.of(page, elementsByPage));
+                .findAllByLotkey_Id(lotIdentifier, PageRequest.of(page, elementsByPage));
 
 
     }
+
+
+
 }

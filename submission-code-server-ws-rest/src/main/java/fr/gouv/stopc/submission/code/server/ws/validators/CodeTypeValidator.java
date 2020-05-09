@@ -8,7 +8,6 @@ import javax.validation.ConstraintValidatorContext;
 
 /**
  * Validator of fields annotated with CodeType.
- * @author cllange
  */
 public class CodeTypeValidator implements ConstraintValidator<CodeType, String> {
 

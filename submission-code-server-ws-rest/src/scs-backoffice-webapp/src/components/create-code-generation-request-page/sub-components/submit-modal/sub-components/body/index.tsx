@@ -16,14 +16,15 @@ export const FailedBody = (props : any) => (
 /**
  * Modal body Succeeded response of api call
  */
-export const SucceededBody = (props : any) => (
-    <Modal.Body>
+export const SucceededBody = (props : any) => {
+    return <Modal.Body>
         <Alert variant={"success"}>
             <Alert.Heading>Succeeded !</Alert.Heading>
             <p>{props.children}</p>
+            <a href={`data:application/zip;base64,${props.data}`} download={"archive.zip"}>download</a>
         </Alert>
     </Modal.Body>
-)
+}
 
 /**
  * Modal body waiting the response of api call

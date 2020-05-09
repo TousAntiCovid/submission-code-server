@@ -5,7 +5,7 @@ import "./styles/code-table.sass"
 
 import Loading from "../../../../../loading";
 
-const CodeTable = ({codes , loading} : any) => {
+const CodeTable = ({codes , loading, startRowNumber} : any) => {
 
     if (loading === true ) {
         return <Loading/>;
@@ -27,7 +27,7 @@ const CodeTable = ({codes , loading} : any) => {
                 {codes.map((code : {code:string}, i : number)=> (
                     <tr>
                         <td key={i+1}>
-                            {i+1}
+                            {startRowNumber + i}
                         </td>
                         <td key={code.code}>
                             {code.code}

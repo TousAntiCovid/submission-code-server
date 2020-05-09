@@ -43,14 +43,13 @@ class GenerateServiceGenerateUUIDv4CodesBulkMethodTest {
         // asserting gsi is available
         final long size = Long.parseLong("10");
         final OffsetDateTime validFrom = OffsetDateTime.now();
-        final long lot = Long.parseLong("1");
 
         ReflectionTestUtils.setField(this.gsi, "NUMBER_OF_UUIDv4_PER_CALL", size);
         ReflectionTestUtils.setField(this.gsi, "TARGET_ZONE_ID", "Europe/Paris");
 
 
 
-        final List<GenerateResponseDto> generateResponseDtoList = this.gsi.generateUUIDv4CodesBulk(validFrom, lot);
+        final List<GenerateResponseDto> generateResponseDtoList = this.gsi.generateUUIDv4CodesBulk(validFrom);
 
         //list should not be null
         assertNotNull(generateResponseDtoList);

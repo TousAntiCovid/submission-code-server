@@ -4,6 +4,7 @@ import SubmissionServerCodeApi from "../../../toolbox/SubmissionServerCodeApi";
 export type ResponseSubmitCodeGenerationRequestType = {
     isSubmitted : boolean,
     message: string,
+    data: string,
 }
 
 export type RequestSubmitCodeGenerationRequestType = {
@@ -20,9 +21,11 @@ export function submitCodeGenerationRequest(
         `codes/generation/request`,
         requestParams
     ).then(response => {
+        console.log("response from  codes/generation/request ", response.data)
         return {
-            isSubmitted : response.data.isSubmitted,
-            message : response.data.message
+            isSubmitted : response.data.isSubmitted as boolean,
+            message : response.data.message as string,
+            data : response.data.baos as string
         };
 
     })
@@ -30,7 +33,8 @@ export function submitCodeGenerationRequest(
             console.error(err);
             return {
                 isSubmitted : false,
-                message: err.toString()
+                message: err.toString() as string,
+                data: {} as string
             }
         });
 }

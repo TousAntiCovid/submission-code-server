@@ -3,18 +3,19 @@ import {Modal} from 'react-bootstrap';
 
 import {FailedBody, SucceededBody, WaitingBody} from "./sub-components/body";
 import {FailedFooter, SucceededFooter} from "./sub-components/footer";
+import {ResponseSubmitCodeGenerationRequestType} from "../../data-provider/CreateCodeGenerationRequestPageDataProvider";
 
 
 export default function SubmitModal({showParam, handleClose, submitResponse} :any) {
 
-    const [response, setResponse] = useState(undefined as any)
+    const [response, setResponse] = useState(undefined as ResponseSubmitCodeGenerationRequestType | undefined)
     const delay = (ms : number) => new Promise(res => setTimeout(res, ms));
 
     useEffect(() => {
         if(submitResponse) {
             submitResponse
-                .then((response : any )=>{
-                    console.log(response)
+                .then((response : ResponseSubmitCodeGenerationRequestType )=>{
+                    console.log("Response", response)
                     delay(2000).finally(
                         () => setResponse(response)
                     )
@@ -28,7 +29,7 @@ export default function SubmitModal({showParam, handleClose, submitResponse} :an
 
 
     const ResponseBody = () => {
-        if(response && response.isSubmitted) return <SucceededBody>{response.message}</SucceededBody>
+        if(response && response.isSubmitted) return <SucceededBody data={response.data}>{response.message}</SucceededBody>
         if(response && !response.isSubmitted) return <FailedBody>{response.message}</FailedBody>
         return <div/>
     }

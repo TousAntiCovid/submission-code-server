@@ -42,13 +42,11 @@ public class ViewControllerImpl implements IViewController {
 
     @Override
     public ResponseEntity<ViewDto.CodeGenerationRequest> postCodeGenerationRequest (
-            @Valid @RequestBody ViewVo.CodeGenerationRequestBody cgrpr
+            @Valid @RequestBody ViewVo.CodeGenerationRequestBody codeGenerationRequestBody
     )
     {
-        return ResponseEntity.ok(ViewDto.CodeGenerationRequest.builder()
-                .isSubmitted(true)
-                .message("OK")
-                .build()
-        );
+        final ViewDto.CodeGenerationRequest codeGenerationRequest = this.vs.launchGenerationWith(codeGenerationRequestBody);
+        return ResponseEntity.ok(codeGenerationRequest);
+
     }
 }

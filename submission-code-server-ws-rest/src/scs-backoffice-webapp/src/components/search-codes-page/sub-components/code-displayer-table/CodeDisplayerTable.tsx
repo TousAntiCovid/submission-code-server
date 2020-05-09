@@ -65,6 +65,7 @@ const CodeDisplayerTable = () => {
                     <CodeTable
                         codes={currentCodes}
                         loading={loading}
+                        startRowNumber={((currentPage-1) * elementsPerPage)+1}
                     />
                 </Col>
             </Row>

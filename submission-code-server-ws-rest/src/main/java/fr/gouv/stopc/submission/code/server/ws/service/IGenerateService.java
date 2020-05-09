@@ -1,5 +1,6 @@
 package fr.gouv.stopc.submission.code.server.ws.service;
 
+import fr.gouv.stopc.submission.code.server.database.entity.Lot;
 import fr.gouv.stopc.submission.code.server.ws.dto.GenerateResponseDto;
 import fr.gouv.stopc.submission.code.server.ws.enums.CodeTypeEnum;
 import fr.gouv.stopc.submission.code.server.ws.errors.NumberOfTryGenerateCodeExceededExcetion;
@@ -32,7 +33,7 @@ public interface IGenerateService {
     /**
      * Method used to sequentially generate codes of codeType in parameter
      * Method used to sequentially generate codes of codeType in parameter
-     * Calling method {@link #generateCodeGeneric(long, CodeTypeEnum, long)}
+     * Calling method {@link #generateCodeGeneric(long, CodeTypeEnum)}
      * with lot value given by method nextLot() of db service.
      * @param size the desired number of code to be generated
      * @param cte the code type desired
@@ -45,44 +46,28 @@ public interface IGenerateService {
 
     /**
      * Method used to sequentially generate codes of codeType in parameter
-     * Method calling {@link #generateCodeGeneric(long, CodeTypeEnum, OffsetDateTime, long)}
-     * with "validForm" parameter as actual date called in method.
-     * @param size the desired number of code to be generated
-     * @param cte the code type desired
-     * @param lot identifier of the lot.
-     * @return list of code generated and saved in db.
-     */
-    List<GenerateResponseDto> generateCodeGeneric(final long size,
-                                                  final CodeTypeEnum cte,
-                                                  final long lot
-    ) throws NumberOfTryGenerateCodeExceededExcetion;
-
-    /**
-     * Method used to sequentially generate codes of codeType in parameter
-     * Method calling {@link #generateCodeGeneric(long, CodeTypeEnum, OffsetDateTime, long)}
-     * with "lot" parameter given by method nextLot() of db service.
      * @param size the desired number of code to be generated
      * @param cte the code type desired
      * @param validFrom date from the code should be valid.
-     * @return list of code generated and saved in db.
+     * @return list of unique persisted codes
      */
     List<GenerateResponseDto> generateCodeGeneric(final long size,
                                                   final CodeTypeEnum cte,
                                                   final OffsetDateTime validFrom
     ) throws NumberOfTryGenerateCodeExceededExcetion;
 
+
     /**
      * Method used to sequentially generate codes of codeType in parameter
      * @param size the desired number of code to be generated
      * @param cte the code type desired
      * @param validFrom date from the code should be valid.
-     * @param lot identifier of the lot.
      * @return list of unique persisted codes
      */
-    List<GenerateResponseDto> generateCodeGeneric(final long size,
-                                                  final CodeTypeEnum cte,
-                                                  final OffsetDateTime validFrom,
-                                                  final long lot
+    public List<GenerateResponseDto> generateCodeGeneric(final long size,
+                                                         final CodeTypeEnum cte,
+                                                         final OffsetDateTime validFrom,
+                                                         final Lot lotObject
     ) throws NumberOfTryGenerateCodeExceededExcetion;
 
     /**
@@ -92,21 +77,12 @@ public interface IGenerateService {
     List<GenerateResponseDto> generateUUIDv4CodesBulk();
 
     /**
-     * Method calling {@link #generateUUIDv4CodesBulk(OffsetDateTime, long)} with next lot identifier calculated
+     * Method calling  with new lot identifier calculated
      * with the last one given by database service.
      * @param validFrom date from the code should be valid.
      * @return list of code generated and saved in db.
      */
     List<GenerateResponseDto> generateUUIDv4CodesBulk(final OffsetDateTime validFrom);
-
-    /**
-     * Method generates UUIDv4 code with saveAll method of repository
-     * It generate a list of UUIDv4 in one shot and save it as a bulk.
-     * @param validFrom date from the code should be valid.
-     * @param lot identifier of the lot.
-     * @return list of code generated and saved in db.
-     */
-    List<GenerateResponseDto> generateUUIDv4CodesBulk(final OffsetDateTime validFrom, final long lot);
 
     /**
      * Method return List of OffsetDateTime increment by day and truncate to day

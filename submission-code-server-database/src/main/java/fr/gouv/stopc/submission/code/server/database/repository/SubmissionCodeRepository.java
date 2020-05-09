@@ -13,19 +13,16 @@ import java.util.List;
 public interface SubmissionCodeRepository extends PagingAndSortingRepository<SubmissionCode, Long> {
      SubmissionCode findByCodeAndType(String code, String type);
 
-     List<SubmissionCode> findAllByLotAndTypeEquals(long lot, String type);
-
-     @Query(value = "SELECT max(lot) FROM SubmissionCode ")
-     String lastLot();
+     List<SubmissionCode> findAllByLotkey_IdAndTypeEquals(long lot, String type);
 
      /**
       * count number of codes in db for the given lot identifier.
       * @param lotIdentifier lot identifier in db
       * @return count number of codes in db for the given lot identifier.
       */
-     long countSubmissionCodeByLot(long lotIdentifier);
+     long countSubmissionCodeByLotkey_Id(long lotIdentifier);
 
-     Page<SubmissionCode> findAllByLot(long lotIdentifier, Pageable pageable);
+     Page<SubmissionCode> findAllByLotkey_Id(long lotIdentifier, Pageable pageable);
 
 
 }

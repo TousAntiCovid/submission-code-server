@@ -6,6 +6,7 @@ import com.opencsv.bean.StatefulBeanToCsvBuilder;
 import com.opencsv.exceptions.CsvDataTypeMismatchException;
 import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
+import fr.gouv.stopc.submission.code.server.database.entity.Lot;
 import fr.gouv.stopc.submission.code.server.database.service.ISubmissionCodeService;
 import fr.gouv.stopc.submission.code.server.ws.dto.SubmissionCodeCsvDto;
 import fr.gouv.stopc.submission.code.server.ws.enums.CodeTypeEnum;
@@ -22,12 +23,9 @@ import javax.validation.constraints.NotNull;
 import java.io.*;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -46,6 +44,18 @@ public class FileExportServiceImpl implements IFileService {
     @Value("${stop.covid.qr.code.target.zone}")
     private String targetZoneId;
 
+    @Value("${generation.code.csv.separator}")
+    private Character CSV_SEPARATOR;
+
+    @Value("${generation.code.csv.delimiter}")
+    private Character CSV_DELIMITER;
+
+    @Value("${generation.code.csv.filename.formatter}")
+    private String CSV_FILENAME_FORMAT;
+
+    @Value("${generation.code.zip.filename.formatter}")
+    private String ZIP_FILENAME_FORMAT;
+
     @Inject
     public FileExportServiceImpl(ISubmissionCodeService submissionCodeService, IGenerateService generateService){
         this.submissionCodeService = submissionCodeService;
@@ -53,7 +63,7 @@ public class FileExportServiceImpl implements IFileService {
     }
 
     @Override
-    public Optional<ByteArrayOutputStream> zipExport(String numberCodeDay, String lot, String dateFrom, String dateTo) throws Exception {
+    public Optional<ByteArrayOutputStream> zipExport(String numberCodeDay, Lot lotObject, String dateFrom, String dateTo) throws Exception {
 
         OffsetDateTime dateTimeFrom;
         OffsetDateTime dateTimeTo;
@@ -63,11 +73,11 @@ public class FileExportServiceImpl implements IFileService {
         validationDates(dateTimeFrom,dateTimeTo);
 
         // STEP 1 - create codes
-        this.persistUUIDv4CodesFor(numberCodeDay, lot, dateTimeFrom, dateTimeTo);
+        this.persistUUIDv4CodesFor(numberCodeDay, lotObject, dateTimeFrom, dateTimeTo);
 
         // STEP 1 BIS Retrieve data
         List<SubmissionCodeDto> submissionCodeDtos = submissionCodeService
-                .getCodeUUIDv4CodesForCsv(lot, CodeTypeEnum.UUIDv4.getTypeCode());
+                .getCodeUUIDv4CodesForCsv(Long.toString(lotObject.getId()), CodeTypeEnum.UUIDv4.getTypeCode());
 
         // TODO: Throw error here instead
         if (CollectionUtils.isEmpty(submissionCodeDtos)){
@@ -78,54 +88,71 @@ public class FileExportServiceImpl implements IFileService {
         final List<@NotNull OffsetDateTime> availableDates = submissionCodeDtos
                 .stream().map(s -> s.getDateAvailable()).distinct().collect(Collectors.toList());
 
-        // STEP 2 parsing codes to csv files
-        List<File> files = codeAsCsvFiles(submissionCodeDtos, availableDates);
+        // STEP 2 parsing codes to csv dataByFilename
+        Map<String, byte[]> dataByFilename = codeAsCsvData(submissionCodeDtos, availableDates);
 
 
-        // STEP 3 packaging csv files
-        ByteArrayOutputStream zipOutputStream = packagingCsvFilesToZipFile(files);
+        // STEP 3 packaging csv data
+        ByteArrayOutputStream zipOutputStream = packagingCsvDataToZipFile(dataByFilename);
 
         return  Optional.of(zipOutputStream);
     }
 
 
     @Override
-    public void persistUUIDv4CodesFor(String codePerDays, String lotIdentifier, OffsetDateTime from, OffsetDateTime to) throws NumberOfTryGenerateCodeExceededExcetion {
-        int diffDays= Math.toIntExact(ChronoUnit.DAYS.between(from, to))+1;
-        List<OffsetDateTime> datesFromList = generateService.getValidFromList(diffDays, from);
+    public void persistUUIDv4CodesFor(String codePerDays, Lot lotObject, OffsetDateTime from, OffsetDateTime to)
+            throws NumberOfTryGenerateCodeExceededExcetion
+    {
+        OffsetDateTime fromWithoutHours = from.truncatedTo(ChronoUnit.DAYS);
+        OffsetDateTime toWithoutHours = to.truncatedTo(ChronoUnit.DAYS);
 
+        long diffDays= ChronoUnit.DAYS.between(fromWithoutHours, toWithoutHours) + 1;
+        int diff = Integer.parseInt(Long.toString(diffDays));
+        List<OffsetDateTime> datesFromList = generateService.getValidFromList(diff, from);
         for(OffsetDateTime dateFromDay: datesFromList) {
-            generateService.generateCodeGeneric(Long.parseLong(codePerDays), CodeTypeEnum.UUIDv4, dateFromDay, Long.parseLong(lotIdentifier));
+            generateService.generateCodeGeneric(
+                    Long.parseLong(codePerDays),
+                    CodeTypeEnum.UUIDv4,
+                    dateFromDay,
+                    lotObject
+            );
         }
     }
 
     @Override
-    public List<File> codeAsCsvFiles(List<SubmissionCodeDto> submissionCodeDtos, List<@NotNull OffsetDateTime> dates) throws CsvDataTypeMismatchException, CsvRequiredFieldEmptyException, IOException {
-        List<File> files = new ArrayList<>();
+    public Map<String, byte[]> codeAsCsvData (
+            List<SubmissionCodeDto> submissionCodeDtos,
+            List<@NotNull OffsetDateTime> dates
+    )
+            throws CsvDataTypeMismatchException,
+            CsvRequiredFieldEmptyException,
+            IOException
+    {
+        Map<String, byte[]> dataByFilename = new HashMap<>();
 
         for(OffsetDateTime dateTime : dates){
             List<SubmissionCodeDto> listForDay= submissionCodeDtos
                     .stream().filter(tmp-> dateTime.isEqual(tmp.getDateAvailable()))
                     .collect(Collectors.toList());
 
-            File file = transformInFile(listForDay, dateTime);
-            files.add(file);
+            byte[] file = transformInFile(listForDay, dateTime);
+            dataByFilename.put(this.csvFilename(dateTime), file );
         }
-        return files;
+        return dataByFilename;
     }
 
     @Override
-    public ByteArrayOutputStream packagingCsvFilesToZipFile(List<File> files) throws IOException {
+    public ByteArrayOutputStream packagingCsvDataToZipFile(Map<String, byte[]> dataByFilename) throws IOException {
         ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
         ZipOutputStream zipOutputStream = new ZipOutputStream(byteOutputStream);
 
-        for (File file: files){
-            zipOutputStream.putNextEntry(new ZipEntry(file.getName()));
-            FileInputStream fileInputStream = new FileInputStream(file);
-            IOUtils.copy(fileInputStream, zipOutputStream);
-            fileInputStream.close();
+        for (String filename: dataByFilename.keySet()){
+            zipOutputStream.putNextEntry(new ZipEntry(filename));
+
+            final ByteArrayInputStream inputByteArray = new ByteArrayInputStream(dataByFilename.get(filename));
+            IOUtils.copy(inputByteArray, zipOutputStream);
+            inputByteArray.close();
             zipOutputStream.closeEntry();
-            file.deleteOnExit();
         }
         zipOutputStream.close();
         return byteOutputStream;
@@ -137,12 +164,10 @@ public class FileExportServiceImpl implements IFileService {
      * @param date the date of available of submissionCode
      * @return submissionCodeDtoList parsed into a csv file
      */
-    private File transformInFile(List<SubmissionCodeDto> submissionCodeDtoList, OffsetDateTime date) throws CsvDataTypeMismatchException, CsvRequiredFieldEmptyException, IOException {
+    private byte[] transformInFile(List<SubmissionCodeDto> submissionCodeDtoList, OffsetDateTime date) throws CsvDataTypeMismatchException, CsvRequiredFieldEmptyException, IOException {
 
         // name of the file should be built from the date at target Zone publication
-        final OffsetDateTime nowInParis = OffsetDateTime.now(ZoneId.of(this.targetZoneId));
-        final ZoneOffset offsetInParis = nowInParis.getOffset();
-        String fileName = date.withOffsetSameInstant(offsetInParis).format(DateTimeFormatter.ISO_LOCAL_DATE) + ".csv";
+        String fileName = this.csvFilename(date);
 
         // converting list SubmissionCodeDto to SubmissionCodeCsvDto to be proceeded in csv generator
         final List<SubmissionCodeCsvDto> submissionCodeCsvDtos = convert(submissionCodeDtoList);
@@ -150,20 +175,20 @@ public class FileExportServiceImpl implements IFileService {
         File file = new File(fileName);
         StringWriter fileWriter = new StringWriter();
         fileWriter.append(HEADER_CSV);
+
         ColumnPositionMappingStrategy mappingStrategy = new ColumnPositionMappingStrategy();
         mappingStrategy.setType(SubmissionCodeCsvDto.class);
 
         String[] columns = new String[]{"qrcode", "code", "dateAvailable", "dateEndValidity"};
         mappingStrategy.setColumnMapping(columns);
-        StatefulBeanToCsvBuilder<SubmissionCodeDto> builder = new StatefulBeanToCsvBuilder<>(fileWriter);
+        StatefulBeanToCsvBuilder<SubmissionCodeDto> builder = new StatefulBeanToCsvBuilder<SubmissionCodeDto>(fileWriter)
+                .withSeparator(CSV_SEPARATOR).withQuotechar(CSV_DELIMITER);
+
         StatefulBeanToCsv statefulBeanToCsv = builder.withMappingStrategy(mappingStrategy).build();
         statefulBeanToCsv.write(submissionCodeCsvDtos);
 
         byte[] bytesArray = fileWriter.toString().getBytes("UTF-8");
-        OutputStream os = new FileOutputStream(file);
-        os.write(bytesArray);
-        os.close();
-        return file;
+        return bytesArray;
     }
 
     /**
@@ -192,4 +217,25 @@ public class FileExportServiceImpl implements IFileService {
             return csvDto;
         }).collect(Collectors.toList());
     }
+
+    /**
+     * Formats csv file name from date and pattern set in application.properties.
+     * @param date date of the file to generate
+     * @return  formatted csv file name from date and pattern set in application.properties.
+     */
+    private String csvFilename(OffsetDateTime date) {
+        date = date.withOffsetSameInstant(OffsetDateTime.now(ZoneId.of(this.targetZoneId)).getOffset());
+        return  String.format(CSV_FILENAME_FORMAT ,date.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+    }
+
+    /**
+     * Formats zip file name from date and pattern set in application.properties.
+     * @param date date of the file to generate
+     * @return  formatted zip file name from date and pattern set in application.properties.
+     */
+    private String zipFilename(OffsetDateTime date) {
+        date = date.withOffsetSameInstant(OffsetDateTime.now(ZoneId.of(this.targetZoneId)).getOffset());
+        return String.format(ZIP_FILENAME_FORMAT , date.format(DateTimeFormatter.ofPattern("yyyyMMddhhmmss")));
+    }
+
 }

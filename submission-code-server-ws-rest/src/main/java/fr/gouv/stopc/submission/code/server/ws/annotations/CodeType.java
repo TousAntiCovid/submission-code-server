@@ -17,7 +17,6 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Constraint(validatedBy = {CodeTypeValidator.class})
 /**
  * @see CodeTypeValidator description
- * @author cllange
  */
 public @interface CodeType {
     String message() default "{value} is not an instance of TypeEnum";
