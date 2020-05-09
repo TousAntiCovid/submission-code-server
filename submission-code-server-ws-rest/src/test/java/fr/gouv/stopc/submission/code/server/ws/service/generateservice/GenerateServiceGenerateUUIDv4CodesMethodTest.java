@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.regex.Pattern;
@@ -18,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @Slf4j
 @SpringBootTest
+@Transactional
 class GenerateServiceGenerateUUIDv4CodesMethodTest {
 
     @Autowired

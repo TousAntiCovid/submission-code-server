@@ -8,10 +8,14 @@ import org.apache.commons.collections4.IterableUtils;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.modelmapper.internal.util.Assert;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
-
+@Transactional
 public class SubmissionCodeServiceImplTest {
     private SubmissionCodeRepository submissionCodeRepositoryMock = Mockito.mock(SubmissionCodeRepository.class);
 
@@ -30,7 +34,7 @@ public class SubmissionCodeServiceImplTest {
         List<SubmissionCode> submissionCodes = new ArrayList<>();
         SubmissionCode codepositive = new SubmissionCode();
         submissionCodes.add(codepositive);
-        Mockito.when(submissionCodeRepositoryMock.saveAll(submissionCodes)).thenReturn(submissionCodes);
+        Mockito.when(submissionCodeRepositoryMock.saveAll(Mockito.anyList())).thenReturn(submissionCodes);
         SubmissionCodeServiceImpl submissionCodeServiceTest = new SubmissionCodeServiceImpl(submissionCodeRepositoryMock);
         List<SubmissionCodeDto> submissionCodeDtos = new ArrayList<>();
         SubmissionCodeDto submissionCodeDto = new SubmissionCodeDto();
