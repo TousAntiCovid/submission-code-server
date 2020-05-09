@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
 import java.util.HashMap;
@@ -31,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @Slf4j
 @RunWith(MockitoJUnitRunner.class)
 @SpringBootTest
+@Transactional
 class GenerateServiceGenerateCodeGenericMethodTest {
 
     @Mock
@@ -291,7 +293,7 @@ class GenerateServiceGenerateCodeGenericMethodTest {
         final OffsetDateTime validFrom = OffsetDateTime.now();
         final Lot lot = new Lot();
 
-        Mockito.when(submissionCodeServiceMock.saveCode(Mockito.any(SubmissionCodeDto.class)))
+        Mockito.when(submissionCodeServiceMock.saveCode(Mockito.any(SubmissionCodeDto.class), Mockito.any(Lot.class)))
                 .thenThrow(DataIntegrityViolationException.class);
 
         Mockito.when(uuiDv4CodeService.generateCode())
@@ -307,6 +309,7 @@ class GenerateServiceGenerateCodeGenericMethodTest {
                     size, cte, validFrom, lot
             );
         } catch (  NumberOfTryGenerateCodeExceededExcetion e ) {
+            log.error("{}", e);
             notgcee = e;
             assertEquals(String.format("Number of tries exceeded. %s were authorized.", 0), e.getMessage());
         }
@@ -327,14 +330,14 @@ class GenerateServiceGenerateCodeGenericMethodTest {
         final OffsetDateTime validFrom = OffsetDateTime.now();
         final Lot lot = new Lot();
 
-        Mockito.when(submissionCodeServiceMock.saveCode(Mockito.any(SubmissionCodeDto.class)))
+        Mockito.when(submissionCodeServiceMock.saveCode(Mockito.any(SubmissionCodeDto.class), Mockito.any(Lot.class)))
                 .thenThrow(DataIntegrityViolationException.class);
 
         Mockito.when(uuiDv4CodeService.generateCode())
                 .thenReturn("1234-123-123-123-123-1234");
 
         ReflectionTestUtils.setField(this.gsiMocked, "TARGET_ZONE_ID", "Europe/Paris");
-        ReflectionTestUtils.setField(gsiMocked, "NUMBER_OF_TRY_IN_CASE_OF_ERROR", 0);
+        ReflectionTestUtils.setField(this.gsiMocked, "NUMBER_OF_TRY_IN_CASE_OF_ERROR", 0);
 
 
         NumberOfTryGenerateCodeExceededExcetion notgcee = null;
@@ -343,6 +346,8 @@ class GenerateServiceGenerateCodeGenericMethodTest {
                     size, cte, validFrom
             );
         } catch (  NumberOfTryGenerateCodeExceededExcetion e ) {
+            log.error("{}", e);
+
             notgcee = e;
             assertEquals(String.format("Number of tries exceeded. %s were authorized.", 0), e.getMessage());
         }

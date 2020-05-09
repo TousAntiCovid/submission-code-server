@@ -2,6 +2,7 @@ package fr.gouv.stopc.submission.code.server.ws.service.generateservice;
 
 import fr.gouv.stopc.submission.code.server.commun.service.impl.UUIDv4CodeServiceImpl;
 import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
+import fr.gouv.stopc.submission.code.server.database.entity.Lot;
 import fr.gouv.stopc.submission.code.server.database.service.ISubmissionCodeService;
 import fr.gouv.stopc.submission.code.server.ws.dto.GenerateResponseDto;
 import fr.gouv.stopc.submission.code.server.ws.enums.CodeTypeEnum;
@@ -18,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.activation.UnsupportedDataTypeException;
 import java.util.List;
@@ -29,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @Slf4j
 @RunWith(MockitoJUnitRunner.class)
 @SpringBootTest
+@Transactional
 class GenerateServiceGenerateCodeFromRequestMethodTest {
 
     @Mock
@@ -185,7 +188,7 @@ class GenerateServiceGenerateCodeFromRequestMethodTest {
         Mockito.when(uuiDv4CodeService.generateCode())
                 .thenReturn("1234-123-123-123-123-1234");
 
-        Mockito.when(submissionCodeServiceMock.saveCode(Mockito.any(SubmissionCodeDto.class)))
+        Mockito.when(submissionCodeServiceMock.saveCode(Mockito.any(SubmissionCodeDto.class), Mockito.any(Lot.class)))
                 .thenThrow(DataIntegrityViolationException.class);
 
         ReflectionTestUtils.setField(gsiMocked, "NUMBER_OF_TRY_IN_CASE_OF_ERROR", 0);
@@ -217,7 +220,7 @@ class GenerateServiceGenerateCodeFromRequestMethodTest {
     void generateCodeFromRequestReachTries6ALPHANUMTest()
             throws UnsupportedDataTypeException
     {
-        Mockito.when(submissionCodeServiceMock.saveCode(Mockito.any(SubmissionCodeDto.class)))
+        Mockito.when(submissionCodeServiceMock.saveCode(Mockito.any(SubmissionCodeDto.class), Mockito.any(Lot.class)))
                 .thenThrow(DataIntegrityViolationException.class);
 
         Mockito.when(uuiDv4CodeService.generateCode())

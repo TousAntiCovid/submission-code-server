@@ -10,6 +10,7 @@ import org.mockito.MockitoAnnotations;
 import org.modelmapper.internal.util.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.*;
 import java.security.SecureRandom;
@@ -21,6 +22,7 @@ import java.util.zip.ZipInputStream;
 
 @Slf4j
 @SpringBootTest
+@Transactional
 class FileExportServiceTest {
 
     private static final String TEST_FILE_ZIP = "testFile.zip";
@@ -49,6 +51,7 @@ class FileExportServiceTest {
 
         } catch (Exception e)
         {
+            log.error("{}", e);
             Assert.isTrue(false);
         }
 
