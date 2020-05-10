@@ -1,12 +1,11 @@
 package fr.gouv.stopc.submission.code.server.ws.vo;
 
 import fr.gouv.stopc.submission.code.server.ws.annotations.CodeType;
-import fr.gouv.stopc.submission.code.server.ws.enums.CodeTypeEnum;
+import fr.gouv.stopc.submission.code.server.commun.enums.CodeTypeEnum;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.aspectj.apache.bcel.classfile.Code;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;

@@ -1,5 +1,6 @@
 package fr.gouv.stopc.submission.code.server.database.service.impl;
 
+import fr.gouv.stopc.submission.code.server.commun.enums.CodeTypeEnum;
 import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
 import fr.gouv.stopc.submission.code.server.database.entity.Lot;
 import fr.gouv.stopc.submission.code.server.database.entity.SubmissionCode;
@@ -7,6 +8,8 @@ import fr.gouv.stopc.submission.code.server.database.repository.SubmissionCodeRe
 import fr.gouv.stopc.submission.code.server.database.service.ISubmissionCodeService;
 import org.apache.logging.log4j.util.Strings;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -25,6 +28,9 @@ import java.util.stream.Collectors;
 public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
 
     private SubmissionCodeRepository submissionCodeRepository;
+
+    @Value("${code.generation.security.alphanum6.hours}")
+    private Integer SECURITY_TIME_BETWEEN_TWO_USAGES_OF_6_ALPHANUM_CODE;
 
     @Inject
     public SubmissionCodeServiceImpl(SubmissionCodeRepository submissionCodeRepository){
@@ -63,7 +69,7 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
                     return sc;
                 })
                 .collect(Collectors.toList());
-       return submissionCodeRepository.saveAll(submissionCodes);
+        return submissionCodeRepository.saveAll(submissionCodes);
     }
 
     @Override
@@ -83,10 +89,39 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
         }
         ModelMapper modelMapper = new ModelMapper();
 
-        SubmissionCode submissionCode = modelMapper.map(submissionCodeDto, SubmissionCode.class);
-        submissionCode.setLotkey(lot);
+        SubmissionCode submissionCodeToSave = modelMapper.map(submissionCodeDto, SubmissionCode.class);
+        submissionCodeToSave.setLotkey(lot);
 
-        return Optional.of(submissionCodeRepository.save(submissionCode));
+
+        try {
+            // try to save data
+            return Optional.of(submissionCodeRepository.save(submissionCodeToSave));
+
+        } catch (DataIntegrityViolationException divExcetion) {
+
+            // if Unique code exists for ALPHANUM_6 try to update
+            if(SECURITY_TIME_BETWEEN_TWO_USAGES_OF_6_ALPHANUM_CODE != null
+                    && CodeTypeEnum.ALPHANUM_6.equals(submissionCodeToSave.getType()))
+            {
+                SubmissionCode sc = this.submissionCodeRepository.findByCodeAndTypeAndAndDateEndValidityLessThan(
+                        submissionCodeToSave.getCode(),
+                        submissionCodeToSave.getType(),
+                        submissionCodeToSave.getDateAvailable()
+                                .minusHours(
+                                        SECURITY_TIME_BETWEEN_TWO_USAGES_OF_6_ALPHANUM_CODE
+                                )
+                );
+                if(sc != null) {
+                    // replace actual line by new code
+                    submissionCodeToSave.setId(sc.getId());
+                    return Optional.of(this.submissionCodeRepository.save(submissionCodeToSave));
+                }
+            }
+            // if update is not made throw the original exception
+            throw divExcetion;
+        }
+
+
     }
 
     @Override

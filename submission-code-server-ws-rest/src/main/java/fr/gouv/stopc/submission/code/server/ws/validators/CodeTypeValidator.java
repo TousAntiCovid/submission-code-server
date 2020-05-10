@@ -1,7 +1,7 @@
 package fr.gouv.stopc.submission.code.server.ws.validators;
 
 import fr.gouv.stopc.submission.code.server.ws.annotations.CodeType;
-import fr.gouv.stopc.submission.code.server.ws.enums.CodeTypeEnum;
+import fr.gouv.stopc.submission.code.server.commun.enums.CodeTypeEnum;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;

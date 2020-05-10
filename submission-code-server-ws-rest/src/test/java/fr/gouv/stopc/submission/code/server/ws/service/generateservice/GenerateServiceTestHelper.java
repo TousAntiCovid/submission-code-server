@@ -1,7 +1,7 @@
 package fr.gouv.stopc.submission.code.server.ws.service.generateservice;
 
 import fr.gouv.stopc.submission.code.server.ws.dto.GenerateResponseDto;
-import fr.gouv.stopc.submission.code.server.ws.enums.CodeTypeEnum;
+import fr.gouv.stopc.submission.code.server.commun.enums.CodeTypeEnum;
 
 import java.util.regex.Pattern;
 

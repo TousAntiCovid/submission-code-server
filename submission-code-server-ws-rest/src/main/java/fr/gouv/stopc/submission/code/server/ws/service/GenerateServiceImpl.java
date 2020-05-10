@@ -1,5 +1,6 @@
 package fr.gouv.stopc.submission.code.server.ws.service;
 
+import fr.gouv.stopc.submission.code.server.commun.enums.CodeTypeEnum;
 import fr.gouv.stopc.submission.code.server.commun.service.IAlphaNumericCodeService;
 import fr.gouv.stopc.submission.code.server.commun.service.IUUIDv4CodeService;
 import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
@@ -7,7 +8,6 @@ import fr.gouv.stopc.submission.code.server.database.entity.Lot;
 import fr.gouv.stopc.submission.code.server.database.entity.SubmissionCode;
 import fr.gouv.stopc.submission.code.server.database.service.ISubmissionCodeService;
 import fr.gouv.stopc.submission.code.server.ws.dto.GenerateResponseDto;
-import fr.gouv.stopc.submission.code.server.ws.enums.CodeTypeEnum;
 import fr.gouv.stopc.submission.code.server.ws.errors.NumberOfTryGenerateCodeExceededExcetion;
 import fr.gouv.stopc.submission.code.server.ws.vo.GenerateRequestVo;
 import lombok.extern.slf4j.Slf4j;
@@ -139,7 +139,7 @@ public class GenerateServiceImpl implements IGenerateService {
     public List<GenerateResponseDto> generateCodeGeneric(final long size,
                                                          final CodeTypeEnum cte,
                                                          final OffsetDateTime validFrom,
-                                                         final Lot lotObject)
+                                                         Lot lotObject)
             throws NumberOfTryGenerateCodeExceededExcetion
     {
         final ArrayList<GenerateResponseDto> generateResponseList = new ArrayList<>();
@@ -177,7 +177,7 @@ public class GenerateServiceImpl implements IGenerateService {
 
             try {
                 final SubmissionCode sc = this.submissionCodeService.saveCode(submissionCodeDto, lotObject).get();
-                lotObject.setId(sc.getLotkey().getId());
+                lotObject = sc.getLotkey();
                 generateResponseList.add(GenerateResponseDto.builder()
                         .code(sc.getCode())
                         .typeAsString(cte.getType())
@@ -193,8 +193,10 @@ public class GenerateServiceImpl implements IGenerateService {
                 failCount++;
             }
             // In case of tries of generating code were exceeded an error should be raised.
-            log.info("20200305 -- failCount {}", failCount);
-            if(failCount > 1 ) throw new NumberOfTryGenerateCodeExceededExcetion();
+            if(failCount > NUMBER_OF_TRY_IN_CASE_OF_ERROR + 1 ) {
+                log.error("failCount {}", failCount);
+                throw new NumberOfTryGenerateCodeExceededExcetion();
+            }
         }
 
 
