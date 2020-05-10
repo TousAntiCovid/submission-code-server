@@ -1,6 +1,5 @@
-package fr.gouv.stopc.submission.code.server.ws.enums;
+package fr.gouv.stopc.submission.code.server.commun.enums;
 
-import antlr.StringUtils;
 import lombok.Getter;
 
 import java.util.Arrays;
