@@ -1,40 +1,52 @@
 package fr.gouv.stopc.submission.code.server.ws.service.verifyservice;
 
 
-import fr.gouv.stopc.submission.code.server.ws.dto.GenerateResponseDto;
 import fr.gouv.stopc.submission.code.server.commun.enums.CodeTypeEnum;
-import fr.gouv.stopc.submission.code.server.ws.errors.NumberOfTryGenerateCodeExceededExcetion;
-import fr.gouv.stopc.submission.code.server.ws.service.GenerateServiceImpl;
-import fr.gouv.stopc.submission.code.server.ws.service.VerifyServiceImpl;
-import lombok.extern.slf4j.Slf4j;
+import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
+import fr.gouv.stopc.submission.code.server.database.service.impl.SubmissionCodeServiceImpl;
+import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeServerException;
+import fr.gouv.stopc.submission.code.server.ws.service.impl.VerifyServiceImpl;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.util.ReflectionTestUtils;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 
 import java.time.OffsetDateTime;
-import java.util.List;
+import java.util.Optional;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
-@Slf4j
-@SpringBootTest
 public class VerifyServiceVerifyCodeMethodTest {
 
-    @Autowired
-    private GenerateServiceImpl gsi;
+    private static final String FALSE_CODE = "FALSE_CODE";
 
-    @Autowired
-    private VerifyServiceImpl vsi;
+    @Mock
+    SubmissionCodeServiceImpl submissionCodeService;
+
+    @Spy
+    @InjectMocks
+    private VerifyServiceImpl verifyService;
+
+    @BeforeEach
+    public void init(){
+        MockitoAnnotations.initMocks(this);
+    }
 
     /**
      * Code does not exists
      */
     @Test
-    void codeNotExistTest() {
-        final String falseCode = "FALSE_CODE";
-        final boolean isPresent = this.vsi.verifyCode(falseCode, CodeTypeEnum.ALPHANUM_6.getType());
+    void testCodeNotExist() throws SubmissionCodeServerException {
+
+        when(this.submissionCodeService.getCodeValidity(FALSE_CODE, CodeTypeEnum.ALPHANUM_6.getType()))
+                .thenReturn(Optional.empty());
+
+        final boolean isPresent = this.verifyService.verifyCode(FALSE_CODE, CodeTypeEnum.ALPHANUM_6.getType());
         assertFalse(isPresent);
 
     }
@@ -43,13 +55,23 @@ public class VerifyServiceVerifyCodeMethodTest {
      * Code exists for given CodeType
      */
     @Test
-    void codeExistForGivenCodeTypeTest() throws NumberOfTryGenerateCodeExceededExcetion {
+    void testCodeExistForGivenCodeType() throws SubmissionCodeServerException {
 
-        final List<GenerateResponseDto> grdList = this.gsi.generateAlphaNumericCode();
-        final GenerateResponseDto grd = grdList.get(0);
-        final String falseCode = grd.getCode();
+        when(this.submissionCodeService.getCodeValidity(FALSE_CODE, CodeTypeEnum.ALPHANUM_6.getTypeCode()))
+                .thenReturn(Optional.of(
+                        SubmissionCodeDto.builder()
+                                .code(FALSE_CODE)
+                                .type(CodeTypeEnum.ALPHANUM_6.getTypeCode())
+                                .used(false)
+                                .dateAvailable(OffsetDateTime.now().minusDays(11))
+                                .dateEndValidity(OffsetDateTime.now().plusDays(12))
+                                .build()
+                ));
 
-        final boolean isPresent = this.vsi.verifyCode(falseCode, CodeTypeEnum.ALPHANUM_6.getTypeCode());
+        when(this.submissionCodeService.updateCodeUsed(any()))
+                .thenReturn(true);
+
+        final boolean isPresent = this.verifyService.verifyCode(FALSE_CODE, CodeTypeEnum.ALPHANUM_6.getTypeCode());
         assertTrue(isPresent);
     }
 
@@ -57,13 +79,13 @@ public class VerifyServiceVerifyCodeMethodTest {
      * Code exists but not for given CodeType
      */
     @Test
-    void codeNotExistForGivenCodeTypeTest() throws NumberOfTryGenerateCodeExceededExcetion {
+    void testCodeNotExistForGivenCodeType() throws SubmissionCodeServerException {
 
-        final List<GenerateResponseDto> grdList = this.gsi.generateAlphaNumericCode();
-        final GenerateResponseDto grd = grdList.get(0);
-        final String falseCode = grd.getCode();
+        when(this.submissionCodeService.getCodeValidity(FALSE_CODE, CodeTypeEnum.ALPHANUM_6.getTypeCode()))
+                .thenReturn(Optional.empty());
 
-        final boolean isPresent = this.vsi.verifyCode(falseCode, CodeTypeEnum.UUIDv4.getTypeCode());
+
+        final boolean isPresent = this.verifyService.verifyCode(FALSE_CODE, CodeTypeEnum.UUIDv4.getTypeCode());
         assertFalse(isPresent);
     }
 
@@ -71,16 +93,20 @@ public class VerifyServiceVerifyCodeMethodTest {
      * Code was already verified
      */
     @Test
-    void codeAlreadyVerifyTest() throws NumberOfTryGenerateCodeExceededExcetion {
+    void testCodeAlreadyVerify() throws SubmissionCodeServerException {
 
-        final List<GenerateResponseDto> grdList = this.gsi.generateAlphaNumericCode();
-        final GenerateResponseDto grd = grdList.get(0);
-        final String falseCode = grd.getCode();
+         when(this.submissionCodeService.getCodeValidity(FALSE_CODE, CodeTypeEnum.ALPHANUM_6.getTypeCode()))
+                .thenReturn(Optional.of(
+                        SubmissionCodeDto.builder()
+                                .code(FALSE_CODE)
+                                .type(CodeTypeEnum.ALPHANUM_6.getTypeCode())
+                                .used(true)
+                                .dateAvailable(OffsetDateTime.now().minusDays(11))
+                                .dateEndValidity(OffsetDateTime.now().plusDays(12))
+                                .build()
+                ));
 
-        final boolean isPresent1 = this.vsi.verifyCode(falseCode, CodeTypeEnum.ALPHANUM_6.getTypeCode());
-        assertTrue(isPresent1);
-
-        final boolean isPresent2 = this.vsi.verifyCode(falseCode, CodeTypeEnum.ALPHANUM_6.getTypeCode());
+        final boolean isPresent2 = this.verifyService.verifyCode(FALSE_CODE, CodeTypeEnum.ALPHANUM_6.getTypeCode());
         assertFalse(isPresent2);
     }
 
@@ -88,25 +114,21 @@ public class VerifyServiceVerifyCodeMethodTest {
      * Code has expired
      */
     @Test
-    void expiredCodeTest() throws NumberOfTryGenerateCodeExceededExcetion {
+    void testExpiredCode() throws SubmissionCodeServerException {
 
-        // Generate Code in past
-        final OffsetDateTime offsetDateTime = OffsetDateTime.now().withYear(0);
+        when(this.submissionCodeService.getCodeValidity(FALSE_CODE, CodeTypeEnum.ALPHANUM_6.getTypeCode()))
+                .thenReturn(Optional.of(
+                        SubmissionCodeDto.builder()
+                                .code(FALSE_CODE)
+                                .type(CodeTypeEnum.ALPHANUM_6.getTypeCode())
+                                .used(false)
+                                .dateAvailable(OffsetDateTime.now().minusDays(11))
+                                .dateEndValidity(OffsetDateTime.now().minusDays(10))
+                                .build()
+                ));
 
-        // set validity time of ALPHANUM TO 1 minute
-        ReflectionTestUtils.setField(this.gsi, "TARGET_ZONE_ID", "Europe/Paris");
-        ReflectionTestUtils.setField(this.gsi, "TIME_VALIDITY_ALPHANUM", 1);
 
-        final List<GenerateResponseDto> grdList = this.gsi.generateCodeGeneric(
-                1,
-                CodeTypeEnum.ALPHANUM_6,
-                offsetDateTime
-        );
-
-        final GenerateResponseDto grd = grdList.get(0);
-        final String falseCode = grd.getCode();
-
-        final boolean isPresent = this.vsi.verifyCode(falseCode, CodeTypeEnum.ALPHANUM_6.getTypeCode());
+        final boolean isPresent = this.verifyService.verifyCode(FALSE_CODE, CodeTypeEnum.ALPHANUM_6.getTypeCode());
         assertFalse(isPresent);
     }
 }

@@ -1,4 +1,4 @@
-package fr.gouv.stopc.submission.code.server.ws.service;
+package fr.gouv.stopc.submission.code.server.ws.service.impl;
 
 import fr.gouv.stopc.submission.code.server.commun.enums.CodeTypeEnum;
 import fr.gouv.stopc.submission.code.server.commun.service.IAlphaNumericCodeService;
@@ -7,17 +7,19 @@ import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
 import fr.gouv.stopc.submission.code.server.database.entity.Lot;
 import fr.gouv.stopc.submission.code.server.database.entity.SubmissionCode;
 import fr.gouv.stopc.submission.code.server.database.service.ISubmissionCodeService;
-import fr.gouv.stopc.submission.code.server.ws.dto.GenerateResponseDto;
-import fr.gouv.stopc.submission.code.server.ws.errors.NumberOfTryGenerateCodeExceededExcetion;
+import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeServerException;
+import fr.gouv.stopc.submission.code.server.ws.dto.CodeDetailedDto;
+import fr.gouv.stopc.submission.code.server.ws.dto.CodeSimpleDto;
+import fr.gouv.stopc.submission.code.server.ws.service.IGenerateService;
 import fr.gouv.stopc.submission.code.server.ws.vo.GenerateRequestVo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.logging.log4j.util.Strings;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
-import javax.activation.UnsupportedDataTypeException;
 import javax.inject.Inject;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
@@ -25,6 +27,7 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -36,35 +39,35 @@ public class GenerateServiceImpl implements IGenerateService {
     private final IAlphaNumericCodeService alphaNumericCodeService;
 
     @Value("${stop.covid.qr.code.target.zone}")
-    private String TARGET_ZONE_ID;
-    
+    private String targetZoneId;
+
     /**
      * Number of code that should be generated per days for a given lot.
      * it is set in application.properties file
      */
     @Value("${generation.code.bulk.num.of.code}")
-    private long NUMBER_OF_UUIDv4_PER_CALL;
+    private long numberOfUuidv4PerCall;
 
     /**
      * Number of try to generate a new code in case of the code is already in db
      * it is set in application.properties file
      */
     @Value("${generation.code.num.of.tries}")
-    private long NUMBER_OF_TRY_IN_CASE_OF_ERROR;
+    private long numberOfTryInCaseOfError;
 
     /**
      * Interval in days of the validity of an UUIDv4 code
      * it is set in application.properties file
      */
     @Value("${generation.code.uuid.validity.days}")
-    private long TIME_VALIDITY_UUID;
+    private long timeValidityUuid;
 
     /**
      * Interval in minutes of the validity of a 6-alphanum code
      * it is set in application.properties file
      */
     @Value("${generation.code.alpha.num.6.validity.minutes}")
-    private long TIME_VALIDITY_ALPHANUM;
+    private long timeValidityAlphanum;
 
 
     /**
@@ -84,101 +87,128 @@ public class GenerateServiceImpl implements IGenerateService {
     }
 
     @Override
-    public List<GenerateResponseDto> generateUUIDv4Codes(long size)
-            throws NumberOfTryGenerateCodeExceededExcetion
+    public List<CodeDetailedDto> generateUUIDv4Codes(long size)
+            throws SubmissionCodeServerException
     {
-        //TODO: Verify that code don't exist in DB before returning
         return this.generateCodeGeneric(size, CodeTypeEnum.UUIDv4);
     }
 
     @Override
-    public List<GenerateResponseDto> generateAlphaNumericCode()
-            throws NumberOfTryGenerateCodeExceededExcetion
+    public CodeDetailedDto generateAlphaNumericDetailedCode()
+            throws SubmissionCodeServerException
     {
-        //TODO: Verify that code don't exist in DB before returning
-        return this.generateCodeGeneric(1, CodeTypeEnum.ALPHANUM_6);
+        return this.generateCodeGeneric(1, CodeTypeEnum.ALPHANUM_6).get(0);
     }
 
     @Override
-    public List<GenerateResponseDto> generateCodeFromRequest(GenerateRequestVo generateRequestVo)
-            throws UnsupportedDataTypeException,
-            NumberOfTryGenerateCodeExceededExcetion
+    public CodeSimpleDto generateAlphaNumericShortCode()
+            throws SubmissionCodeServerException
+    {
+        final CodeSimpleDto shortCodeInstance = new CodeSimpleDto();
+        new ModelMapper().map(
+                this.generateAlphaNumericDetailedCode(),
+                shortCodeInstance
+        );
+        return shortCodeInstance;
+    }
+
+    @Override
+    public List<CodeDetailedDto> generateCodeFromRequest(GenerateRequestVo generateRequestVo)
+            throws SubmissionCodeServerException
     {
         if(generateRequestVo == null || Strings.isBlank(generateRequestVo.getType())) {
-            throw new UnsupportedDataTypeException();
-
+            throw new SubmissionCodeServerException(
+                    SubmissionCodeServerException.ExceptionEnum.INVALID_CODE_TYPE_ERROR
+            );
         } else if (CodeTypeEnum.UUIDv4.equals(generateRequestVo.getType())) {
 
-            return this.generateUUIDv4Codes(NUMBER_OF_UUIDv4_PER_CALL);
+            return this.generateUUIDv4Codes(numberOfUuidv4PerCall);
 
         } else if (CodeTypeEnum.ALPHANUM_6.equals(generateRequestVo.getType())) {
 
-            return this.generateAlphaNumericCode();
+            return Arrays.asList(this.generateAlphaNumericDetailedCode());
+        } else {
+            throw new SubmissionCodeServerException(
+                    SubmissionCodeServerException.ExceptionEnum.INVALID_CODE_TYPE_ERROR
+            );
         }
-        throw new UnsupportedDataTypeException();
+
     }
 
     @Override
-    public List<GenerateResponseDto> generateCodeGeneric(final long size,
-                                                         final CodeTypeEnum cte)
-            throws NumberOfTryGenerateCodeExceededExcetion
+    public List<CodeDetailedDto> generateCodeGeneric(final long size,
+                                                     final CodeTypeEnum cte)
+            throws SubmissionCodeServerException
     {
         return generateCodeGeneric(size, cte, OffsetDateTime.now());
     }
 
     @Override
-    public List<GenerateResponseDto> generateCodeGeneric(final long size,
-                                                         final CodeTypeEnum cte,
-                                                         final OffsetDateTime validFrom)
-            throws NumberOfTryGenerateCodeExceededExcetion
+    public List<CodeDetailedDto> generateCodeGeneric(final long size,
+                                                     final CodeTypeEnum cte,
+                                                     final OffsetDateTime validFrom)
+            throws SubmissionCodeServerException
     {
         return this.generateCodeGeneric(size, cte, validFrom, new Lot());
     }
 
-    @Override
-    public List<GenerateResponseDto> generateCodeGeneric(final long size,
-                                                         final CodeTypeEnum cte,
-                                                         final OffsetDateTime validFrom,
-                                                         Lot lotObject)
-            throws NumberOfTryGenerateCodeExceededExcetion
-    {
-        final ArrayList<GenerateResponseDto> generateResponseList = new ArrayList<>();
 
-        long failCount = 1;
-        /*
-            The date available/validfrom is date of now in this time
-         */
+    public SubmissionCodeDto.SubmissionCodeDtoBuilder preGenerateSubmissionCodeDtoForCodeTypeAndDateValidity(final CodeTypeEnum cte,
+                                                                                                             final OffsetDateTime validFrom)
+            throws SubmissionCodeServerException
+    {
+        switch (cte) {
+            case UUIDv4:
+                return SubmissionCodeDto.builder()
+                        .code(this.uuiDv4CodeService.generateCode())
+                        .type(cte.getTypeCode())
+                        .dateAvailable(validFrom)
+                        .dateEndValidity(this.getValidityDateUUIDCode(validFrom));
+            case ALPHANUM_6:
+                return SubmissionCodeDto.builder()
+                        .code(this.alphaNumericCodeService.generateCode())
+                        .type(cte.getTypeCode())
+                        .dateAvailable(validFrom)
+                        .dateEndValidity(this.getValidityDateAlphaNum6(validFrom));
+            default:
+                throw new SubmissionCodeServerException(
+                        SubmissionCodeServerException.ExceptionEnum.INVALID_CODE_TYPE_ERROR
+                );
+        }
+    }
+
+    @Override
+    public List<CodeDetailedDto> generateCodeGeneric(final long size,
+                                                     final CodeTypeEnum cte,
+                                                     final OffsetDateTime validFrom,
+                                                     Lot lotObject)
+            throws SubmissionCodeServerException {
+
+        final ArrayList<CodeDetailedDto> generateResponseList = new ArrayList<>();
+
+        long failCount = 0;
+
+        // The date available/validFrom is date of now in this time
         OffsetDateTime validUntil;
         OffsetDateTime validGenDate= OffsetDateTime.now();
 
-        for (int i = 0; i < size && failCount <= NUMBER_OF_TRY_IN_CASE_OF_ERROR + 1; ) {
-            String code;
+        log.info("Generating an amount of {} {} codes", size, cte);
 
-            if(CodeTypeEnum.UUIDv4.equals(cte)) {
-                code = this.uuiDv4CodeService.generateCode();
-                validUntil= getValidityDateUUIDCode(validFrom);
-            } else if (CodeTypeEnum.ALPHANUM_6.equals(cte)) {
-                code = this.alphaNumericCodeService.generateCode();
-                validUntil= getValidityDateAlphaNum6(validFrom);
-            } else {
-                return generateResponseList;
-            }
+        for (int i = 0; i < size && failCount <= numberOfTryInCaseOfError; ) {
 
-            log.info("generating code {}", code);
+            log.info("generating code index : {}", i);
 
-            SubmissionCodeDto submissionCodeDto = SubmissionCodeDto.builder()
-                    .code(code)
-                    .type(cte.getTypeCode())
-                    .dateAvailable(validFrom)
-                    .dateEndValidity(validUntil)
+            SubmissionCodeDto submissionCodeDto = this.preGenerateSubmissionCodeDtoForCodeTypeAndDateValidity(cte, validFrom)
                     .dateGeneration(validGenDate)
                     .used(false)
                     .build();
 
             try {
+                log.info("The code index {} is about to be saved.", i);
+
                 final SubmissionCode sc = this.submissionCodeService.saveCode(submissionCodeDto, lotObject).get();
                 lotObject = sc.getLotkey();
-                generateResponseList.add(GenerateResponseDto.builder()
+                generateResponseList.add(CodeDetailedDto.builder()
                         .code(sc.getCode())
                         .typeAsString(cte.getType())
                         .typeAsInt(Integer.parseInt(cte.getTypeCode()))
@@ -187,35 +217,39 @@ public class GenerateServiceImpl implements IGenerateService {
                         .build()
                 );
                 i++;
-                failCount = 1;
+                failCount = 0;
             } catch (DataIntegrityViolationException divException) {
-                log.error("code generated is not unique try  -> {}/{}", failCount, NUMBER_OF_TRY_IN_CASE_OF_ERROR);
                 failCount++;
+                log.error("code generated is not unique try {}/{}", failCount, numberOfTryInCaseOfError + 1);
             }
             // In case of tries of generating code were exceeded an error should be raised.
-            if(failCount > NUMBER_OF_TRY_IN_CASE_OF_ERROR + 1 ) {
-                log.error("failCount {}", failCount);
-                throw new NumberOfTryGenerateCodeExceededExcetion();
+            if(failCount > numberOfTryInCaseOfError) {
+                final String message = String.format(
+                        "The code index %s has failed to be generated reaching %s counts of fails",
+                        i, failCount
+                );
+                log.error(message);
+                throw new SubmissionCodeServerException(
+                        SubmissionCodeServerException.ExceptionEnum.CODE_GENERATION_FAILED_ERROR
+                );
             }
         }
-
-
         return generateResponseList;
     }
 
     @Override
-    public List<GenerateResponseDto> generateUUIDv4CodesBulk()
+    public List<CodeDetailedDto> generateUUIDv4CodesBulk()
     {
         return this.generateUUIDv4CodesBulk(OffsetDateTime.now());
     }
 
     @Override
-    public List<GenerateResponseDto> generateUUIDv4CodesBulk(final OffsetDateTime validFrom)
+    public List<CodeDetailedDto> generateUUIDv4CodesBulk(final OffsetDateTime validFrom)
     {
         OffsetDateTime validGenDate = OffsetDateTime.now();
 
         final List<SubmissionCodeDto> submissionCodeDtos = this.uuiDv4CodeService
-                .generateCodes(NUMBER_OF_UUIDv4_PER_CALL)
+                .generateCodes(numberOfUuidv4PerCall)
                 .stream()
                 .map(code ->
                         SubmissionCodeDto.builder()
@@ -231,7 +265,7 @@ public class GenerateServiceImpl implements IGenerateService {
 
         final Iterable<SubmissionCode> submissionCodes = this.submissionCodeService.saveAllCodes(submissionCodeDtos, new Lot());
         return IterableUtils.toList(submissionCodes).stream()
-                .map(sc -> GenerateResponseDto.builder()
+                .map(sc -> CodeDetailedDto.builder()
                         .code(sc.getCode())
                         .typeAsString(CodeTypeEnum.UUIDv4.getType())
                         .typeAsInt(Integer.parseInt(CodeTypeEnum.UUIDv4.getTypeCode()))
@@ -251,7 +285,7 @@ public class GenerateServiceImpl implements IGenerateService {
         // convert to zulu zoneoffset
         validFromList.add(validFromFirstValue.withOffsetSameInstant(ZoneOffset.of("Z")));
 
-        final OffsetDateTime nowInParis = OffsetDateTime.now(ZoneId.of(this.TARGET_ZONE_ID));
+        final OffsetDateTime nowInParis = OffsetDateTime.now(ZoneId.of(this.targetZoneId));
         final ZoneOffset offsetInParis = nowInParis.getOffset();
 
         // assuring validFromFirstValue is OffsetInParis
@@ -287,18 +321,20 @@ public class GenerateServiceImpl implements IGenerateService {
 
     /**
      * Method gives the validUntil date of UUIDv4 code from the date given in parameter.
-     * It calculates the validity end date of the code using value set in application.properties and inject by Spring. {@link #TIME_VALIDITY_UUID}
+     * It calculates the validity end date of the code using value set in application.properties and inject by Spring. {@link #timeValidityUuid}
      * The ValidUntil should be hh:mm formatted as 23:59 in paris.
      * @param validFrom the OffsetDateTime start validity applied to calculate end of UUIDv4 code validity
-     * @return OffsetDateTime corresponding to the "validFrom" plus days in {@link #TIME_VALIDITY_UUID} at Zulu Offset
+     * @return OffsetDateTime corresponding to the "validFrom" plus days in {@link #timeValidityUuid} at Zulu Offset
      */
     private OffsetDateTime getValidityDateUUIDCode(OffsetDateTime validFrom)
     {
         // ensuring that validFrom is based
+        log.info("Generating date until the UUIDv4 code should be valid. Validity time is set to : {} ", timeValidityUuid);
+
         validFrom =  validFrom.withOffsetSameInstant(this.getParisOffset());
         return validFrom
                 .withOffsetSameInstant(this.getParisOffset())
-                .plusDays(TIME_VALIDITY_UUID + 1)
+                .plusDays(timeValidityUuid + 1)
                 .truncatedTo(ChronoUnit.DAYS)
                 .minusMinutes(1)
                 .withOffsetSameInstant(this.getZuluOffset());
@@ -308,7 +344,7 @@ public class GenerateServiceImpl implements IGenerateService {
      * @return return current offset of paris
      */
     private ZoneOffset getParisOffset() {
-        return OffsetDateTime.now(ZoneId.of(this.TARGET_ZONE_ID)).getOffset();
+        return OffsetDateTime.now(ZoneId.of(this.targetZoneId)).getOffset();
     }
 
     /**
@@ -321,14 +357,16 @@ public class GenerateServiceImpl implements IGenerateService {
 
     /**
      * Method gives the validUntil date of 6-alphanum code from the date given in parameter.
-     * It calculates the validity end date of the code using value set in application.properties and inject by Spring. {@link #TIME_VALIDITY_ALPHANUM}
+     * It calculates the validity end date of the code using value set in application.properties and inject by Spring. {@link #timeValidityAlphanum}
      * @param validFrom the OffsetDateTime start validity applied to calculate end of 6-alphanum code validity
-     * @return OffsetDateTime corresponding to the "validFrom" plus minutes in {@link #TIME_VALIDITY_ALPHANUM} at Zulu Offset
+     * @return OffsetDateTime corresponding to the "validFrom" plus minutes in {@link #timeValidityAlphanum} at Zulu Offset
      */
     private OffsetDateTime getValidityDateAlphaNum6(OffsetDateTime validFrom)
     {
+        log.info("Generating date until the 6-alphanum code should be valid. Validity time is set to : {} ", timeValidityAlphanum);
+
         return validFrom
-                .plusMinutes(TIME_VALIDITY_ALPHANUM)
+                .plusMinutes(timeValidityAlphanum)
                 .truncatedTo(ChronoUnit.MINUTES)
                 .withOffsetSameInstant(this.getZuluOffset());
     }

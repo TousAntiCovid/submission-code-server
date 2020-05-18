@@ -1,93 +1,78 @@
 package fr.gouv.stopc.submission.code.server.ws.service.generateservice;
 
+import fr.gouv.stopc.submission.code.server.commun.enums.CodeTypeEnum;
+import fr.gouv.stopc.submission.code.server.commun.service.impl.AlphaNumericCodeServiceImpl;
 import fr.gouv.stopc.submission.code.server.commun.service.impl.UUIDv4CodeServiceImpl;
 import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
 import fr.gouv.stopc.submission.code.server.database.entity.Lot;
-import fr.gouv.stopc.submission.code.server.database.service.ISubmissionCodeService;
-import fr.gouv.stopc.submission.code.server.ws.dto.GenerateResponseDto;
-import fr.gouv.stopc.submission.code.server.commun.enums.CodeTypeEnum;
-import fr.gouv.stopc.submission.code.server.ws.errors.NumberOfTryGenerateCodeExceededExcetion;
-import fr.gouv.stopc.submission.code.server.ws.service.GenerateServiceImpl;
+import fr.gouv.stopc.submission.code.server.database.entity.SubmissionCode;
+import fr.gouv.stopc.submission.code.server.database.service.impl.SubmissionCodeServiceImpl;
+import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeServerException;
+import fr.gouv.stopc.submission.code.server.ws.dto.CodeDetailedDto;
+import fr.gouv.stopc.submission.code.server.ws.service.impl.GenerateServiceImpl;
 import fr.gouv.stopc.submission.code.server.ws.vo.GenerateRequestVo;
-import lombok.extern.slf4j.Slf4j;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
 import org.mockito.*;
-import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.transaction.annotation.Transactional;
 
-import javax.activation.UnsupportedDataTypeException;
 import java.util.List;
+import java.util.Optional;
 
-import static fr.gouv.stopc.submission.code.server.ws.service.generateservice.GenerateServiceTestHelper.assertingALPHANUM6Code;
-import static fr.gouv.stopc.submission.code.server.ws.service.generateservice.GenerateServiceTestHelper.assertingUUIDv4Code;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@Slf4j
-@RunWith(MockitoJUnitRunner.class)
-@SpringBootTest
-@Transactional
 class GenerateServiceGenerateCodeFromRequestMethodTest {
 
     @Mock
-    private ISubmissionCodeService submissionCodeServiceMock;
-
-    @Mock
-    private UUIDv4CodeServiceImpl uuiDv4CodeService;
+    private SubmissionCodeServiceImpl submissionCodeService;
 
     @Spy
     @InjectMocks
-    private GenerateServiceImpl gsiMocked;
-
-    @Autowired
-    private GenerateServiceImpl gsi;
+    private GenerateServiceImpl generateService;
 
 
-    @Before
+    @BeforeEach
     public void init(){
-        log.info("Initialize mokito injection in services...");
+
         MockitoAnnotations.initMocks(this);
+
+        ReflectionTestUtils.setField(this.generateService, "targetZoneId", "Europe/Paris");
+        ReflectionTestUtils.setField(this.generateService, "numberOfTryInCaseOfError", 0);
+
+        //SET 24 hours of lock security
+        ReflectionTestUtils.setField(this.submissionCodeService, "securityTimeBetweenTwoUsagesOf6AlphanumCode", 24);
+        ReflectionTestUtils.setField(this.generateService, "uuiDv4CodeService", new UUIDv4CodeServiceImpl());
+        ReflectionTestUtils.setField(this.generateService, "alphaNumericCodeService", new AlphaNumericCodeServiceImpl());
     }
 
     /**
      * Calling generateCodeFromRequest with generateRequestVo == null
      */
     @Test
-    void withNullTest()
-            throws NumberOfTryGenerateCodeExceededExcetion
+    void testWithNull()
     {
-        UnsupportedDataTypeException udte = null;
-
-        try {
-            this.gsi.generateCodeFromRequest(null);
-        } catch (UnsupportedDataTypeException e ) {
-            udte = e;
-        }
-
-        assertNotNull(udte);
+        assertThrows(
+                SubmissionCodeServerException.class,
+                () -> this.generateService.generateCodeFromRequest(
+                        null),
+                "Expected doThing() to throw, but it didn't"
+        );
     }
 
     /**
      * Calling generateCodeFromRequest with generateRequestVo.type == null
      */
     @Test
-    void withTypeNullTest()
-            throws NumberOfTryGenerateCodeExceededExcetion
+    void testWithTypeNull()
     {
-        UnsupportedDataTypeException udte = null;
-
-        try {
-            this.gsi.generateCodeFromRequest(GenerateRequestVo.builder().type(null).build());
-        } catch (UnsupportedDataTypeException e ) {
-            udte = e;
-        }
-
-        assertNotNull(udte);
+        assertThrows(
+                SubmissionCodeServerException.class,
+                () -> this.generateService.generateCodeFromRequest(
+                        GenerateRequestVo.builder().type(null).build()),
+                "Expected doThing() to throw, but it didn't"
+        );
     }
 
 
@@ -95,86 +80,68 @@ class GenerateServiceGenerateCodeFromRequestMethodTest {
      * Calling generateCodeFromRequest with generateRequestVo.type == " "
      */
     @Test
-    void withTypeBlankTest()
-            throws NumberOfTryGenerateCodeExceededExcetion
+    void testWithTypeBlank()
     {
-        UnsupportedDataTypeException udte = null;
-
-        try {
-            this.gsi.generateCodeFromRequest(GenerateRequestVo.builder().type(" ").build());
-        } catch (UnsupportedDataTypeException e ) {
-            udte = e;
-        }
-
-        assertNotNull(udte);
+        assertThrows(
+                SubmissionCodeServerException.class,
+                () -> this.generateService.generateCodeFromRequest(
+                        GenerateRequestVo.builder().type(" ").build()),
+                "Expected doThing() to throw, but it didn't"
+        );
     }
 
     /**
      * Calling generateCodeFromRequest with generateRequestVo.type == "NOT_AN_CODE_TYPE_ENUM"
      */
     @Test
-    void withTypeNotCodeTypeEnumTest()
-            throws NumberOfTryGenerateCodeExceededExcetion
+    void testWithTypeNotCodeTypeEnum()
     {
-        UnsupportedDataTypeException udte = null;
-
-        try {
-            this.gsi.generateCodeFromRequest(GenerateRequestVo.builder().type("NOT_AN_CODE_TYPE_ENUM").build());
-        } catch (UnsupportedDataTypeException e ) {
-            udte = e;
-        }
-
-        assertNotNull(udte);
+        assertThrows(
+                SubmissionCodeServerException.class,
+                () -> this.generateService.generateCodeFromRequest(
+                        GenerateRequestVo.builder().type("NOT_AN_CODE_TYPE_ENUM").build()),
+                "Expected doThing() to throw, but it didn't"
+        );
     }
 
     /**
      * Calling generateCodeFromRequest with generateRequestVo.type == CodeTypeEnum.ALPHANUM_6.getTypeCode()
      */
     @Test
-    void withType6ALPHANUMTest()
-            throws NumberOfTryGenerateCodeExceededExcetion
-    {
-        UnsupportedDataTypeException udte = null;
+    void testWithType6ALPHANUM() throws SubmissionCodeServerException {
 
-        try {
-            final List<GenerateResponseDto> generateResponseDtoList = this.gsi.generateCodeFromRequest(
-                    GenerateRequestVo.builder()
-                            .type(CodeTypeEnum.ALPHANUM_6.getTypeCode())
-                            .build()
-            );
+        SubmissionCodeServerException udte = null;
+        Mockito.when(this.submissionCodeService.saveCode(Mockito.any(), Mockito.any()))
+                .thenReturn(Optional.of(new SubmissionCode()));
 
-            assertingALPHANUM6Code(generateResponseDtoList.get(0));
+        final List<CodeDetailedDto> codeDetailedResponseDtoList = this.generateService.generateCodeFromRequest(
+                GenerateRequestVo.builder()
+                        .type(CodeTypeEnum.ALPHANUM_6.getTypeCode())
+                        .build()
+        );
 
-        } catch (UnsupportedDataTypeException e ) {
-            udte = e;
-        }
-
-        assertNull(udte);
+        assertTrue(codeDetailedResponseDtoList.size()==1);
     }
 
     /**
      * Calling generateCodeFromRequest with generateRequestVo.type == CodeTypeEnum.UUIDv4.getTypeCode()
      */
     @Test
-    void withTypeUUIDv4Test()
-            throws NumberOfTryGenerateCodeExceededExcetion
-    {
-        UnsupportedDataTypeException udte = null;
+    void testWithTypeUUIDv4() throws SubmissionCodeServerException {
+        SubmissionCodeServerException udte = null;
 
-        try {
-            final List<GenerateResponseDto> generateResponseDtoList = this.gsi.generateCodeFromRequest(
-                    GenerateRequestVo.builder()
-                            .type(CodeTypeEnum.UUIDv4.getTypeCode())
-                            .build()
-            );
+        ReflectionTestUtils.setField(this.generateService, "numberOfUuidv4PerCall", 2);
 
-            assertingUUIDv4Code(generateResponseDtoList.get(0));
+        Mockito.when(this.submissionCodeService.saveCode(Mockito.any(), Mockito.any()))
+                .thenReturn(Optional.of(new SubmissionCode()));
 
-        } catch (UnsupportedDataTypeException e ) {
-            udte = e;
-        }
+        final List<CodeDetailedDto> codeDetailedResponseDtoList = this.generateService.generateCodeFromRequest(
+                GenerateRequestVo.builder()
+                        .type(CodeTypeEnum.UUIDv4.getTypeCode())
+                        .build()
+        );
 
-        assertNull(udte);
+        assertTrue(codeDetailedResponseDtoList.size() == 2);
     }
 
 
@@ -182,69 +149,47 @@ class GenerateServiceGenerateCodeFromRequestMethodTest {
      * generateCodeFromRequest with Number of tries reach UUIDv4
      */
     @Test
-    void generateCodeFromRequestReachTriesUUIDv4Test()
-            throws UnsupportedDataTypeException
+    void testGenerateCodeFromRequestReachTriesUUIDv4()
     {
-        Mockito.when(uuiDv4CodeService.generateCode())
-                .thenReturn("1234-123-123-123-123-1234");
 
-        Mockito.when(submissionCodeServiceMock.saveCode(Mockito.any(SubmissionCodeDto.class), Mockito.any(Lot.class)))
+
+        Mockito.when(submissionCodeService.saveCode(Mockito.any(), Mockito.any()))
                 .thenThrow(DataIntegrityViolationException.class);
 
-        ReflectionTestUtils.setField(gsiMocked, "NUMBER_OF_TRY_IN_CASE_OF_ERROR", 0);
-        ReflectionTestUtils.setField(gsiMocked, "NUMBER_OF_UUIDv4_PER_CALL", 2);
-        ReflectionTestUtils.setField(gsiMocked, "TARGET_ZONE_ID", "Europe/Paris");
+        ReflectionTestUtils.setField(generateService, "numberOfTryInCaseOfError", 0);
+        ReflectionTestUtils.setField(generateService, "numberOfUuidv4PerCall", 2);
 
-        NumberOfTryGenerateCodeExceededExcetion notgcee = null;
-
-        try {
-            this.gsiMocked.generateCodeFromRequest(
-                    GenerateRequestVo.builder()
-                            .type(CodeTypeEnum.UUIDv4.getTypeCode())
-                            .build()
-            );
-
-        } catch (  NumberOfTryGenerateCodeExceededExcetion e ) {
-            notgcee = e;
-            assertEquals(String.format("Number of tries exceeded. %s were authorized.", 0), e.getMessage());
-        }
-
-        assertNotNull(notgcee);
-
+        assertThrows(
+                SubmissionCodeServerException.class,
+                () -> this.generateService.generateCodeFromRequest(
+                        GenerateRequestVo.builder()
+                                .type(CodeTypeEnum.UUIDv4.getTypeCode())
+                                .build()),
+                "Expected doThing() to throw, but it didn't"
+        );
     }
 
     /**
      * generateCodeFromRequest with Number of tries reach ALPHANUM
      */
     @Test
-    void generateCodeFromRequestReachTries6ALPHANUMTest()
-            throws UnsupportedDataTypeException
+    void testGenerateCodeFromRequestReachTries6ALPHANUM()
     {
-        Mockito.when(submissionCodeServiceMock.saveCode(Mockito.any(SubmissionCodeDto.class), Mockito.any(Lot.class)))
+        Mockito.when(submissionCodeService.saveCode(Mockito.any(SubmissionCodeDto.class), Mockito.any(Lot.class)))
                 .thenThrow(DataIntegrityViolationException.class);
 
-        Mockito.when(uuiDv4CodeService.generateCode())
-                .thenReturn("1234-123-123-123-123-1234");
 
-        ReflectionTestUtils.setField(gsiMocked, "NUMBER_OF_TRY_IN_CASE_OF_ERROR", 0);
-        ReflectionTestUtils.setField(gsiMocked, "NUMBER_OF_UUIDv4_PER_CALL", 2);
-        ReflectionTestUtils.setField(this.gsiMocked, "TARGET_ZONE_ID", "Europe/Paris");
+        ReflectionTestUtils.setField(this.generateService, "numberOfTryInCaseOfError", 0);
+        ReflectionTestUtils.setField(this.generateService, "numberOfUuidv4PerCall", 2);
 
-        NumberOfTryGenerateCodeExceededExcetion notgcee = null;
-        try {
-            this.gsiMocked.generateCodeFromRequest(
-                    GenerateRequestVo.builder()
-                            .type(CodeTypeEnum.UUIDv4.getTypeCode())
-                            .build()
-            );
-
-        } catch (NumberOfTryGenerateCodeExceededExcetion e ) {
-            notgcee = e;
-            assertEquals(String.format("Number of tries exceeded. %s were authorized.", 0), e.getMessage());
-        }
-
-        assertNotNull(notgcee);
-
+        assertThrows(
+                SubmissionCodeServerException.class,
+                () -> this.generateService.generateCodeFromRequest(
+                        GenerateRequestVo.builder()
+                                .type(CodeTypeEnum.UUIDv4.getTypeCode())
+                                .build()),
+                "Expected doThing() to throw, but it didn't"
+        );
     }
 
 }

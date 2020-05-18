@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.time.OffsetDateTime;
-import java.util.Date;
 
 public class ViewVo {
 
@@ -27,6 +26,6 @@ public class ViewVo {
 
         @NotNull
         @CodePerDay
-        private long codePerDay;
+        private long dailyAmount;
     }
 }

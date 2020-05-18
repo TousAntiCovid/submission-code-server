@@ -1,5 +1,6 @@
 package fr.gouv.stopc.submission.code.server.ws.controller;
 
+import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeServerException;
 import fr.gouv.stopc.submission.code.server.ws.dto.ViewDto;
 import fr.gouv.stopc.submission.code.server.ws.vo.ViewVo;
 import org.springframework.http.MediaType;
@@ -18,17 +19,17 @@ public interface IViewController {
 
 
     @GetMapping(path="/lots/{lotIdentifier}/information")
-    ResponseEntity<ViewDto.LotInformation> getLotInformation(@PathVariable long lotIdentifier);
+    ResponseEntity<ViewDto.LotInformation> getLotInformation(@PathVariable long lotIdentifier) throws SubmissionCodeServerException;
 
     @GetMapping(path="/lots/{lotIdentifier}/page/{page}/by/{elementByPage}")
     ResponseEntity<ViewDto.CodeValuesForPage> getCodeValuesForPage(
             @PathVariable long lotIdentifier,
             @PathVariable int page,
             @PathVariable int elementByPage
-    );
+    ) throws SubmissionCodeServerException;
 
     @PostMapping(path="/codes/generation/request")
     ResponseEntity<ViewDto.CodeGenerationRequest> postCodeGenerationRequest(
             @Valid @RequestBody ViewVo.CodeGenerationRequestBody cgrpr
-    );
+    ) throws SubmissionCodeServerException;
 }

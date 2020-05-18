@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 @Builder
-public class VerifyResponseDto {
+public class VerifyDto {
 
     /**
      * True if the code is valid, false if invalid or expired, or if type does not match.

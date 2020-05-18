@@ -1,5 +1,6 @@
 package fr.gouv.stopc.submission.code.server.ws.vo;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -16,20 +17,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ExtendWith(SpringExtension.class)
 class TypeCodeValidatorTest {
 
+private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
-    
 
     @Test
-    void typeCodeValidationTest() {
-        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
-        Validator validator = factory.getValidator();
-        Set<ConstraintViolation<GenerateRequestVo>> violations;
-
-        violations = validator.validate(GenerateRequestVo.builder().type("1456").build());
+    void testTypeCodeValidationWhenInvalidType () {
+        Set<ConstraintViolation<GenerateRequestVo>> violations = validator
+                .validate(GenerateRequestVo.builder().type("1456").build());
         assertFalse(violations.isEmpty());
+    }
 
-        violations = validator.validate(GenerateRequestVo.builder().type("1").build());
+    @Test
+    void testTypeCodeValidationWhenValidType () {
+        Set<ConstraintViolation<GenerateRequestVo>> violations = validator
+                .validate(GenerateRequestVo.builder().type("1").build());
         assertTrue(violations.isEmpty());
-
     }
 }

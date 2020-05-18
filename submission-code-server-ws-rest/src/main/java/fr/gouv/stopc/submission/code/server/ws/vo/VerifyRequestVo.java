@@ -1,7 +1,7 @@
 package fr.gouv.stopc.submission.code.server.ws.vo;
 
-import fr.gouv.stopc.submission.code.server.ws.annotations.CodeType;
 import fr.gouv.stopc.submission.code.server.commun.enums.CodeTypeEnum;
+import fr.gouv.stopc.submission.code.server.ws.annotations.CodeType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

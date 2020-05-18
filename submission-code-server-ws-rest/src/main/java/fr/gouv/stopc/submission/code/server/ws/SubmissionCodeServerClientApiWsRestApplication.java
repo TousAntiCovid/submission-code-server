@@ -3,11 +3,13 @@ package fr.gouv.stopc.submission.code.server.ws;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 import javax.annotation.PostConstruct;
 import java.util.TimeZone;
 
 @ComponentScan(basePackages  = "fr.gouv.stopc")
+@EnableAsync
 @SpringBootApplication
 public class SubmissionCodeServerClientApiWsRestApplication {
 

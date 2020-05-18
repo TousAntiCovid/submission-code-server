@@ -18,7 +18,7 @@ export default function CreateCodeGenerationRequestPage() {
         return  {
             from : startdate,
             to : enddate,
-            codePerDay : codePerDay
+            dailyAmount : codePerDay
         }
     }
 

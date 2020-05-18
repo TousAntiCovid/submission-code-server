@@ -2,13 +2,15 @@ package fr.gouv.stopc.submission.code.server.ws.controller.impl;
 
 
 import fr.gouv.stopc.submission.code.server.ws.controller.IVerifyController;
-import fr.gouv.stopc.submission.code.server.ws.dto.VerifyResponseDto;
-import fr.gouv.stopc.submission.code.server.ws.service.VerifyServiceImpl;
+import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeServerException;
+import fr.gouv.stopc.submission.code.server.ws.dto.VerifyDto;
+import fr.gouv.stopc.submission.code.server.ws.service.impl.VerifyServiceImpl;
 import fr.gouv.stopc.submission.code.server.ws.vo.VerifyRequestVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -26,13 +28,13 @@ public class VerifyControllerImpl implements IVerifyController {
     }
 
     @Override
-    public ResponseEntity verifySubmissionCode(@RequestBody @Valid VerifyRequestVo verifyRequestVo) {
+    public ResponseEntity verifySubmissionCode(@ModelAttribute @Valid VerifyRequestVo verifyRequestVo) throws SubmissionCodeServerException {
         log.info("Receiving code : {} and type : {}", verifyRequestVo.getCode(), verifyRequestVo.getType());
         String type = verifyRequestVo.getType();
         String code = verifyRequestVo.getCode();
         boolean result = verifyServiceImpl.verifyCode(code, type);
 
-        return ResponseEntity.ok(VerifyResponseDto.builder().valid(result).build());
+        return ResponseEntity.ok(VerifyDto.builder().valid(result).build());
     }
 
 }

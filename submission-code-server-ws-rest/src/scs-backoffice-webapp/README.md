@@ -11,8 +11,11 @@ In the project directory, you can run:
 Command made to build and package the project in the ws-springboot <br>
 Command is only on Windows OS <br>
 
-###### STEPS :
+###### Environment variables.
+Before running a build make sure that `REACT_APP_BASE_URL` is set to the target the API should be called from.<br>
+Default `REACT_APP_BASE_URL` is set by default to `http://localhost:8080/api/v1/views/`
 
+###### STEPS :
 - `react-script build`
 - copy build in `public/static` folder of parent springboot application.
 

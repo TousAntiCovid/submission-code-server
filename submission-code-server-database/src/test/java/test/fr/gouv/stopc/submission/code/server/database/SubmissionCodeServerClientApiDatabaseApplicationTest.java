@@ -8,7 +8,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 class SubmissionCodeServerClientApiDatabaseApplicationTest {
 
 	@Test
-	void contextLoads() {
+	void testContextLoads() {
 	}
 
 }

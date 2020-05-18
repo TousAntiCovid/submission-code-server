@@ -1,16 +1,17 @@
 package fr.gouv.stopc.submission.code.server.commun.service.impl;
 
 import fr.gouv.stopc.submission.code.server.commun.service.IAlphaNumericCodeService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class AlphaNumericCodeServiceImpl implements IAlphaNumericCodeService {
 
     private static final String ALPHA_UPPER_CASE = "abcdefghijklmnopqrstuvwxyz".toUpperCase();
@@ -29,6 +30,7 @@ public class AlphaNumericCodeServiceImpl implements IAlphaNumericCodeService {
             .collect(Collectors.toList());
 
     public String generateCode() {
+        log.info("Generating random 6-alphanum code");
         final List<Character> characters = getShuffledAlphaNumList();
 
         String alphaNum = "";

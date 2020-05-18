@@ -1,7 +1,6 @@
 package fr.gouv.stopc.submission.code.server.ws.annotations;
 
 import fr.gouv.stopc.submission.code.server.ws.validators.CodePerDayValidator;
-import fr.gouv.stopc.submission.code.server.ws.validators.CodeTypeValidator;
 
 import javax.validation.Constraint;
 import javax.validation.Payload;

@@ -5,7 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.io.ByteArrayOutputStream;
 import java.util.List;
 
 public class ViewDto {
@@ -47,7 +46,7 @@ public class ViewDto {
 
     @AllArgsConstructor @NoArgsConstructor @Data @Builder
     public static class LotInformation {
-        long lotNumber;
+        long lotIdentifier;
         long numberOfCodes;
     }
 

@@ -1,54 +1,60 @@
 package fr.gouv.stopc.submission.code.server.ws.service.generateservice;
 
-import fr.gouv.stopc.submission.code.server.ws.dto.GenerateResponseDto;
-import fr.gouv.stopc.submission.code.server.ws.errors.NumberOfTryGenerateCodeExceededExcetion;
-import fr.gouv.stopc.submission.code.server.ws.service.GenerateServiceImpl;
-import lombok.extern.slf4j.Slf4j;
-import org.junit.Before;
+import fr.gouv.stopc.submission.code.server.commun.service.impl.AlphaNumericCodeServiceImpl;
+import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
+import fr.gouv.stopc.submission.code.server.database.entity.Lot;
+import fr.gouv.stopc.submission.code.server.database.entity.SubmissionCode;
+import fr.gouv.stopc.submission.code.server.database.service.impl.SubmissionCodeServiceImpl;
+import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeServerException;
+import fr.gouv.stopc.submission.code.server.ws.dto.CodeDetailedDto;
+import fr.gouv.stopc.submission.code.server.ws.service.impl.GenerateServiceImpl;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockitoAnnotations;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.mockito.*;
 
-import java.util.List;
+import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-@Slf4j
-@SpringBootTest
 class GenerateServiceGenerateAlphaNumericCodeMethodTest {
 
-    @Autowired
-    private GenerateServiceImpl gsi;
+    @Mock
+    SubmissionCodeServiceImpl submissionCodeService;
+
+    @Mock
+    AlphaNumericCodeServiceImpl alphaNumericCodeService;
+
+    @Spy
+    @InjectMocks
+    GenerateServiceImpl generateService;
 
 
-    @Before
+    @BeforeEach
     public void init(){
-        log.info("Initialize mokito injection in services...");
         MockitoAnnotations.initMocks(this);
+
     }
 
     /**
      * Calling generateAlphaNumericCode verify that is return one element in its list.
      */
     @Test
-    void oneCodeReturned6ALPHANUMTest()
-    {
+    void testOneCodeReturned6ALPHANUM() throws SubmissionCodeServerException {
 
-        NumberOfTryGenerateCodeExceededExcetion notgcee = null;
-        try {
-            final List<GenerateResponseDto> generateResponseDtoList = this.gsi.generateAlphaNumericCode();
+        Mockito.when(this.submissionCodeService.saveCode(
+                Mockito.any(SubmissionCodeDto.class), Mockito.any(Lot.class)
+        )).thenReturn(Optional.of(new SubmissionCode()));
 
-            //list should not be null
-            assertNotNull(generateResponseDtoList);
-            // list should be at size
-            assertEquals(1, generateResponseDtoList.size());
+        Mockito.when(
+                this.alphaNumericCodeService.generateCode()
+        ).thenReturn("B150US");
 
-        } catch (  NumberOfTryGenerateCodeExceededExcetion e ) {
-            notgcee = e;
-            assertEquals(String.format("Number of tries exceeded. %s were authorized.", 0), e.getMessage());
-        }
-        assertNull(notgcee);
+        final CodeDetailedDto codeDetailedResponseDtoList = this.generateService.generateAlphaNumericDetailedCode();
+        //list should not be null
+        assertNotNull(codeDetailedResponseDtoList);
+
+
+
     }
 
 }
