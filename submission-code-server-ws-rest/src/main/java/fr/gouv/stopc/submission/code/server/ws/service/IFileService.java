@@ -3,6 +3,7 @@ package fr.gouv.stopc.submission.code.server.ws.service;
 import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
 import fr.gouv.stopc.submission.code.server.database.entity.Lot;
 import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeServerException;
+import org.springframework.scheduling.annotation.Async;
 
 import javax.validation.constraints.NotNull;
 import java.io.ByteArrayOutputStream;
@@ -25,6 +26,7 @@ public interface IFileService {
      * @param dateTo
      * @return
      */
+    @Async
      Optional<ByteArrayOutputStream> zipExport(String numberCodeDay, Lot lotObject, String dateFrom, String dateTo)
              throws SubmissionCodeServerException;
 

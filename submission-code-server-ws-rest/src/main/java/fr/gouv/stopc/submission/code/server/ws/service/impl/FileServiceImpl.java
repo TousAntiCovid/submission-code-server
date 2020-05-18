@@ -19,6 +19,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
@@ -73,6 +74,7 @@ public class FileServiceImpl implements IFileService {
     }
 
     @Override
+    @Async
     public Optional<ByteArrayOutputStream> zipExport(String numberCodeDay, Lot lotObject, String dateFrom, String dateTo)
             throws SubmissionCodeServerException
     {
@@ -116,7 +118,7 @@ public class FileServiceImpl implements IFileService {
             ByteArrayInputStream inputStream = new ByteArrayInputStream(zipOutputStream.toByteArray());
             // async method is called here.
             log.info("SFTP transfer is about to be submitted.");
-            sftpService.transferFileSFTPAsync(inputStream);
+            sftpService.transferFileSFTP(inputStream);
             log.info("SFTP transfer have been submitted.");
         } else {
             log.info("No SFTP transfer have been submitted.");

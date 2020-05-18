@@ -88,11 +88,6 @@ public class SFTPServiceImpl implements ISFTPService {
         log.info("SFTP: connection closed");
     }
 
-    @Override
-    @Async
-    public void transferFileSFTPAsync(ByteArrayInputStream file) throws SubmissionCodeServerException {
-        this.transferFileSFTP(file);
-    }
 
     /**
      * TODO: comment method.
