@@ -1,10 +1,11 @@
 package fr.gouv.stopc.submission.code.server.ws.service.generateservice;
 
-import fr.gouv.stopc.submission.code.server.ws.service.GenerateServiceImpl;
-import lombok.extern.slf4j.Slf4j;
+import fr.gouv.stopc.submission.code.server.ws.service.impl.GenerateServiceImpl;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.mockito.InjectMocks;
+import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.OffsetDateTime;
@@ -12,28 +13,33 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@Slf4j
-@SpringBootTest
 public class GenerateServiceGetValidFromListMethodTest {
 
-    @Value("${stop.covid.qr.code.target.zone}")
-    private String targetZoneId;
+    @Spy
+    @InjectMocks
+    private GenerateServiceImpl generateService;  
 
-    /**
-     * GenerateServiceImpl No need of external services here.
-     */
-    private GenerateServiceImpl gsi = new GenerateServiceImpl(null,
-            null,
-            null);
+    private static final String targetZoneId = "Europe/Paris";
 
+
+
+    @BeforeEach
+    public void init(){
+
+        MockitoAnnotations.initMocks(this);
+
+        ReflectionTestUtils.setField(this.generateService, "targetZoneId", this.targetZoneId);
+        ReflectionTestUtils.setField(this.generateService, "numberOfTryInCaseOfError", 0);
+
+    }
 
     /**
      * Test method generating list of validFrom OffSetTime.
      */
     @Test
-    void validFromList() {
+    void testValidFromList() {
         final int size = 10;
         final ZoneId parisZoneId = ZoneId.of(this.targetZoneId);
 
@@ -44,13 +50,12 @@ public class GenerateServiceGetValidFromListMethodTest {
                 .withHour(21)
                 .withMinute(00);
 
-        log.info("initial time : {}", validFromFirstValue);
 
-        ReflectionTestUtils.setField(this.gsi, "TARGET_ZONE_ID", "Europe/Paris");
+        ReflectionTestUtils.setField(this.generateService, "targetZoneId", "Europe/Paris");
 
 
         // Tested method call
-        List<OffsetDateTime> validFromList = this.gsi.getValidFromList(size, validFromFirstValue);
+        List<OffsetDateTime> validFromList = this.generateService.getValidFromList(size, validFromFirstValue);
 
         final ZoneOffset zuluZoneOffset = ZoneOffset.of("Z");
 
@@ -80,7 +85,6 @@ public class GenerateServiceGetValidFromListMethodTest {
                 .getSecond();
 
         // dayOfMonth with zulu zoneoffset conversion
-        log.info("generated time : {}", validFromList.get(0));
         for (int i = 1; i < size; i++) {
 
             final OffsetDateTime z = validFromFirstValue
@@ -95,7 +99,6 @@ public class GenerateServiceGetValidFromListMethodTest {
             int month = z.getMonthValue();
 
             final OffsetDateTime vf = validFromList.get(i);
-            log.info("generated time : {}", vf);
 
             // asserting that days are incremental.
             assertEquals(dayOfMonth, vf.getDayOfMonth());

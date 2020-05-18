@@ -1,69 +1,55 @@
 package fr.gouv.stopc.submission.code.server.ws.service.generateservice;
 
-import fr.gouv.stopc.submission.code.server.ws.dto.GenerateResponseDto;
-import fr.gouv.stopc.submission.code.server.commun.enums.CodeTypeEnum;
-import fr.gouv.stopc.submission.code.server.ws.errors.NumberOfTryGenerateCodeExceededExcetion;
-import fr.gouv.stopc.submission.code.server.ws.service.GenerateServiceImpl;
-import lombok.extern.slf4j.Slf4j;
-import org.junit.Before;
+import fr.gouv.stopc.submission.code.server.commun.service.impl.UUIDv4CodeServiceImpl;
+import fr.gouv.stopc.submission.code.server.database.entity.SubmissionCode;
+import fr.gouv.stopc.submission.code.server.database.service.impl.SubmissionCodeServiceImpl;
+import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeServerException;
+import fr.gouv.stopc.submission.code.server.ws.service.impl.GenerateServiceImpl;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockitoAnnotations;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
+import org.mockito.*;
+import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.List;
-import java.util.regex.Pattern;
+import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
-@Slf4j
-@SpringBootTest
-@Transactional
 class GenerateServiceGenerateUUIDv4CodesMethodTest {
+    @Mock
+    private UUIDv4CodeServiceImpl uuiDv4CodeService;
 
-    @Autowired
-    private GenerateServiceImpl gsi;
+    @Mock
+    private SubmissionCodeServiceImpl submissionCodeService;
 
+    @Spy
+    @InjectMocks
+    private GenerateServiceImpl generateService;
 
-    @Before
+    @BeforeEach
     public void init(){
-        log.info("Initialize mokito injection in services...");
+
         MockitoAnnotations.initMocks(this);
+
+        ReflectionTestUtils.setField(this.generateService, "targetZoneId", "Europe/Paris");
+        ReflectionTestUtils.setField(this.generateService, "numberOfTryInCaseOfError", 0);
+
+        //SET 24 hours of lock security
+        ReflectionTestUtils.setField(this.submissionCodeService, "securityTimeBetweenTwoUsagesOf6AlphanumCode", 24);
     }
-
-
     /**
      * Calling generateUUIDv4Codes and assert that it returns the right size and the right elements
      */
     @Test
-    void sizeGenerateResponseDtoListUUIDTest()
-    {
-        long size = Long.parseLong("12");
+    void testSizeGenerateResponseDtoListUUID() throws SubmissionCodeServerException {
+        int size = 12;
 
-        NumberOfTryGenerateCodeExceededExcetion notgcee = null;
-        try {
-            final List<GenerateResponseDto> generateResponseDtoList = this.gsi.generateUUIDv4Codes(size);
+        Mockito.when(this.submissionCodeService.saveCode(Mockito.any(), Mockito.any()))
+                .thenReturn(Optional.of(new SubmissionCode()));
 
-            //list should not be null
-            assertNotNull(generateResponseDtoList);
-            // list should be at size
-            assertEquals(size, generateResponseDtoList.size());
+        this.generateService.generateUUIDv4Codes(size);
 
-            // asserting it is UUID type code
-            CodeTypeEnum.UUIDv4.getTypeCode().equals(generateResponseDtoList.get(0).getTypeAsInt().toString());
-            CodeTypeEnum.UUIDv4.getType().equals(generateResponseDtoList.get(0).getTypeAsString());
-
-            // asserting code matches UUID pattern
-            Pattern p = Pattern.compile("([a-f0-9]{8}(-[a-f0-9]{4}){4}[a-f0-9]{8})");
-            assertTrue(p.matcher(generateResponseDtoList.get(0).getCode()).matches());
-
-
-        } catch (  NumberOfTryGenerateCodeExceededExcetion e ) {
-            notgcee = e;
-            assertEquals(String.format("Number of tries exceeded. %s were authorized.", 0), e.getMessage());
-        }
-        assertNull(notgcee);
+        verify(uuiDv4CodeService, times(12)).generateCode();
 
     }
 

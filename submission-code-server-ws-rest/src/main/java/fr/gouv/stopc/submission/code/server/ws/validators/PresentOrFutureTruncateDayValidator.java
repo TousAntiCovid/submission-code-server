@@ -8,7 +8,6 @@ import javax.validation.ConstraintValidatorContext;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
 
 @Slf4j
 public class PresentOrFutureTruncateDayValidator implements ConstraintValidator<PresentOrFutureTruncateDay, OffsetDateTime> {

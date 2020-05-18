@@ -10,7 +10,7 @@ export type ResponseSubmitCodeGenerationRequestType = {
 export type RequestSubmitCodeGenerationRequestType = {
     from : Date,
     to : Date,
-    codePerDay : Number
+    dailyAmount : Number
 }
 
 export function submitCodeGenerationRequest(

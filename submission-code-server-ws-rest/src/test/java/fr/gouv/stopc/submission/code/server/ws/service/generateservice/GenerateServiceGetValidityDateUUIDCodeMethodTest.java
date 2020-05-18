@@ -1,65 +1,76 @@
 package fr.gouv.stopc.submission.code.server.ws.service.generateservice;
 
-import fr.gouv.stopc.submission.code.server.ws.dto.GenerateResponseDto;
 import fr.gouv.stopc.submission.code.server.commun.enums.CodeTypeEnum;
-import fr.gouv.stopc.submission.code.server.ws.errors.NumberOfTryGenerateCodeExceededExcetion;
-import fr.gouv.stopc.submission.code.server.ws.service.GenerateServiceImpl;
-import lombok.extern.slf4j.Slf4j;
+import fr.gouv.stopc.submission.code.server.commun.service.impl.AlphaNumericCodeServiceImpl;
+import fr.gouv.stopc.submission.code.server.commun.service.impl.UUIDv4CodeServiceImpl;
+import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
+import fr.gouv.stopc.submission.code.server.database.service.impl.SubmissionCodeServiceImpl;
+import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeServerException;
+import fr.gouv.stopc.submission.code.server.ws.service.impl.GenerateServiceImpl;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
 
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 
-@Slf4j
-@SpringBootTest
 public class GenerateServiceGetValidityDateUUIDCodeMethodTest {
 
+    @Mock
+    private SubmissionCodeServiceImpl submissionCodeService;
 
-    @Value("${stop.covid.qr.code.target.zone}")
-    private String targetZoneId;
+    @Spy
+    @InjectMocks
+    private GenerateServiceImpl generateService;
+    private static final String targetZoneId = "Europe/Paris";
 
-    /**
-     * GenerateServiceImpl No need of external services here.
-     */
-    @Autowired
-    private GenerateServiceImpl gsi;
+    @BeforeEach
+    public void init(){
+
+        MockitoAnnotations.initMocks(this);
+
+        ReflectionTestUtils.setField(this.generateService, "targetZoneId", this.targetZoneId);
+        ReflectionTestUtils.setField(this.generateService, "numberOfTryInCaseOfError", 0);
+
+        //SET 24 hours of lock security
+        ReflectionTestUtils.setField(this.submissionCodeService, "securityTimeBetweenTwoUsagesOf6AlphanumCode", 24);
+        ReflectionTestUtils.setField(this.generateService, "uuiDv4CodeService", new UUIDv4CodeServiceImpl());
+        ReflectionTestUtils.setField(this.generateService, "alphaNumericCodeService", new AlphaNumericCodeServiceImpl());
+    }
 
     @Test
-    void checkValidUntilFormatTest() throws NumberOfTryGenerateCodeExceededExcetion {
+    void testCheckValidUntilFormat() throws SubmissionCodeServerException {
 
         final long validityDays = 10;
-        ReflectionTestUtils.setField(this.gsi, "TIME_VALIDITY_UUID", validityDays);
-        ReflectionTestUtils.setField(this.gsi, "TARGET_ZONE_ID", "Europe/Paris");
+        ReflectionTestUtils.setField(this.generateService, "timeValidityUuid", validityDays);
 
         OffsetDateTime testedValidFrom = OffsetDateTime.now(ZoneId.of(this.targetZoneId));
 
 
         testedValidFrom = testedValidFrom.withMonth(01).withDayOfMonth(01).withHour(1).withMinute(12).truncatedTo(ChronoUnit.MINUTES);
 
-        final List<GenerateResponseDto> grdList = this.gsi.generateCodeGeneric(1, CodeTypeEnum.UUIDv4, testedValidFrom);
+        final SubmissionCodeDto submissionCodeDto = this.generateService.preGenerateSubmissionCodeDtoForCodeTypeAndDateValidity(CodeTypeEnum.UUIDv4, testedValidFrom).build();
 
-        assertFalse(grdList.isEmpty());
+        assertNotNull(submissionCodeDto);
 
-        final GenerateResponseDto grd = grdList.get(0);
 
-        log.info("GenerateResponseDto : {}", grd);
 
-        final OffsetDateTime validUntil = OffsetDateTime.parse(grd.getValidUntil())
+
+        final OffsetDateTime validUntil = submissionCodeDto.getDateEndValidity()
                 .withOffsetSameInstant(
                         OffsetDateTime.now(ZoneId.of(this.targetZoneId)).getOffset()
                 );
 
-        final OffsetDateTime validFrom= OffsetDateTime.parse(grd.getValidFrom())
+        final OffsetDateTime validFrom= submissionCodeDto.getDateAvailable()
                 .withOffsetSameInstant(
                         OffsetDateTime.now(ZoneId.of(this.targetZoneId)).getOffset()
                 );
@@ -75,9 +86,7 @@ public class GenerateServiceGetValidityDateUUIDCodeMethodTest {
 
 
         final long betweenSec = SECONDS.between(validFrom, validUntil);
-        log.info("seconds between validFrom and validUntil : {}", betweenSec);
         final long betweenDays =  betweenSec / 60 / 60 / 24;
-        log.info("days between validFrom and validUntil : {}", betweenDays);
 
         final int deltaMinutes = testedValidFrom.getHour() * 60 + testedValidFrom.getMinute();
 

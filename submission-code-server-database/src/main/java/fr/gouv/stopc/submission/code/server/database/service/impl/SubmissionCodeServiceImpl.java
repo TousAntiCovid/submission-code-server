@@ -30,7 +30,7 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
     private SubmissionCodeRepository submissionCodeRepository;
 
     @Value("${code.generation.security.alphanum6.hours}")
-    private Integer SECURITY_TIME_BETWEEN_TWO_USAGES_OF_6_ALPHANUM_CODE;
+    private Integer securityTimeBetweenTwoUsagesOf6AlphanumCode;
 
     @Inject
     public SubmissionCodeServiceImpl(SubmissionCodeRepository submissionCodeRepository){
@@ -100,7 +100,7 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
         } catch (DataIntegrityViolationException divExcetion) {
 
             // if Unique code exists for ALPHANUM_6 try to update
-            if(SECURITY_TIME_BETWEEN_TWO_USAGES_OF_6_ALPHANUM_CODE != null
+            if(securityTimeBetweenTwoUsagesOf6AlphanumCode != null
                     && CodeTypeEnum.ALPHANUM_6.equals(submissionCodeToSave.getType()))
             {
                 SubmissionCode sc = this.submissionCodeRepository.findByCodeAndTypeAndAndDateEndValidityLessThan(
@@ -108,7 +108,7 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
                         submissionCodeToSave.getType(),
                         submissionCodeToSave.getDateAvailable()
                                 .minusHours(
-                                        SECURITY_TIME_BETWEEN_TWO_USAGES_OF_6_ALPHANUM_CODE
+                                        securityTimeBetweenTwoUsagesOf6AlphanumCode
                                 )
                 );
                 if(sc != null) {

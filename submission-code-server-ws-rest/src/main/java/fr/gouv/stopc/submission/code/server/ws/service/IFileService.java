@@ -1,15 +1,11 @@
 package fr.gouv.stopc.submission.code.server.ws.service;
 
-import com.opencsv.exceptions.CsvDataTypeMismatchException;
-import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
 import fr.gouv.stopc.submission.code.server.database.entity.Lot;
-import fr.gouv.stopc.submission.code.server.ws.errors.NumberOfTryGenerateCodeExceededExcetion;
+import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeServerException;
 
 import javax.validation.constraints.NotNull;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
@@ -29,8 +25,8 @@ public interface IFileService {
      * @param dateTo
      * @return
      */
-     Optional<ByteArrayOutputStream> zipExport(String numberCodeDay, Lot lotObject, String dateFrom, String dateTo) throws Exception;
-
+     Optional<ByteArrayOutputStream> zipExport(String numberCodeDay, Lot lotObject, String dateFrom, String dateTo)
+             throws SubmissionCodeServerException;
 
     /**
      * STEP - 1 [ PERSISTING ]
@@ -38,9 +34,10 @@ public interface IFileService {
      * @param lotObject lot identifier that the series should take
      * @param from start date of the series of days code generation
      * @param to end date of the series of days code generation
-     * @throws NumberOfTryGenerateCodeExceededExcetion
+     * @throws SubmissionCodeServerException
      */
-     void persistUUIDv4CodesFor(String codePerDays, Lot lotObject, OffsetDateTime from, OffsetDateTime to) throws NumberOfTryGenerateCodeExceededExcetion;
+     void persistUUIDv4CodesFor(String codePerDays, Lot lotObject, OffsetDateTime from, OffsetDateTime to)
+             throws SubmissionCodeServerException;
 
     /**
      * STEP 2 - [ PARSING DATA TO CSV Data ]
@@ -48,7 +45,8 @@ public interface IFileService {
      * @param dates
      * @return List of csv dataByFilename
      */
-    Map<String, byte[]> codeAsCsvData(List<SubmissionCodeDto> submissionCodeDtos, List<@NotNull OffsetDateTime> dates) throws CsvDataTypeMismatchException, CsvRequiredFieldEmptyException, IOException;
+    Map<String, byte[]> codeAsCsvData(List<SubmissionCodeDto> submissionCodeDtos, List<@NotNull OffsetDateTime> dates)
+            throws SubmissionCodeServerException;
 
 
     /**
@@ -56,6 +54,7 @@ public interface IFileService {
      * @param dataByFilename csv data to be zipped.
      * @return ZipOutputStream instance containing csv data.
      */
-    ByteArrayOutputStream packagingCsvDataToZipFile(Map<String, byte[]> dataByFilename) throws IOException;
+    ByteArrayOutputStream packagingCsvDataToZipFile(Map<String, byte[]> dataByFilename)
+            throws SubmissionCodeServerException;
 
     }

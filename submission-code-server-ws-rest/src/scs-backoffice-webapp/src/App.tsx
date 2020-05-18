@@ -8,8 +8,7 @@ import SearchCodePage from './components/search-codes-page';
 /* The following line can be included in your src/index.js or App.js file */
 import './styles/app.sass';
 import {Nav, Navbar, NavDropdown} from 'react-bootstrap';
-import CreateCodeGenerationRequestPage
-  from './components/create-code-generation-request-page';
+import CreateCodeGenerationRequestPage from './components/create-code-generation-request-page';
 
 export default function App() {
   return (
