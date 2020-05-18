@@ -15,9 +15,7 @@ import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
-import java.io.ByteArrayOutputStream;
 import java.time.OffsetDateTime;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -101,16 +99,17 @@ public class ViewsServiceImpl implements IViewService {
         @NotNull final long codePerDay = codeGenerationRequestBody.getDailyAmount();
         @NotNull final OffsetDateTime from = codeGenerationRequestBody.getFrom();
         @NotNull OffsetDateTime to = codeGenerationRequestBody.getTo();
-        final Optional<ByteArrayOutputStream> baos = this.fileExportService.zipExport(
+
+        this.fileExportService.zipExport(
                 Long.toString(codePerDay),
                 new Lot(),
                 from.toString(),
                 to.toString()
         );
+
         return ViewDto.CodeGenerationRequest.builder()
                 .isSubmitted(true)
                 .message("data have been successfully saved !")
-                .baos(baos.get().toByteArray())
                 .build();
     }
 }

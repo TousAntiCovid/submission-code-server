@@ -13,7 +13,6 @@ public class ViewDto {
     public static class CodeGenerationRequest {
         private Boolean isSubmitted;
         private String message;
-        private byte[] baos;
     }
 
     @AllArgsConstructor @NoArgsConstructor @Data @Builder
