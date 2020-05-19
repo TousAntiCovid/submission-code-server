@@ -9,8 +9,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.xml.bind.DatatypeConverter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.OffsetDateTime;
@@ -114,7 +116,7 @@ public class SFTPServiceImpl implements ISFTPService {
             jsSession.connect();
 
             final ChannelSftp sftp = (ChannelSftp) jsSession.openChannel("sftp");
-            
+
             // attempting to open a jsSession.
             sftp.connect();
 
@@ -154,13 +156,16 @@ public class SFTPServiceImpl implements ISFTPService {
             String fileNameMD5 = String.format(md5FileNameFormat, date.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
 
             MessageDigest messageDigest = MessageDigest.getInstance("MD5");
-            messageDigest.update(file.toByteArray());
-            byte[] hash = messageDigest.digest();
+            byte[] hash = messageDigest.digest(file.toByteArray());
 
-            String data = new String(hash);
 
-            log.info("SFTP: is about to pushed the md5 file.");
-            channelSftp.put(data, fileNameMD5);
+            byte[] data = DatatypeConverter
+                    .printHexBinary(hash)
+                    .toLowerCase()
+                    .getBytes(StandardCharsets.UTF_8);
+
+            log.info("SFTP: is about to pushed the md5 file. {}", fileNameMD5);
+            channelSftp.put(new ByteArrayInputStream(data), fileNameMD5);
             log.info("SFTP: files have been pushed");
 
         }  catch (SftpException | NoSuchAlgorithmException e) {
