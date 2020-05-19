@@ -6,10 +6,12 @@ import fr.gouv.stopc.submission.code.server.ws.dto.SftpUser;
 import fr.gouv.stopc.submission.code.server.ws.service.ISFTPService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -41,14 +43,19 @@ public class SFTPServiceImpl implements ISFTPService {
     @Value("${zip.filename.formatter}")
     private String zipFilenameFormat;
 
-    @Value("{submission.code.server.sftp.path")
+    @Value("${submission.code.server.sftp.path}")
     private String pathFile;
+
+    @Value("${md5.filename.formatter}")
+    private String md5FileNameFormat;
 
 
     @Override
-    @Async
-    public void transferFileSFTP(ByteArrayInputStream file) throws SubmissionCodeServerException {
+    public void transferFileSFTP(ByteArrayOutputStream file) throws SubmissionCodeServerException {
+
         log.info("Transferring zip file to SFTP");
+
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(file.toByteArray());
 
         log.info("SFTP: connection is about to be created");
         ChannelSftp channelSftp = createConnection();
@@ -59,6 +66,7 @@ public class SFTPServiceImpl implements ISFTPService {
         try {
             channelSftp.connect();
         } catch (JSchException jshe) {
+            channelSftp.exit();
             log.error(SubmissionCodeServerException.ExceptionEnum.SFTP_CONNECTION_FAILED_ERROR.getMessage(), jshe);
             throw new SubmissionCodeServerException(
                     SubmissionCodeServerException.ExceptionEnum.SFTP_CONNECTION_FAILED_ERROR,
@@ -73,8 +81,9 @@ public class SFTPServiceImpl implements ISFTPService {
 
         log.info("SFTP: is about to pushed the zip file.");
         try {
-            channelSftp.put(file, pathFile +fileNameZip);
+            channelSftp.put(inputStream, pathFile + fileNameZip);
         } catch (SftpException e) {
+            channelSftp.exit();
             log.error(SubmissionCodeServerException.ExceptionEnum.SFTP_FILE_PUSHING_FAILED_ERROR.getMessage(), e);
             throw new SubmissionCodeServerException(
                     SubmissionCodeServerException.ExceptionEnum.SFTP_FILE_PUSHING_FAILED_ERROR,
@@ -82,6 +91,9 @@ public class SFTPServiceImpl implements ISFTPService {
             );
         }
         log.info("SFTP: files have been pushed");
+
+
+        this.createMD5ThenTransferToSFTP(file, channelSftp);
 
         log.info("SFTP: connection is about to be closed");
         channelSftp.exit();
@@ -117,6 +129,40 @@ public class SFTPServiceImpl implements ISFTPService {
             throw new SubmissionCodeServerException(
                     SubmissionCodeServerException.ExceptionEnum.JSCH_SESSION_CREATION_FAILED_ERROR,
                     jshe
+            );
+        }
+
+    }
+
+    /**
+     * Create md5 from file already uploaded on the SFTP Server and transfers md5 to SFTP server.
+     * @param file the file from the MD5 should be generated.
+     * @param channelSftp already opened channel. Should be an open connection.
+     * @throws SubmissionCodeServerException if an error occurs at MD5 instantiation or if the MD5 file cannot be pushed to SFTP server
+     */
+    private void createMD5ThenTransferToSFTP(final ByteArrayOutputStream file, final ChannelSftp channelSftp) throws SubmissionCodeServerException {
+        log.info("Transferring md5 file to SFTP");
+
+        try{
+            // Formatting the name of the md5 file
+            OffsetDateTime date = OffsetDateTime.now(ZoneId.of(targetZoneId));
+            String fileNameMD5 = String.format(md5FileNameFormat, date.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+
+            MessageDigest messageDigest = MessageDigest.getInstance("MD5");
+            messageDigest.update(file.toByteArray());
+            byte[] hash = messageDigest.digest();
+
+            String data = new String(hash);
+
+            log.info("SFTP: is about to pushed the md5 file.");
+            channelSftp.put(data, pathFile.concat(fileNameMD5));
+            log.info("SFTP: files have been pushed");
+
+        }  catch (SftpException | NoSuchAlgorithmException e) {
+            log.error(SubmissionCodeServerException.ExceptionEnum.SFTP_FILE_PUSHING_FAILED_ERROR.getMessage(), e);
+            throw new SubmissionCodeServerException(
+                    SubmissionCodeServerException.ExceptionEnum.SFTP_FILE_PUSHING_FAILED_ERROR,
+                    e
             );
         }
 
