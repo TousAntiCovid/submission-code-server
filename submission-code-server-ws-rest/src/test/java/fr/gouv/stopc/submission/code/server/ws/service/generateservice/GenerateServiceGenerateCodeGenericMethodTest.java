@@ -262,7 +262,7 @@ class GenerateServiceGenerateCodeGenericMethodTest {
                 () -> this.generateService.generateCodeGeneric(
                         size, cte, validFrom, lot
                 ),
-                "Expected doThing() to throw, but it didn't"
+                "Expected generateCodeGeneric() to throw, but it didn't"
         );
     }
 
@@ -288,9 +288,9 @@ class GenerateServiceGenerateCodeGenericMethodTest {
         assertThrows(
                 SubmissionCodeServerException.class,
                 () -> this.generateService.generateCodeGeneric(
-                        size, cte, validFrom
+                        size, cte, validFrom, new Lot()
                 ),
-                "Expected doThing() to throw, but it didn't"
+                "Expected generateCodeGeneric() to throw, but it didn't"
         );
     }
 
