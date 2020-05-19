@@ -16,11 +16,14 @@ import fr.gouv.stopc.submission.code.server.ws.service.IGenerateService;
 import fr.gouv.stopc.submission.code.server.ws.service.ISFTPService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
 import java.io.*;
@@ -35,12 +38,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
+import java.util.zip.GZIPOutputStream;
 
 
 @Slf4j
 @Service
+@Transactional
 public class FileServiceImpl implements IFileService {
     private static final String HEADER_CSV = "code_pour_qr, code_brut, validite_debut, validite_fin \n";
     private ISubmissionCodeService submissionCodeService;
@@ -120,8 +123,16 @@ public class FileServiceImpl implements IFileService {
 
 
         // STEP 3 packaging csv data
-        ByteArrayOutputStream zipOutputStream = packagingCsvDataToZipFile(dataByFilename);
-
+        ByteArrayOutputStream zipOutputStream = null;
+        try {
+            zipOutputStream = packagingCsvDataToZipFile(dataByFilename);
+        } catch (IOException e) {
+            log.error(SubmissionCodeServerException.ExceptionEnum.PACKAGING_CSV_FILE_ERROR.getMessage(), e);
+            throw new SubmissionCodeServerException(
+                    SubmissionCodeServerException.ExceptionEnum.PACKAGING_CSV_FILE_ERROR,
+                    e
+            );
+        }
         if(transferFile){
             ByteArrayInputStream inputStream = new ByteArrayInputStream(zipOutputStream.toByteArray());
             // async method is called here.
@@ -180,31 +191,45 @@ public class FileServiceImpl implements IFileService {
 
     @Override
     public ByteArrayOutputStream packagingCsvDataToZipFile(Map<String, byte[]> dataByFilename)
-            throws SubmissionCodeServerException
-    {
+            throws SubmissionCodeServerException, IOException {
         ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
-        ZipOutputStream zipOutputStream = new ZipOutputStream(byteOutputStream);
-        try {
-            for (Map.Entry<String, byte[]> entryDataByFileName: dataByFilename.entrySet()){
-                final String filename = entryDataByFileName.getKey();
-                final byte[] data = entryDataByFileName.getValue();
+        GZIPOutputStream gzipOutputStream = null;
+        TarArchiveOutputStream tarArchiveOutputStream = null;
 
-                zipOutputStream.putNextEntry(new ZipEntry(filename));
+    try{
+        gzipOutputStream = new GZIPOutputStream(byteOutputStream);
+        tarArchiveOutputStream = new TarArchiveOutputStream(gzipOutputStream);
 
-                final ByteArrayInputStream inputByteArray = new ByteArrayInputStream(data);
-                IOUtils.copy(inputByteArray, zipOutputStream);
-                inputByteArray.close();
-                zipOutputStream.closeEntry();
-            }
-            zipOutputStream.close();
-        } catch (IOException ioe) {
+        for (String filename: dataByFilename.keySet()){
+            TarArchiveEntry entry = new TarArchiveEntry(filename);
+            byte[] data = dataByFilename.get(filename);
+            entry.setSize(data.length);
+            tarArchiveOutputStream.putArchiveEntry(entry);
+            final ByteArrayInputStream inputByteArray = new ByteArrayInputStream(dataByFilename.get(filename));
+            IOUtils.copy(inputByteArray, tarArchiveOutputStream);
+            inputByteArray.close();
+            tarArchiveOutputStream.closeArchiveEntry();
+        }
+
+    } catch (IOException ioe) {
             log.error(SubmissionCodeServerException.ExceptionEnum.PACKAGING_CSV_FILE_ERROR.getMessage(), ioe);
             throw new SubmissionCodeServerException(
                     SubmissionCodeServerException.ExceptionEnum.PACKAGING_CSV_FILE_ERROR,
                     ioe
             );
+        } finally {
+        {
+            if(byteOutputStream!= null){
+                byteOutputStream.close();
+            }
+            if(tarArchiveOutputStream!=null){
+                tarArchiveOutputStream.close();
+            }
+            if(gzipOutputStream!= null){
+                gzipOutputStream.close();
+            }
         }
-
+    }
         return byteOutputStream;
     }
 

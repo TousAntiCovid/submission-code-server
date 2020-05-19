@@ -7,6 +7,7 @@ import org.springframework.scheduling.annotation.Async;
 
 import javax.validation.constraints.NotNull;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
@@ -61,6 +62,6 @@ public interface IFileService {
      * @return ZipOutputStream instance containing csv data.
      */
     ByteArrayOutputStream packagingCsvDataToZipFile(Map<String, byte[]> dataByFilename)
-            throws SubmissionCodeServerException;
+            throws SubmissionCodeServerException, IOException;
 
     }
