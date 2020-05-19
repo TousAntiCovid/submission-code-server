@@ -90,8 +90,9 @@ public class SFTPServiceImpl implements ISFTPService {
 
 
     /**
-     * Method create JSch Session with the class field parameters
-     * @return ChannelSftp created with with the class field parameters
+     * Create connection SFTP to transfer file in server.
+     * The connexion is create with user and key private of user.
+     * @return
      */
     private ChannelSftp createConnection() throws SubmissionCodeServerException{
         try{

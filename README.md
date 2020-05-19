@@ -12,14 +12,12 @@ En suite les fiches CSV sont zippé et envoiés via connexion SFTP.
 
 Pendant les deploiment on a plusieurs variables d'environnement à setter :
 
-* SUBMISSION_CODE_SERVER_DB_PWD password pour access au database
+* SUBMISSION_CODE_SERVER_DB_PWD password pour access au database;
 * SUBMISSION_CODE_SERVER_DB_URL url database;
-* SUBMISSION_CODE_SERVER_DB_USR user que utilise le database;
-* SUBMISSION_CODE_SERVER_SFTP_TRANSFER activation transfert SFTP;
-* SUBMISSION_CODE_SERVER_SFTP_KEY chemin de la cle prive de l'user
-* SUBMISSION_CODE_SERVER_SFTP_USER user que fait le transfert SFTP du fie zip
-* SUBMISSION_CODE_SERVER_SFTP_PORT port où on ouvre la connexion SFTP
-* SUBMISSION_CODE_SERVER_SFTP_PASSPHRASE passphrase lie à cle prive
-* SUBMISSION_CODE_SERVER_SFTP_PATH path où le file zip est sauvegarde
-
-Le composant implémente également une fédération des initiatives nationales utilisant le même protocole afin de protéger les utilisateurs se déplaçant à l'étranger.
+* SUBMISSION_CODE_SERVER_DB_USER user que utilise le database;
+* SUBMISSION_CODE_SERVER_SFTP_TRANSFER activation transfert SFTP (true or false: default true);
+* SUBMISSION_CODE_SERVER_SFTP_KEY chemin de la cle prive de l'user;
+* SUBMISSION_CODE_SERVER_SFTP_USER user que fait le transfert SFTP du fie zip;
+* SUBMISSION_CODE_SERVER_SFTP_PORT port où on ouvre la connexion SFTP;
+* SUBMISSION_CODE_SERVER_SFTP_PASSPHRASE passphrase lie à cle prive;
+* SUBMISSION_CODE_SERVER_SFTP_PATH dossier du SFTP où les archives générées sont stockées.

@@ -5,6 +5,8 @@ import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
 import fr.gouv.stopc.submission.code.server.database.entity.Lot;
 import fr.gouv.stopc.submission.code.server.database.service.impl.SubmissionCodeServiceImpl;
 import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeServerException;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
@@ -17,15 +19,14 @@ import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Optional;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
+import java.util.zip.GZIPInputStream;
 
 
 
 @TestPropertySource("classpath:application.properties")
 class FileServiceTest {
 
-    private static final String TEST_FILE_ZIP = "testFile.zip";
+    private static final String TEST_FILE_ZIP = "testFile.tgz";
 
     @Mock
     private GenerateServiceImpl generateService;
@@ -62,7 +63,7 @@ class FileServiceTest {
                 .type(CodeTypeEnum.UUIDv4.getTypeCode())
                 .dateEndValidity(OffsetDateTime.now())
                 .dateAvailable(OffsetDateTime.now())
-                .code("TOTOTOTOTO")
+                .code("3d27eeb8-956c-4660-bc04-8612a4c0a7f1")
                 .lot(1)
                 .build();
 
@@ -77,7 +78,6 @@ class FileServiceTest {
 
         result = fileExportService.zipExport("10", new Lot(), nowDay, endDay);
 
-
         ByteArrayOutputStream byteArray;
         if(result.isPresent()) {
             byteArray = result.get();
@@ -87,13 +87,13 @@ class FileServiceTest {
 
             //unzip
             FileInputStream fis = new FileInputStream(TEST_FILE_ZIP);
-            ZipInputStream zis = new ZipInputStream(fis);
+            TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(new GZIPInputStream(fis));
+            TarArchiveEntry tarEntry = tarArchiveInputStream.getNextTarEntry();
 
-            ZipEntry ze = zis.getNextEntry();
             int countCsv = 0;
-            while (ze != null) {
+            while (tarEntry != null) {
                 countCsv = countCsv + 1;
-                ze = zis.getNextEntry();
+                tarEntry =tarArchiveInputStream.getNextTarEntry();
             }
             Assert.isTrue(countCsv != 0);
             fis.close();
@@ -118,7 +118,7 @@ class FileServiceTest {
                 .type(CodeTypeEnum.UUIDv4.getTypeCode())
                 .dateEndValidity(OffsetDateTime.now())
                 .dateAvailable(OffsetDateTime.now())
-                .code("TOTOTOTOTO")
+                .code("3d27eeb8-956c-4660-bc04-8612a4c0a7f1")
                 .lot(1)
                 .build();
 
