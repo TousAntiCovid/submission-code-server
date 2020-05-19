@@ -190,12 +190,11 @@ public class GenerateServiceImpl implements IGenerateService {
         long failCount = 0;
 
         // The date available/validFrom is date of now in this time
-        OffsetDateTime validUntil;
         OffsetDateTime validGenDate= OffsetDateTime.now();
 
         log.info("Generating an amount of {} {} codes", size, cte);
 
-        for (int i = 0; i < size && failCount <= numberOfTryInCaseOfError; ) {
+        for (int i = 0; generateResponseList.size() < size && failCount <= numberOfTryInCaseOfError; i++) {
 
             log.info("generating code index : {}", i);
 
@@ -224,7 +223,7 @@ public class GenerateServiceImpl implements IGenerateService {
                         .validUntil(sc.getDateAvailable() != null ? formatOffsetDateTime(sc.getDateEndValidity()) : "")
                         .build()
                 );
-                i++;
+
                 failCount = 0;
             } catch (DataIntegrityViolationException divException) {
                 failCount++;

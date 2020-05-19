@@ -51,7 +51,7 @@ public class SFTPServiceImpl implements ISFTPService {
         log.info("Transferring zip file to SFTP");
 
         log.info("SFTP: connection is about to be created");
-        ChannelSftp channelSftp = createConnexion();
+        ChannelSftp channelSftp = createConnection();
         log.info("SFTP: connexion created");
 
         log.info("SFTP: connection is about to be connected");
@@ -90,10 +90,10 @@ public class SFTPServiceImpl implements ISFTPService {
 
 
     /**
-     * TODO: comment method.
-     * @return
+     * Method create JSch Session with the class field parameters
+     * @return ChannelSftp created with with the class field parameters
      */
-    private ChannelSftp createConnexion() throws SubmissionCodeServerException{
+    private ChannelSftp createConnection() throws SubmissionCodeServerException{
         try{
             JSch jSch = new JSch();
             SftpUser userInfo = new SftpUser(username, passphrase);

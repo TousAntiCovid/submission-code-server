@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.time.DateTimeException;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
@@ -73,8 +74,15 @@ public class FileServiceImpl implements IFileService {
         this.sftpService=sftpService;
     }
 
-    @Override
     @Async
+    @Override
+    public Optional<ByteArrayOutputStream> zipExportAsync(String numberCodeDay, Lot lotObject, String dateFrom, String dateTo)
+            throws SubmissionCodeServerException
+    {
+        return this.zipExport(numberCodeDay, lotObject, dateFrom, dateTo);
+    }
+
+    @Override
     public Optional<ByteArrayOutputStream> zipExport(String numberCodeDay, Lot lotObject, String dateFrom, String dateTo)
             throws SubmissionCodeServerException
     {
@@ -105,7 +113,7 @@ public class FileServiceImpl implements IFileService {
 
         //get distinct dates
         final List<OffsetDateTime> availableDates = submissionCodeDtos
-                .stream().map(s -> s.getDateAvailable()).distinct().collect(Collectors.toList());
+                .stream().map(SubmissionCodeDto::getDateAvailable).distinct().collect(Collectors.toList());
 
         // STEP 2 parsing codes to csv dataByFilename
         Map<String, byte[]> dataByFilename = codeAsCsvData(submissionCodeDtos, availableDates);
@@ -177,10 +185,13 @@ public class FileServiceImpl implements IFileService {
         ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
         ZipOutputStream zipOutputStream = new ZipOutputStream(byteOutputStream);
         try {
-            for (String filename: dataByFilename.keySet()){
+            for (Map.Entry<String, byte[]> entryDataByFileName: dataByFilename.entrySet()){
+                final String filename = entryDataByFileName.getKey();
+                final byte[] data = entryDataByFileName.getValue();
+
                 zipOutputStream.putNextEntry(new ZipEntry(filename));
 
-                final ByteArrayInputStream inputByteArray = new ByteArrayInputStream(dataByFilename.get(filename));
+                final ByteArrayInputStream inputByteArray = new ByteArrayInputStream(data);
                 IOUtils.copy(inputByteArray, zipOutputStream);
                 inputByteArray.close();
                 zipOutputStream.closeEntry();
@@ -213,7 +224,6 @@ public class FileServiceImpl implements IFileService {
         // converting list SubmissionCodeDto to SubmissionCodeCsvDto to be proceeded in csv generator
         final List<SubmissionCodeCsvDto> submissionCodeCsvDtos = convert(submissionCodeDtoList);
 
-        File file = new File(fileName);
         StringWriter fileWriter = new StringWriter();
         fileWriter.append(HEADER_CSV);
 
@@ -230,19 +240,13 @@ public class FileServiceImpl implements IFileService {
         try {
             statefulBeanToCsv.write(submissionCodeCsvDtos);
 
-            return fileWriter.toString().getBytes("UTF-8");
+            return fileWriter.toString().getBytes(StandardCharsets.UTF_8);
 
         } catch (CsvDataTypeMismatchException | CsvRequiredFieldEmptyException e) {
             log.error(SubmissionCodeServerException.ExceptionEnum.CODE_TO_CSV_PARSING_ERROR.getMessage(), e);
             throw new SubmissionCodeServerException(
                     SubmissionCodeServerException.ExceptionEnum.CODE_TO_CSV_PARSING_ERROR,
                     e
-            );
-        } catch (UnsupportedEncodingException uee) {
-            log.error(SubmissionCodeServerException.ExceptionEnum.CODE_TO_CSV_UTF8_ENCODING_ERROR.getMessage(), uee);
-            throw new SubmissionCodeServerException(
-                    SubmissionCodeServerException.ExceptionEnum.CODE_TO_CSV_UTF8_ENCODING_ERROR,
-                    uee
             );
         }
     }
@@ -255,7 +259,6 @@ public class FileServiceImpl implements IFileService {
      */
 
     protected Boolean isDateValid(OffsetDateTime from, OffsetDateTime to)
-            throws DateTimeException
     {
         return !(OffsetDateTime.now().toLocalDate().compareTo(from.toLocalDate()) < 0 || from.isAfter(to));
     }

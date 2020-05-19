@@ -9,6 +9,10 @@ import java.util.List;
 
 public class ViewDto {
 
+    private ViewDto() {
+        super();
+    }
+
     @AllArgsConstructor @NoArgsConstructor @Data @Builder
     public static class CodeGenerationRequest {
         private Boolean isSubmitted;

@@ -28,6 +28,12 @@ class FileServiceTest {
     private static final String TEST_FILE_ZIP = "testFile.zip";
 
     @Mock
+    private GenerateServiceImpl generateService;
+
+    @Mock
+    private SFTPServiceImpl sftpService;
+
+    @Mock
     private SubmissionCodeServiceImpl submissionCodeService;
 
     @Spy
