@@ -34,7 +34,8 @@ public class SubmissionCodeServerException extends Exception {
         JSCH_SESSION_CREATION_FAILED_ERROR("The attempt at creating JSCH session has failed."),
         INVALID_DATE("The date validation has failed."),
         DB_SAVE_OPTIONAL_EMPTY("The data save action has not raised error but returned a empty Optional."),
-        SFTP_WORKING_DIRECTORY_ERROR("Change default working directory on chanelSFTP failed.");
+        SFTP_WORKING_DIRECTORY_ERROR("Change default working directory on chanelSFTP failed."),
+        MAPPING_CODE_FOR_CSV_FILE_ERROR("An error occurs at mapping code for csv file creation.");
 
         @Getter
         private final String message;

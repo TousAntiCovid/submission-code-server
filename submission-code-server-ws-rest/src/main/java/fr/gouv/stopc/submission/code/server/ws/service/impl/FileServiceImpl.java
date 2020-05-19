@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPOutputStream;
+import java.net.URLEncoder;
 
 
 @Slf4j
@@ -296,13 +297,31 @@ public class FileServiceImpl implements IFileService {
      * @param listForDay list provided by dao service to be converted to a list of csv DTO
      * @return list of SubmissionCodeCsvDto
      */
-    private List<SubmissionCodeCsvDto> convert(List<SubmissionCodeDto> listForDay) {
+    private List<SubmissionCodeCsvDto> convert(List<SubmissionCodeDto> listForDay) throws SubmissionCodeServerException {
         final ModelMapper modelMapper = new ModelMapper();
-        return listForDay.stream().map(s -> {
+
+        final List<SubmissionCodeCsvDto> submissionCodeCsvDtos = listForDay.stream().map(s -> {
             final SubmissionCodeCsvDto csvDto = modelMapper.map(s, SubmissionCodeCsvDto.class);
-            csvDto.setQrcode(String.format(this.qrCodeBaseUrlToBeFormatted, csvDto.getCode(), csvDto.getType()));
-            return csvDto;
+            try {
+                csvDto.setQrcode(String.format(
+                        this.qrCodeBaseUrlToBeFormatted,
+                        URLEncoder.encode(csvDto.getCode(), "UTF-8"),
+                        URLEncoder.encode(csvDto.getType(), "UTF-8")
+                ));
+                return csvDto;
+            } catch (UnsupportedEncodingException e) {
+                return null;
+            }
         }).collect(Collectors.toList());
+
+        if(submissionCodeCsvDtos.size() != listForDay.size()) {
+            log.error(SubmissionCodeServerException.ExceptionEnum.MAPPING_CODE_FOR_CSV_FILE_ERROR.getMessage());
+            throw new SubmissionCodeServerException(
+                    SubmissionCodeServerException.ExceptionEnum.MAPPING_CODE_FOR_CSV_FILE_ERROR
+            );
+        }
+
+        return submissionCodeCsvDtos;
     }
 
     /**
