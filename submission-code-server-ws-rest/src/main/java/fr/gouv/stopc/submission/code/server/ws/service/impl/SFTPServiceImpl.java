@@ -111,10 +111,12 @@ public class SFTPServiceImpl implements ISFTPService {
             jsSession.setUserInfo(userInfo);
             jsSession.setConfig(config);
 
-            // attempting to open a jsSession.
             jsSession.connect();
 
             final ChannelSftp sftp = (ChannelSftp) jsSession.openChannel("sftp");
+            
+            // attempting to open a jsSession.
+            sftp.connect();
 
             if(StringUtils.isNotBlank(this.pathFile)) {
                 sftp.cd(this.pathFile);
