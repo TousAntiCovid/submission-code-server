@@ -32,8 +32,8 @@ public class SubmissionCodeServerException extends Exception {
         SFTP_CONNECTION_FAILED_ERROR("The attempt at connecting to SFTP server has failed."),
         SFTP_FILE_PUSHING_FAILED_ERROR("The attempt at writing file through SFTP connection has failed."),
         JSCH_SESSION_CREATION_FAILED_ERROR("The attempt at creating JSCH session has failed."),
-        INVALID_DATE("The date validation has failed.")
-        ;
+        INVALID_DATE("The date validation has failed."),
+        DB_SAVE_OPTIONAL_EMPTY("The data save action has not raised error but returned a empty Optional.");
 
         @Getter
         private final String message;

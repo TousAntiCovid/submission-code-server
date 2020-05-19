@@ -43,19 +43,19 @@ public enum CodeTypeEnum {
      * @param typeOrTypeCode (ex. "1" or "UUIDv4") value to test if the enum is corresponding to "typeOrTypeCode"
      * @return if the enum is corresponding to the parameter in method returned value is "true" otherwise returned value is "false"
      */
-    public final Boolean equals(String typeOrTypeCode) {
+    public final Boolean isTypeOf(String typeOrTypeCode) {
         return this.type.equals(typeOrTypeCode) || this.typeCode.equals(typeOrTypeCode) ;
     }
 
     /**
      * Static method exists get a string (ex. "1" or "UUIDv4") to know if an enum is corresponding to the value.
-     * It uses the methode {@link #equals(String)} to check the value.
+     * It uses the methode {@link #isTypeOf(String)} to check the value.
      * @param typeOrTypeCode (ex. "1" or "UUIDv4") value to test if the enum is corresponding to "typeOrTypeCode"
      * @return if an enum is corresponding to the parameter in method returned value is "true" otherwise returned value is "false"
      */
     public static final Boolean exists(final String typeOrTypeCode) {
         for (CodeTypeEnum et :  Arrays.asList(values())) {
-            if(et.equals(typeOrTypeCode)) return true;
+            if(et.isTypeOf(typeOrTypeCode)) return true;
         }
         return false;
     }

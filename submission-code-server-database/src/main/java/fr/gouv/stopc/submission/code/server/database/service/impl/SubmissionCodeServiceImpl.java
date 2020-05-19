@@ -101,7 +101,7 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
 
             // if Unique code exists for ALPHANUM_6 try to update
             if(securityTimeBetweenTwoUsagesOf6AlphanumCode != null
-                    && CodeTypeEnum.ALPHANUM_6.equals(submissionCodeToSave.getType()))
+                    && CodeTypeEnum.ALPHANUM_6.isTypeOf(submissionCodeToSave.getType()))
             {
                 SubmissionCode sc = this.submissionCodeRepository.findByCodeAndTypeAndAndDateEndValidityLessThan(
                         submissionCodeToSave.getCode(),

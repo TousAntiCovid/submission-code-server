@@ -96,12 +96,14 @@ public class SFTPServiceImpl implements ISFTPService {
     private ChannelSftp createConnexion() throws SubmissionCodeServerException{
         try{
             JSch jSch = new JSch();
+            SftpUser userInfo = new SftpUser(username, passphrase);
 
-            jSch.addIdentity(keyPrivate, passphrase);
-            Session jsSession= jSch.getSession(username, remoteDir, port);
+            jSch.addIdentity(keyPrivate, userInfo.getPassphrase());
+
+            Session jsSession= jSch.getSession(userInfo.getUsername(), remoteDir, port);
+
             Properties config = new Properties();
             config.put("StrictHostKeyChecking", "false");
-            SftpUser userInfo = new SftpUser(username, passphrase);
             jsSession.setUserInfo(userInfo);
             jsSession.setConfig(config);
 
