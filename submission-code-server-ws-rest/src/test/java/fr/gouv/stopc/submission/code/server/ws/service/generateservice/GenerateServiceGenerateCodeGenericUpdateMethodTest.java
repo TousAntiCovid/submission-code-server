@@ -83,7 +83,7 @@ class GenerateServiceGenerateCodeGenericUpdateMethodTest {
                 () -> this.generateService.generateCodeGeneric(
                         size, cte, validFrom, null
                 ),
-                "Expected doThing() to throw, but it didn't"
+                "Expected generateCodeGeneric() to throw, but it didn't"
         );
 
     }

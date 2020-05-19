@@ -242,10 +242,7 @@ public class FileServiceImpl implements IFileService {
     private byte[] transformInFile(List<SubmissionCodeDto> submissionCodeDtoList, OffsetDateTime date)
             throws SubmissionCodeServerException
     {
-
-        // name of the file should be built from the date at target Zone publication
-        String fileName = this.getCsvFilename(date);
-
+        
         // converting list SubmissionCodeDto to SubmissionCodeCsvDto to be proceeded in csv generator
         final List<SubmissionCodeCsvDto> submissionCodeCsvDtos = convert(submissionCodeDtoList);
 

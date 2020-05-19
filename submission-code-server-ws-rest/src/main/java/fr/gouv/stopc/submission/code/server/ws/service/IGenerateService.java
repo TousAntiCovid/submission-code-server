@@ -16,51 +16,9 @@ public interface IGenerateService {
      */
     List<CodeDetailedDto> generateUUIDv4Codes(final long size) throws SubmissionCodeServerException;
 
-    /**
-     * @return alphanum-6 code certified unique in DB
-     */
-    CodeSimpleDto generateAlphaNumericDetailedCode() throws SubmissionCodeServerException;
 
     CodeSimpleDto generateAlphaNumericShortCode()
             throws SubmissionCodeServerException;
-
-    /**
-     * Method calls {@link #generateAlphaNumericDetailedCode()} ()} if #TypeEnum.ALPHANUM_6
-     * Method calls {@link #generateUUIDv4Codes(long)} )} if #TypeEnum.UUIDv4
-     * @param generateRequestVo generatedRequestVo containing the type of code to be generated.
-     * @return return a list of codes depending of the generateRequestVo given in parameter.
-     * @throws SubmissionCodeServerException in case of the GeneratedRequestVo is not processable.
-     */
-    List<CodeDetailedDto> generateCodeFromRequest(final GenerateRequestVo generateRequestVo)
-            throws SubmissionCodeServerException;
-
-
-    /**
-     * Method used to sequentially generate codes of codeType in parameter
-     * Method used to sequentially generate codes of codeType in parameter
-     * Calling method {@link #generateCodeGeneric(long, CodeTypeEnum)}
-     * with lot value given by method nextLot() of db service.
-     * @param size the desired number of code to be generated
-     * @param cte the code type desired
-     * @return list of unique persisted codes
-     */
-    List<CodeDetailedDto> generateCodeGeneric(final long size,
-                                              final CodeTypeEnum cte
-    ) throws SubmissionCodeServerException;
-
-
-    /**
-     * Method used to sequentially generate codes of codeType in parameter
-     * @param size the desired number of code to be generated
-     * @param cte the code type desired
-     * @param validFrom date from the code should be valid.
-     * @return list of unique persisted codes
-     */
-    List<CodeDetailedDto> generateCodeGeneric(final long size,
-                                              final CodeTypeEnum cte,
-                                              final OffsetDateTime validFrom
-    ) throws SubmissionCodeServerException;
-
 
     /**
      * Method used to sequentially generate codes of codeType in parameter
@@ -74,20 +32,6 @@ public interface IGenerateService {
                                               final OffsetDateTime validFrom,
                                               final Lot lotObject
     ) throws SubmissionCodeServerException;
-
-    /**
-     * Method calling {@link #generateUUIDv4CodesBulk(OffsetDateTime)} with validForm parameter as actual date called in method.
-     * @return list of code generated and saved in db.
-     */
-    List<CodeDetailedDto> generateUUIDv4CodesBulk();
-
-    /**
-     * Method calling  with new lot identifier calculated
-     * with the last one given by database service.
-     * @param validFrom date from the code should be valid.
-     * @return list of code generated and saved in db.
-     */
-    List<CodeDetailedDto> generateUUIDv4CodesBulk(final OffsetDateTime validFrom);
 
     /**
      * Method return List of OffsetDateTime increment by day and truncate to day
