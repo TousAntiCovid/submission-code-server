@@ -254,10 +254,10 @@ public class FileServiceImpl implements IFileService {
      * @throws DateTimeException when end date is less than start date. or if start date is inferior to current time.
      */
 
-    private Boolean isDateValid(OffsetDateTime from, OffsetDateTime to)
+    protected Boolean isDateValid(OffsetDateTime from, OffsetDateTime to)
             throws DateTimeException
     {
-        return !(OffsetDateTime.now().toLocalDate().compareTo(from.toLocalDate()) == 1 || from.isAfter(to));
+        return !(OffsetDateTime.now().toLocalDate().compareTo(from.toLocalDate()) < 0 || from.isAfter(to));
     }
 
 

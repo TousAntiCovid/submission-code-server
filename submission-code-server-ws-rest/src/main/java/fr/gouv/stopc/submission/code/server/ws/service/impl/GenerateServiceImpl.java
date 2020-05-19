@@ -29,6 +29,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -120,11 +121,11 @@ public class GenerateServiceImpl implements IGenerateService {
             throw new SubmissionCodeServerException(
                     SubmissionCodeServerException.ExceptionEnum.INVALID_CODE_TYPE_ERROR
             );
-        } else if (CodeTypeEnum.UUIDv4.equals(generateRequestVo.getType())) {
+        } else if (CodeTypeEnum.UUIDv4.isTypeOf(generateRequestVo.getType())) {
 
             return this.generateUUIDv4Codes(numberOfUuidv4PerCall);
 
-        } else if (CodeTypeEnum.ALPHANUM_6.equals(generateRequestVo.getType())) {
+        } else if (CodeTypeEnum.ALPHANUM_6.isTypeOf(generateRequestVo.getType())) {
 
             return Arrays.asList(this.generateAlphaNumericDetailedCode());
         } else {
@@ -205,8 +206,15 @@ public class GenerateServiceImpl implements IGenerateService {
 
             try {
                 log.info("The code index {} is about to be saved.", i);
+                final Optional<SubmissionCode> submissionCodeOptional = this.submissionCodeService.saveCode(submissionCodeDto, lotObject);
 
-                final SubmissionCode sc = this.submissionCodeService.saveCode(submissionCodeDto, lotObject).get();
+                if(!submissionCodeOptional.isPresent()) {
+                    throw new SubmissionCodeServerException(SubmissionCodeServerException
+                            .ExceptionEnum.DB_SAVE_OPTIONAL_EMPTY
+                    );
+                }
+
+                final SubmissionCode sc = submissionCodeOptional.get();
                 lotObject = sc.getLotkey();
                 generateResponseList.add(CodeDetailedDto.builder()
                         .code(sc.getCode())

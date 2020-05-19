@@ -3,8 +3,8 @@ package fr.gouv.stopc.submission.code.server.ws.dto;
 import com.jcraft.jsch.UserInfo;
 
 public class SftpUser implements UserInfo {
-    public String username;
-    public String password;
+    private final String username;
+    private final String password;
 
     public SftpUser(String username, String password){
         this.password = password;
@@ -41,4 +41,7 @@ public class SftpUser implements UserInfo {
 
     }
 
+    public String getUsername() {
+        return username;
+    }
 }

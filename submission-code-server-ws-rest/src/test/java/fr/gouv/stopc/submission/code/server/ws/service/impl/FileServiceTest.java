@@ -1,14 +1,10 @@
-package fr.gouv.stopc.submission.code.server.ws.service.fileservice;
+package fr.gouv.stopc.submission.code.server.ws.service.impl;
 
 import fr.gouv.stopc.submission.code.server.commun.enums.CodeTypeEnum;
 import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
 import fr.gouv.stopc.submission.code.server.database.entity.Lot;
 import fr.gouv.stopc.submission.code.server.database.service.impl.SubmissionCodeServiceImpl;
 import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeServerException;
-import fr.gouv.stopc.submission.code.server.ws.service.impl.FileServiceImpl;
-import fr.gouv.stopc.submission.code.server.ws.service.impl.GenerateServiceImpl;
-import fr.gouv.stopc.submission.code.server.ws.service.impl.SFTPServiceImpl;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
@@ -30,13 +26,6 @@ import java.util.zip.ZipInputStream;
 class FileServiceTest {
 
     private static final String TEST_FILE_ZIP = "testFile.zip";
-
-    @Mock
-    GenerateServiceImpl generateService;
-
-    @Mock
-    SFTPServiceImpl sftpService;
-
 
     @Mock
     private SubmissionCodeServiceImpl submissionCodeService;
@@ -144,11 +133,9 @@ class FileServiceTest {
     @Test
     public void testCheckDatesValidation(){
 
-        Assertions.assertThrows(Exception.class, () -> {
-            String startDay = OffsetDateTime.now().minusDays(1l).format(DateTimeFormatter.ISO_DATE_TIME);
-            String endDay = OffsetDateTime.now().plusDays(4L).format(DateTimeFormatter.ISO_DATE_TIME);
-            Optional<ByteArrayOutputStream> result = fileExportService.zipExport("10", new Lot(), startDay, endDay);
-        });
+        OffsetDateTime startDay = OffsetDateTime.now().minusDays(1l);
+        OffsetDateTime endDay = OffsetDateTime.now().plusDays(4L);
+        Assert.isTrue(fileExportService.isDateValid(startDay, endDay));
 
     }
 }
