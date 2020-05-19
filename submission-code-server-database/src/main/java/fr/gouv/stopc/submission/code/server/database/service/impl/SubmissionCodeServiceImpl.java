@@ -59,7 +59,7 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
     @Override
     public Iterable<SubmissionCode> saveAllCodes(List<SubmissionCodeDto> submissionCodeDtos, Lot lot) {
         if(submissionCodeDtos.isEmpty()) {
-            return Collections.EMPTY_LIST;
+            return Collections.emptyList();
         }
         ModelMapper modelMapper = new ModelMapper();
         List<SubmissionCode> submissionCodes = submissionCodeDtos.stream()
@@ -141,7 +141,7 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
 
     @Override
     public List<SubmissionCodeDto> getCodeUUIDv4CodesForCsv(String lot, String type) {
-        List<SubmissionCode> submissionCodes = submissionCodeRepository.findAllByLotkey_IdAndTypeEquals(Long.parseLong(lot), type);
+        List<SubmissionCode> submissionCodes = submissionCodeRepository.findAllByLotkeyIdAndTypeEquals(Long.parseLong(lot), type);
         if (CollectionUtils.isEmpty(submissionCodes)){
             return Collections.emptyList();
         }
@@ -151,13 +151,13 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
 
     @Override
     public long getNumberOfCodesForLotIdentifier(long lotIdentifier) {
-        return this.submissionCodeRepository.countSubmissionCodeByLotkey_Id(lotIdentifier);
+        return this.submissionCodeRepository.countSubmissionCodeByLotkeyId(lotIdentifier);
     }
 
     @Override
     public Page<SubmissionCode> getSubmissionCodesFor(long lotIdentifier, int page, int elementsByPage) {
         return this.submissionCodeRepository
-                .findAllByLotkey_Id(lotIdentifier, PageRequest.of(page, elementsByPage));
+                .findAllByLotkeyId(lotIdentifier, PageRequest.of(page, elementsByPage));
 
 
     }

@@ -5,14 +5,13 @@ import fr.gouv.stopc.submission.code.server.database.entity.SubmissionCode;
 import fr.gouv.stopc.submission.code.server.database.repository.SubmissionCodeRepository;
 import fr.gouv.stopc.submission.code.server.database.service.impl.SubmissionCodeServiceImpl;
 import org.apache.commons.collections4.IterableUtils;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.modelmapper.internal.util.Assert;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 @Transactional
@@ -23,24 +22,24 @@ public class SubmissionCodeServiceImplTest {
     public void testGetCodeValidity() {
         SubmissionCode submissionCode = new SubmissionCode();
         Mockito.when(submissionCodeRepositoryMock.findByCodeAndType(Mockito.anyString(),Mockito.anyString())).thenReturn(submissionCode);
-        SubmissionCodeServiceImpl submissionCodeServiceImplTestt = new SubmissionCodeServiceImpl(submissionCodeRepositoryMock);
+        SubmissionCodeServiceImpl submissionCodeServiceImplTest = new SubmissionCodeServiceImpl(submissionCodeRepositoryMock);
         String code = "test";
-        Optional<SubmissionCodeDto> result = submissionCodeServiceImplTestt.getCodeValidity(code,"test");
-        Assert.notNull(result.get());
+        Optional<SubmissionCodeDto> result = submissionCodeServiceImplTest.getCodeValidity(code,"test");
+        Assertions.assertTrue(result.isPresent());
     }
 
     @Test
     public void testSaveAllCodeGenerateByBatch() {
         List<SubmissionCode> submissionCodes = new ArrayList<>();
-        SubmissionCode codepositive = new SubmissionCode();
-        submissionCodes.add(codepositive);
+        SubmissionCode codePositive = new SubmissionCode();
+        submissionCodes.add(codePositive);
         Mockito.when(submissionCodeRepositoryMock.saveAll(Mockito.anyList())).thenReturn(submissionCodes);
         SubmissionCodeServiceImpl submissionCodeServiceTest = new SubmissionCodeServiceImpl(submissionCodeRepositoryMock);
         List<SubmissionCodeDto> submissionCodeDtos = new ArrayList<>();
         SubmissionCodeDto submissionCodeDto = new SubmissionCodeDto();
         submissionCodeDtos.add(submissionCodeDto);
         Iterable<SubmissionCode> result = submissionCodeServiceTest.saveAllCodes(submissionCodeDtos);
-        Assert.isTrue(IterableUtils.size(result) != 0);
+        Assertions.assertTrue(IterableUtils.size(result) != 0);
     }
 
     @Test
@@ -49,8 +48,9 @@ public class SubmissionCodeServiceImplTest {
         Mockito.when(submissionCodeRepositoryMock.save(submissionCode)).thenReturn(submissionCode);
         SubmissionCodeServiceImpl submissionCodeServiceTest = new SubmissionCodeServiceImpl(submissionCodeRepositoryMock);
         SubmissionCodeDto submissionCodeDto = new SubmissionCodeDto();
-        SubmissionCode result= submissionCodeServiceTest.saveCode(submissionCodeDto).get();
-        Assert.isTrue(result != null);
+        Optional<SubmissionCode> result= submissionCodeServiceTest.saveCode(submissionCodeDto);
+        Assertions.assertTrue(result.isPresent());
+
     }
 
     @Test
@@ -60,14 +60,14 @@ public class SubmissionCodeServiceImplTest {
         SubmissionCodeServiceImpl submissionCodeService = new SubmissionCodeServiceImpl(submissionCodeRepositoryMock);
         String code = "";
         Optional<SubmissionCodeDto> result = submissionCodeService.getCodeValidity(code, "test");
-        Assert.isTrue(!result.isPresent());
+        Assertions.assertTrue(!result.isPresent());
     }
 
     @Test
     public void testSaveAllCodeGenerateByBatchEmpty() {
         SubmissionCodeServiceImpl codePositiveServiceTest = new SubmissionCodeServiceImpl(submissionCodeRepositoryMock);
         Iterable<SubmissionCode> result = codePositiveServiceTest.saveAllCodes(new ArrayList<>());
-        Assert.isTrue(Objects.nonNull(result));
+        Assertions.assertNotNull(result);
     }
 
 
@@ -80,7 +80,7 @@ public class SubmissionCodeServiceImplTest {
         Mockito.when(submissionCodeRepositoryMock.findByCodeAndType(Mockito.anyString(),Mockito.anyString())).thenReturn(submissionCode);
         Mockito.when(submissionCodeRepositoryMock.save(submissionCode)).thenReturn(submissionCode);
         SubmissionCodeServiceImpl submissionCodeService = new SubmissionCodeServiceImpl(submissionCodeRepositoryMock);
-        Assert.isTrue(submissionCodeService.updateCodeUsed(submissionCodeDto));
+        Assertions.assertTrue(submissionCodeService.updateCodeUsed(submissionCodeDto));
     }
     @Test
     public void testUpdateCodeUsedNotFound(){
@@ -91,7 +91,7 @@ public class SubmissionCodeServiceImplTest {
         Mockito.when(submissionCodeRepositoryMock.findByCodeAndType(Mockito.anyString(),Mockito.anyString())).thenReturn(null);
         Mockito.when(submissionCodeRepositoryMock.save(submissionCode)).thenReturn(submissionCode);
         SubmissionCodeServiceImpl submissionCodeService = new SubmissionCodeServiceImpl(submissionCodeRepositoryMock);
-        Assert.isTrue(!submissionCodeService.updateCodeUsed(submissionCodeDto));
+        Assertions.assertTrue(!submissionCodeService.updateCodeUsed(submissionCodeDto));
     }
 
 }
