@@ -33,7 +33,8 @@ public class SubmissionCodeServerException extends Exception {
         SFTP_FILE_PUSHING_FAILED_ERROR("The attempt at writing file through SFTP connection has failed."),
         JSCH_SESSION_CREATION_FAILED_ERROR("The attempt at creating JSCH session has failed."),
         INVALID_DATE("The date validation has failed."),
-        DB_SAVE_OPTIONAL_EMPTY("The data save action has not raised error but returned a empty Optional.");
+        DB_SAVE_OPTIONAL_EMPTY("The data save action has not raised error but returned a empty Optional."),
+        SFTP_WORKING_DIRECTORY_ERROR("Change default working directory on chanelSFTP failed.");
 
         @Getter
         private final String message;
