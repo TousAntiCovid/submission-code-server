@@ -284,6 +284,7 @@ public class FileServiceImpl implements IFileService {
      */
 
     protected Boolean isDateValid(OffsetDateTime from, OffsetDateTime to)
+            throws DateTimeException
     {
         return !(OffsetDateTime.now().toLocalDate().compareTo(from.toLocalDate()) < 0 || from.isAfter(to));
     }

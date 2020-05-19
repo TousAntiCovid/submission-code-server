@@ -11,16 +11,16 @@ import java.util.List;
 public interface SubmissionCodeRepository extends PagingAndSortingRepository<SubmissionCode, Long> {
      SubmissionCode findByCodeAndType(String code, String type);
 
-     List<SubmissionCode> findAllByLotkey_IdAndTypeEquals(long lot, String type);
+     List<SubmissionCode> findAllByLotkeyIdAndTypeEquals(long lot, String type);
 
      /**
       * count number of codes in db for the given lot identifier.
       * @param lotIdentifier lot identifier in db
       * @return count number of codes in db for the given lot identifier.
       */
-     long countSubmissionCodeByLotkey_Id(long lotIdentifier);
+     long countSubmissionCodeByLotkeyId(long lotIdentifier);
 
-     Page<SubmissionCode> findAllByLotkey_Id(long lotIdentifier, Pageable pageable);
+     Page<SubmissionCode> findAllByLotkeyId(long lotIdentifier, Pageable pageable);
 
 
      SubmissionCode findByCodeAndTypeAndAndDateEndValidityLessThan(String code, String type, OffsetDateTime validityLessThanDate);
