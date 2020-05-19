@@ -134,10 +134,10 @@ public class FileServiceImpl implements IFileService {
             );
         }
         if(transferFile){
-            ByteArrayInputStream inputStream = new ByteArrayInputStream(zipOutputStream.toByteArray());
             // async method is called here.
             log.info("SFTP transfer is about to be submitted.");
-            sftpService.transferFileSFTP(inputStream);
+            sftpService.transferFileSFTP(zipOutputStream);
+
             log.info("SFTP transfer have been submitted.");
         } else {
             log.info("No SFTP transfer have been submitted.");
