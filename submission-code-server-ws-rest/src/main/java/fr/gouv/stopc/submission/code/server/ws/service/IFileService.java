@@ -14,6 +14,10 @@ import java.util.Optional;
 
 public interface IFileService {
 
+    @Async
+    Optional<ByteArrayOutputStream> zipExportAsync(String numberCodeDay, Lot lotObject, String dateFrom, String dateTo)
+            throws SubmissionCodeServerException;
+
     /**
      * Method:
      * 1)generate the codes type UUIDv4 between dateFrom to dateTo

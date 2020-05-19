@@ -14,9 +14,9 @@ public class SubmissionCodeServerException extends Exception {
 
     private ExceptionEnum serverExceptionEnum;
 
-    private LocalDateTime timestamp;
+    private final LocalDateTime timestamp;
 
-    private String debugMessage;
+    private final String debugMessage;
 
     public enum ExceptionEnum {
         NUMBER_OF_TRIES_REACHED_ERROR("Number of try generating code has been reached."),
@@ -45,7 +45,9 @@ public class SubmissionCodeServerException extends Exception {
     }
 
     public SubmissionCodeServerException() {
-        timestamp = LocalDateTime.now();
+        this.timestamp = LocalDateTime.now();
+        this.debugMessage = null;
+        this.serverExceptionEnum=null;
     }
 
     @Override
@@ -61,7 +63,9 @@ public class SubmissionCodeServerException extends Exception {
     public SubmissionCodeServerException(ExceptionEnum serverExceptionEnum, Throwable ex) {
         super(serverExceptionEnum.message, ex);
         this.serverExceptionEnum = serverExceptionEnum;
-        if(ex!=null)this.debugMessage = ex.getLocalizedMessage();
+
+        this.debugMessage = ex!=null ? ex.getLocalizedMessage() : null;
+       
         this.timestamp= LocalDateTime.now();
     }
 

@@ -100,7 +100,7 @@ public class ViewsServiceImpl implements IViewService {
         @NotNull final OffsetDateTime from = codeGenerationRequestBody.getFrom();
         @NotNull OffsetDateTime to = codeGenerationRequestBody.getTo();
 
-        this.fileExportService.zipExport(
+        this.fileExportService.zipExportAsync(
                 Long.toString(codePerDay),
                 new Lot(),
                 from.toString(),
