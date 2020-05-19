@@ -5,6 +5,7 @@ import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeSe
 import fr.gouv.stopc.submission.code.server.ws.dto.SftpUser;
 import fr.gouv.stopc.submission.code.server.ws.service.ISFTPService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -63,16 +64,6 @@ public class SFTPServiceImpl implements ISFTPService {
 
         log.info("SFTP: connection is about to be connected");
 
-        try {
-            channelSftp.connect();
-        } catch (JSchException jshe) {
-            channelSftp.exit();
-            log.error(SubmissionCodeServerException.ExceptionEnum.SFTP_CONNECTION_FAILED_ERROR.getMessage(), jshe);
-            throw new SubmissionCodeServerException(
-                    SubmissionCodeServerException.ExceptionEnum.SFTP_CONNECTION_FAILED_ERROR,
-                    jshe
-            );
-        }
 
         log.info("SFTP: connected");
 
@@ -81,7 +72,7 @@ public class SFTPServiceImpl implements ISFTPService {
 
         log.info("SFTP: is about to pushed the zip file.");
         try {
-            channelSftp.put(inputStream, pathFile + fileNameZip);
+            channelSftp.put(inputStream, fileNameZip);
         } catch (SftpException e) {
             channelSftp.exit();
             log.error(SubmissionCodeServerException.ExceptionEnum.SFTP_FILE_PUSHING_FAILED_ERROR.getMessage(), e);
@@ -123,12 +114,24 @@ public class SFTPServiceImpl implements ISFTPService {
             // attempting to open a jsSession.
             jsSession.connect();
 
-            return (ChannelSftp) jsSession.openChannel("sftp");
+            final ChannelSftp sftp = (ChannelSftp) jsSession.openChannel("sftp");
+
+            if(StringUtils.isNotBlank(this.pathFile)) {
+                sftp.cd(this.pathFile);
+            }
+
+            return sftp;
         } catch (JSchException jshe){
             log.error(SubmissionCodeServerException.ExceptionEnum.JSCH_SESSION_CREATION_FAILED_ERROR.getMessage(), jshe);
             throw new SubmissionCodeServerException(
                     SubmissionCodeServerException.ExceptionEnum.JSCH_SESSION_CREATION_FAILED_ERROR,
                     jshe
+            );
+        } catch (SftpException e) {
+            log.error(SubmissionCodeServerException.ExceptionEnum.SFTP_WORKING_DIRECTORY_ERROR.getMessage(), e);
+            throw new SubmissionCodeServerException(
+                    SubmissionCodeServerException.ExceptionEnum.SFTP_WORKING_DIRECTORY_ERROR,
+                    e
             );
         }
 
@@ -155,7 +158,7 @@ public class SFTPServiceImpl implements ISFTPService {
             String data = new String(hash);
 
             log.info("SFTP: is about to pushed the md5 file.");
-            channelSftp.put(data, pathFile.concat(fileNameMD5));
+            channelSftp.put(data, fileNameMD5);
             log.info("SFTP: files have been pushed");
 
         }  catch (SftpException | NoSuchAlgorithmException e) {
