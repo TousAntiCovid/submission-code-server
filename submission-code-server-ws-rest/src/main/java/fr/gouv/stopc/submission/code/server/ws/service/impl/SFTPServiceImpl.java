@@ -109,7 +109,7 @@ public class SFTPServiceImpl implements ISFTPService {
             Session jsSession= jSch.getSession(userInfo.getUsername(), remoteDir, port);
 
             Properties config = new Properties();
-            config.put("StrictHostKeyChecking", "false");
+            config.put("StrictHostKeyChecking", "yes");
             jsSession.setUserInfo(userInfo);
             jsSession.setConfig(config);
 
