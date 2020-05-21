@@ -2,7 +2,6 @@ package fr.gouv.stopc.submission.code.server.ws.service.impl;
 
 import com.jcraft.jsch.*;
 import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeServerException;
-import fr.gouv.stopc.submission.code.server.ws.dto.SftpUser;
 import fr.gouv.stopc.submission.code.server.ws.service.ISFTPService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -102,15 +101,11 @@ public class SFTPServiceImpl implements ISFTPService {
     private ChannelSftp createConnection() throws SubmissionCodeServerException{
         try{
             JSch jSch = new JSch();
-            SftpUser userInfo = new SftpUser(username, passphrase);
-
-            jSch.addIdentity(keyPrivate, userInfo.getPassphrase());
-
-            Session jsSession= jSch.getSession(userInfo.getUsername(), remoteDir, port);
+            jSch.addIdentity(keyPrivate,passphrase);
+            Session jsSession= jSch.getSession(username, remoteDir, port);
 
             Properties config = new Properties();
             config.put("StrictHostKeyChecking", "yes");
-            jsSession.setUserInfo(userInfo);
             jsSession.setConfig(config);
 
             jsSession.connect();
