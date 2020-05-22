@@ -77,10 +77,7 @@ public class VerifyServiceImpl implements IVerifyService {
             return isUpdated;
     }
 
-    /**
-     * We don't use the code before being available.
-     * We don't use the code expired.
-     */
+    /**A code cannot be used before he is valid or after it has expired.*/
     private boolean validateDate(OffsetDateTime dateNow, OffsetDateTime dateAvailable, OffsetDateTime dateEndValidity) {
         log.info("Check the validity of 'from' and 'to' dates.");
         if(Objects.isNull(dateAvailable) || Objects.isNull(dateEndValidity)){

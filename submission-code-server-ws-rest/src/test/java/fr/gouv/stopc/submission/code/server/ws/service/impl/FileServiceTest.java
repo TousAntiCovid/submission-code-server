@@ -3,7 +3,6 @@ package fr.gouv.stopc.submission.code.server.ws.service.impl;
 import fr.gouv.stopc.submission.code.server.commun.enums.CodeTypeEnum;
 import fr.gouv.stopc.submission.code.server.commun.service.impl.AlphaNumericCodeServiceImpl;
 import fr.gouv.stopc.submission.code.server.commun.service.impl.UUIDv4CodeServiceImpl;
-import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
 import fr.gouv.stopc.submission.code.server.database.entity.Lot;
 import fr.gouv.stopc.submission.code.server.database.service.impl.SubmissionCodeServiceImpl;
 import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeServerException;
@@ -93,8 +92,7 @@ class FileServiceTest {
         Optional<ByteArrayOutputStream> result = Optional.empty();
 
 
-
-        result = fileExportService.zipExport("10", lot, nowDay, endDay);
+        result = fileExportService.zipExport(10L, new Lot(), nowDay, endDay);
 
         ByteArrayOutputStream byteArray;
         if(result.isPresent()) {
@@ -151,7 +149,7 @@ class FileServiceTest {
         dates.add(nowDay);
         Mockito.when(generateService.getValidFromList(1,nowDay)).thenReturn(dates);
 
-        result = fileExportService.zipExport("10", lot, nowDayString, endDay);
+        result = fileExportService.zipExport(10L, new Lot(), nowDayString, endDay);
 
         Assert.notNull(result.get());
 

@@ -27,10 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.StringWriter;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.time.DateTimeException;
 import java.time.OffsetDateTime;
@@ -48,7 +45,7 @@ import java.net.URLEncoder;
 @Service
 @Transactional
 public class FileServiceImpl implements IFileService {
-    private static final String HEADER_CSV = "code_pour_qr, code_brut, validite_debut, validite_fin \n";
+    private String HEADER_CSV = "code_pour_qr%s code_brut%s validite_debut%s validite_fin\n";
     private ISubmissionCodeService submissionCodeService;
     private IGenerateService generateService;
     private ISFTPService sftpService;
@@ -56,19 +53,23 @@ public class FileServiceImpl implements IFileService {
     @Value("${stop.covid.qr.code.url}")
     private String qrCodeBaseUrlToBeFormatted;
 
-    @Value("${stop.covid.qr.code.target.zone}")
+    /**TargetZoneId is the time zone id (in the java.time.ZoneId way) on which the submission code server should deliver the codes.
+     * eg.: for France is "Europe/Paris"*/
+    @Value("${stop.covid.qr.code.targetzone}")
     private String targetZoneId;
 
+    /**The separator is the character uses to separate the columns.*/
     @Value("${csv.separator}")
     private Character csvSeparator;
 
+    /**The delimiter is the character uses to enclose the strings.*/
     @Value("${csv.delimiter}")
     private Character csvDelimiter;
 
     @Value("${csv.filename.formatter}")
     private String csvFilenameFormat;
 
-    @Value("${submission.code.server.sftp.transfer}")
+    @Value("${submission.code.server.sftp.enableautotransfer}")
     private boolean transferFile;
 
 
@@ -82,14 +83,14 @@ public class FileServiceImpl implements IFileService {
 
     @Async
     @Override
-    public Optional<ByteArrayOutputStream> zipExportAsync(String numberCodeDay, Lot lotObject, String dateFrom, String dateTo)
+    public Optional<ByteArrayOutputStream> zipExportAsync(Long numberCodeDay, Lot lotObject, String dateFrom, String dateTo)
             throws SubmissionCodeServerException
     {
         return this.zipExport(numberCodeDay, lotObject, dateFrom, dateTo);
     }
 
     @Override
-    public Optional<ByteArrayOutputStream> zipExport(String numberCodeDay, Lot lotObject, String dateFrom, String dateTo)
+    public Optional<ByteArrayOutputStream> zipExport(Long numberCodeDay, Lot lotObject, String dateFrom, String dateTo)
             throws SubmissionCodeServerException
     {
 
@@ -127,13 +128,13 @@ public class FileServiceImpl implements IFileService {
                 .stream().map(SubmissionCodeDto::getDateAvailable).distinct().collect(Collectors.toList());
 
         // STEP 2 parsing codes to csv dataByFilename
-        Map<String, byte[]> dataByFilename = codeAsCsvData(submissionCodeDtos, availableDates);
+        Map<String, byte[]> dataByFilename = serializeCodesToCsv(submissionCodeDtos, availableDates);
 
 
         // STEP 3 packaging csv data
         ByteArrayOutputStream zipOutputStream = null;
         try {
-            zipOutputStream = packagingCsvDataToZipFile(dataByFilename);
+            zipOutputStream = packageCsvDataToZipFile(dataByFilename);
         } catch (IOException e) {
             log.error(SubmissionCodeServerException.ExceptionEnum.PACKAGING_CSV_FILE_ERROR.getMessage(), e);
             throw new SubmissionCodeServerException(
@@ -156,7 +157,7 @@ public class FileServiceImpl implements IFileService {
 
 
     @Override
-    public List<CodeDetailedDto> persistUUIDv4CodesFor(String codePerDays, Lot lotObject, OffsetDateTime from, OffsetDateTime to)
+    public List<CodeDetailedDto> persistUUIDv4CodesFor(Long codePerDays, Lot lotObject, OffsetDateTime from, OffsetDateTime to)
             throws SubmissionCodeServerException
     {
         List<CodeDetailedDto> listCodeDetailedDto = new ArrayList<>();
@@ -168,7 +169,7 @@ public class FileServiceImpl implements IFileService {
         List<OffsetDateTime> datesFromList = generateService.getValidFromList(diff, from);
         for(OffsetDateTime dateFromDay: datesFromList) {
             List<CodeDetailedDto> codeSaves = generateService.generateCodeGeneric(
-                    Long.parseLong(codePerDays),
+                    codePerDays,
                     CodeTypeEnum.UUIDv4,
                     dateFromDay,
                     lotObject
@@ -181,7 +182,7 @@ public class FileServiceImpl implements IFileService {
     }
 
     @Override
-    public Map<String, byte[]> codeAsCsvData (
+    public Map<String, byte[]> serializeCodesToCsv  (
             List<SubmissionCodeDto> submissionCodeDtos,
             List<OffsetDateTime> dates
     )
@@ -195,7 +196,7 @@ public class FileServiceImpl implements IFileService {
                     .collect(Collectors.toList());
 
             if(CollectionUtils.isNotEmpty(listForDay)){
-                byte[] file = transformInFile(listForDay, dateTime);
+                byte[] file = createCSV(listForDay, dateTime);
                 dataByFilename.put(this.getCsvFilename(dateTime), file );
             }
         }
@@ -203,7 +204,7 @@ public class FileServiceImpl implements IFileService {
     }
 
     @Override
-    public ByteArrayOutputStream packagingCsvDataToZipFile(Map<String, byte[]> dataByFilename)
+    public ByteArrayOutputStream packageCsvDataToZipFile(Map<String, byte[]> dataByFilename)
             throws SubmissionCodeServerException, IOException {
         ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
         GZIPOutputStream gzipOutputStream = null;
@@ -252,15 +253,15 @@ public class FileServiceImpl implements IFileService {
      * @param date the date of available of submissionCode
      * @return submissionCodeDtoList parsed into a csv file
      */
-    private byte[] transformInFile(List<SubmissionCodeDto> submissionCodeDtoList, OffsetDateTime date)
+    private byte[] createCSV(List<SubmissionCodeDto> submissionCodeDtoList, OffsetDateTime date)
             throws SubmissionCodeServerException
     {
-        
+        String header= HEADER_CSV.replaceAll("%s",Character.toString(csvSeparator));
         // converting list SubmissionCodeDto to SubmissionCodeCsvDto to be proceeded in csv generator
         final List<SubmissionCodeCsvDto> submissionCodeCsvDtos = convert(submissionCodeDtoList);
 
         StringWriter fileWriter = new StringWriter();
-        fileWriter.append(HEADER_CSV);
+        fileWriter.append(header);
 
         ColumnPositionMappingStrategy mappingStrategy = new ColumnPositionMappingStrategy();
         mappingStrategy.setType(SubmissionCodeCsvDto.class);
@@ -296,7 +297,7 @@ public class FileServiceImpl implements IFileService {
     protected Boolean isDateValid(OffsetDateTime from, OffsetDateTime to)
             throws DateTimeException
     {
-        return !(OffsetDateTime.now().toLocalDate().compareTo(from.toLocalDate()) < 0 || from.isAfter(to));
+        return !(OffsetDateTime.now().toLocalDate().compareTo(from.toLocalDate()) > 0 || from.isAfter(to));
     }
 
 

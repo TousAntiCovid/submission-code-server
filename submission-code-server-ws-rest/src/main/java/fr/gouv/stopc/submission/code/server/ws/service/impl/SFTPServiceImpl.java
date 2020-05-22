@@ -39,7 +39,8 @@ public class SFTPServiceImpl implements ISFTPService {
     @Value("${submission.code.server.sftp.port}")
     private int port;
 
-    @Value("${stop.covid.qr.code.target.zone}")
+    /**TargetZoneId is the time zone id (in the java.time.ZoneId way) on which the submission code server should deliver the codes. eg.: for France is "Europe/Paris"*/
+    @Value("${stop.covid.qr.code.targetzone}")
     private String targetZoneId;
 
     @Value("${zip.filename.formatter}")
@@ -95,8 +96,8 @@ public class SFTPServiceImpl implements ISFTPService {
 
     /**
      * Create connection SFTP to transfer file in server.
-     * The connexion is create with user and key private of user.
-     * @return
+     * The connection is created with user and private key of user.
+     * @return An object channelSftp.
      */
     private ChannelSftp createConnection() throws SubmissionCodeServerException{
         try{
