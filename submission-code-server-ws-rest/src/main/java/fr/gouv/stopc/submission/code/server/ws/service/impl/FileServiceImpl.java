@@ -26,12 +26,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.time.DateTimeException;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
@@ -93,8 +97,16 @@ public class FileServiceImpl implements IFileService {
 
         OffsetDateTime dateTimeFrom;
         OffsetDateTime dateTimeTo;
-        dateTimeFrom= OffsetDateTime.parse(dateFrom, DateTimeFormatter.ISO_DATE_TIME);
-        dateTimeTo= OffsetDateTime.parse(dateTo, DateTimeFormatter.ISO_DATE_TIME);
+
+        try {
+            dateTimeFrom = OffsetDateTime.parse(dateFrom, DateTimeFormatter.ISO_DATE_TIME);
+            dateTimeTo = OffsetDateTime.parse(dateTo, DateTimeFormatter.ISO_DATE_TIME);
+        } catch (DateTimeParseException e) {
+            log.error(SubmissionCodeServerException.ExceptionEnum.PARSE_STR_DATE_ERROR.getMessage());
+            throw new SubmissionCodeServerException(
+                    SubmissionCodeServerException.ExceptionEnum.PARSE_STR_DATE_ERROR
+            );
+        }
 
         if(!isDateValid(dateTimeFrom,dateTimeTo)) {
             log.error(SubmissionCodeServerException.ExceptionEnum.INVALID_DATE.getMessage());
