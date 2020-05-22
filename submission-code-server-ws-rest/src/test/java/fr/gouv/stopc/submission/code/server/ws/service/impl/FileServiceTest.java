@@ -92,7 +92,7 @@ class FileServiceTest {
         Optional<ByteArrayOutputStream> result = Optional.empty();
 
 
-        result = fileExportService.zipExport(10L, new Lot(), nowDay, endDay);
+        result = fileExportService.zipExport(10L, lot, nowDay, endDay);
 
         ByteArrayOutputStream byteArray;
         if(result.isPresent()) {
@@ -149,7 +149,7 @@ class FileServiceTest {
         dates.add(nowDay);
         Mockito.when(generateService.getValidFromList(1,nowDay)).thenReturn(dates);
 
-        result = fileExportService.zipExport(10L, new Lot(), nowDayString, endDay);
+        result = fileExportService.zipExport(10L, lot, nowDayString, endDay);
 
         Assert.notNull(result.get());
 
@@ -160,7 +160,7 @@ class FileServiceTest {
 
         OffsetDateTime startDay = OffsetDateTime.now().minusDays(1l);
         OffsetDateTime endDay = OffsetDateTime.now().plusDays(4L);
-        Assert.isTrue(fileExportService.isDateValid(startDay, endDay));
+        Assert.isTrue(!fileExportService.isDateValid(startDay, endDay));
 
     }
 }
