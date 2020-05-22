@@ -1,6 +1,7 @@
 package fr.gouv.stopc.submission.code.server.ws.service.impl;
 
 import com.jcraft.jsch.*;
+import fr.gouv.stopc.submission.code.server.database.entity.SubmissionCode;
 import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeServerException;
 import fr.gouv.stopc.submission.code.server.ws.service.ISFTPService;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +18,7 @@ import java.security.NoSuchAlgorithmException;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Base64;
 import java.util.Properties;
 
 @Slf4j
@@ -33,8 +35,10 @@ public class SFTPServiceImpl implements ISFTPService {
     @Value("${submission.code.server.sftp.key}")
     private String keyPrivate;
 
-    @Value("${submission.code.server.sftp.passphrase}")
-    private String passphrase;
+    /**
+     * sftp passphrase stored in a byte array.
+     */
+    private byte[] passphrase;
 
     @Value("${submission.code.server.sftp.port}")
     private int port;
@@ -52,6 +56,16 @@ public class SFTPServiceImpl implements ISFTPService {
     @Value("${md5.filename.formatter}")
     private String md5FileNameFormat;
 
+    public SFTPServiceImpl(@Value("${submission.code.server.sftp.passphrase}") final String passphrase) {
+        if(passphrase != null) {
+            try {
+                this.passphrase = Base64.getDecoder().decode(passphrase);
+            } catch(Exception e ) {
+                log.error("Error trying to parse Base64 passphrase to byte[] ", e);
+                this.passphrase = null;
+            }
+        }
+    }
 
     @Override
     public void transferFileSFTP(ByteArrayOutputStream file) throws SubmissionCodeServerException {
