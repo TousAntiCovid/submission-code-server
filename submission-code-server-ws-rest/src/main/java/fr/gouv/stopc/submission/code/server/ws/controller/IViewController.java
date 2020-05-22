@@ -11,7 +11,7 @@ import javax.validation.Valid;
 import javax.ws.rs.Produces;
 
 @RestController
-@RequestMapping(value = "${controller.path.prefix}/views")
+@RequestMapping(value = "${controller.path.prefix}/back-office")
 @Produces(MediaType.APPLICATION_JSON_VALUE)
 public interface IViewController {
 
@@ -26,7 +26,7 @@ public interface IViewController {
             @PathVariable int elementByPage
     ) throws SubmissionCodeServerException;
 
-    @PostMapping(path="/codes/generation/request")
+    @PostMapping(path="/codes/generate/request")
     ResponseEntity<ViewDto.CodeGenerationRequest> postCodeGenerationRequest(
             @Valid @RequestBody ViewVo.CodeGenerationRequestBody cgrpr
     ) throws SubmissionCodeServerException;
