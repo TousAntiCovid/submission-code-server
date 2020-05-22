@@ -1,6 +1,8 @@
 package fr.gouv.stopc.submission.code.server.ws.service.generateservice;
 
+import fr.gouv.stopc.submission.code.server.commun.enums.CodeTypeEnum;
 import fr.gouv.stopc.submission.code.server.commun.service.impl.UUIDv4CodeServiceImpl;
+import fr.gouv.stopc.submission.code.server.database.entity.Lot;
 import fr.gouv.stopc.submission.code.server.database.entity.SubmissionCode;
 import fr.gouv.stopc.submission.code.server.database.service.impl.SubmissionCodeServiceImpl;
 import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeServerException;
@@ -10,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.OffsetDateTime;
 import java.util.Optional;
 
 import static org.mockito.Mockito.times;
@@ -47,7 +50,7 @@ class GenerateServiceGenerateUUIDv4CodesMethodTest {
         Mockito.when(this.submissionCodeService.saveCode(Mockito.any(), Mockito.any()))
                 .thenReturn(Optional.of(new SubmissionCode()));
 
-        this.generateService.generateUUIDv4Codes(size);
+        this.generateService.generateCodeGeneric(size, CodeTypeEnum.UUIDv4, OffsetDateTime.now(), new Lot());
 
         verify(uuiDv4CodeService, times(12)).generateCode();
 

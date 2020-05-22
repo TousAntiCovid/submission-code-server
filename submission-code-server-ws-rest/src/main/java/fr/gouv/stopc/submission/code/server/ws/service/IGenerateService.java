@@ -11,11 +11,6 @@ import java.time.OffsetDateTime;
 import java.util.List;
 
 public interface IGenerateService {
-    /**
-     * @return UUIDv4 code certified unique in DB
-     */
-    List<CodeDetailedDto> generateUUIDv4Codes(final long size) throws SubmissionCodeServerException;
-
 
     CodeSimpleDto generateAlphaNumericShortCode()
             throws SubmissionCodeServerException;
