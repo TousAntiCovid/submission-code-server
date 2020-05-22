@@ -6,7 +6,6 @@ import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeSe
 import fr.gouv.stopc.submission.code.server.ws.dto.CodeDetailedDto;
 import org.springframework.scheduling.annotation.Async;
 
-import javax.validation.constraints.NotNull;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.OffsetDateTime;

@@ -1,7 +1,6 @@
 package fr.gouv.stopc.submission.code.server.ws.service.impl;
 
 import com.jcraft.jsch.*;
-import fr.gouv.stopc.submission.code.server.database.entity.SubmissionCode;
 import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeServerException;
 import fr.gouv.stopc.submission.code.server.ws.dto.SftpUser;
 import fr.gouv.stopc.submission.code.server.ws.service.ISFTPService;

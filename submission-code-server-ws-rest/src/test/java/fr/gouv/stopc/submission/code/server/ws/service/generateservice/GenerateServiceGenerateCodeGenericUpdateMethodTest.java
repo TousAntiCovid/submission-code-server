@@ -77,7 +77,6 @@ class GenerateServiceGenerateCodeGenericUpdateMethodTest {
                 "5d98e3", cte.getTypeCode(), validFrom.minusHours(24)
         )).thenReturn(null);
 
-
         assertThrows(
                 SubmissionCodeServerException.class,
                 () -> this.generateService.generateCodeGeneric(

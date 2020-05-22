@@ -144,6 +144,8 @@ public class GenerateServiceImpl implements IGenerateService {
                         "The code index %s has failed to be generated reaching %s counts of fails",
                         i, failCount
                 );
+                //delete Lot not completed
+                submissionCodeService.removeByLot(lotObject);
                 log.error(message);
                 throw new SubmissionCodeServerException(
                         SubmissionCodeServerException.ExceptionEnum.CODE_GENERATION_FAILED_ERROR
