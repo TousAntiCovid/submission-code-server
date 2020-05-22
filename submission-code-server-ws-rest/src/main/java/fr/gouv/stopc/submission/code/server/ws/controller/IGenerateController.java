@@ -10,7 +10,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.ws.rs.Produces;
 
-
+/**
+ * VPN Control is made to access to this end-point.
+ * JWT or ApiKey is checked in API Gateway.
+ */
 @RestController
 @RequestMapping(value = "${controller.path.prefix}")
 @Produces(MediaType.APPLICATION_JSON_VALUE)
