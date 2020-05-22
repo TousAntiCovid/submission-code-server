@@ -10,8 +10,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import javax.ws.rs.Produces;
 
-//TODO: only required in development mode
-@CrossOrigin
 @RestController
 @RequestMapping(value = "${controller.path.prefix}/views")
 @Produces(MediaType.APPLICATION_JSON_VALUE)
