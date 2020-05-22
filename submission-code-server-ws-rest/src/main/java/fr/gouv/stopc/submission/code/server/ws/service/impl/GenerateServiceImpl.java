@@ -34,28 +34,31 @@ public class GenerateServiceImpl implements IGenerateService {
     private final ISubmissionCodeService submissionCodeService;
     private final IAlphaNumericCodeService alphaNumericCodeService;
 
-    @Value("${stop.covid.qr.code.target.zone}")
+    /**TargetZoneId is the time zone id (in the java.time.ZoneId way) on which the submission code server should deliver the codes.
+     * eg.: for France is "Europe/Paris"
+     */
+    @Value("${stop.covid.qr.code.targetzone}")
     private String targetZoneId;
 
     /**
      * Number of try to generate a new code in case of the code is already in db
      * it is set in application.properties file
      */
-    @Value("${generation.code.num.of.tries}")
+    @Value("${generation.code.maxattempts}")
     private long numberOfTryInCaseOfError;
 
     /**
      * Interval in days of the validity of an UUIDv4 code
      * it is set in application.properties file
      */
-    @Value("${generation.code.uuid.validity.days}")
+    @Value("${generation.code.uuid.validity}")
     private long timeValidityUuid;
 
     /**
      * Interval in minutes of the validity of a 6-alphanum code
      * it is set in application.properties file
      */
-    @Value("${generation.code.alpha.num.6.validity.minutes}")
+    @Value("${generation.code.shortcode.validity}")
     private long timeValidityAlphanum;
 
 
@@ -112,16 +115,11 @@ public class GenerateServiceImpl implements IGenerateService {
         log.info("Generating an amount of {} {} codes", size, cte);
 
         for (int i = 0; generateResponseList.size() < size && failCount <= numberOfTryInCaseOfError; i++) {
-
-            log.info("generating code index : {}", i);
-
             SubmissionCodeDto submissionCodeDto = this.preGenerateSubmissionCodeDtoForCodeTypeAndDateValidity(cte, validFrom)
                     .dateGeneration(validGenDate)
                     .used(false)
                     .build();
-
             try {
-                log.info("The code index {} is about to be saved.", i);
                 final Optional<SubmissionCode> submissionCodeOptional = this.submissionCodeService.saveCode(submissionCodeDto, lotObject);
 
                 if(!submissionCodeOptional.isPresent()) {

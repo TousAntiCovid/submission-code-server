@@ -17,7 +17,7 @@ import java.util.Optional;
 public interface IFileService {
 
     @Async
-    Optional<ByteArrayOutputStream> zipExportAsync(String numberCodeDay, Lot lotObject, String dateFrom, String dateTo)
+    Optional<ByteArrayOutputStream> zipExportAsync(Long numberCodeDay, Lot lotObject, String dateFrom, String dateTo)
             throws SubmissionCodeServerException;
 
     /**
@@ -33,7 +33,7 @@ public interface IFileService {
      * @return
      */
     @Async
-     Optional<ByteArrayOutputStream> zipExport(String numberCodeDay, Lot lotObject, String dateFrom, String dateTo)
+     Optional<ByteArrayOutputStream> zipExport(Long numberCodeDay, Lot lotObject, String dateFrom, String dateTo)
              throws SubmissionCodeServerException;
 
     /**
@@ -45,7 +45,8 @@ public interface IFileService {
      * @throws SubmissionCodeServerException
      * @return
      */
-     List<CodeDetailedDto> persistUUIDv4CodesFor(String codePerDays, Lot lotObject, OffsetDateTime from, OffsetDateTime to)
+
+     List<CodeDetailedDto> persistUUIDv4CodesFor(Long codePerDays, Lot lotObject, OffsetDateTime from, OffsetDateTime to)
              throws SubmissionCodeServerException;
 
     /**
@@ -54,7 +55,7 @@ public interface IFileService {
      * @param dates
      * @return List of csv dataByFilename
      */
-    Map<String, byte[]> codeAsCsvData(List<SubmissionCodeDto> submissionCodeDtos, List<@NotNull OffsetDateTime> dates)
+    Map<String, byte[]> serializeCodesToCsv (List<SubmissionCodeDto> submissionCodeDtos, List<OffsetDateTime> dates)
             throws SubmissionCodeServerException;
 
 
@@ -63,7 +64,7 @@ public interface IFileService {
      * @param dataByFilename csv data to be zipped.
      * @return ZipOutputStream instance containing csv data.
      */
-    ByteArrayOutputStream packagingCsvDataToZipFile(Map<String, byte[]> dataByFilename)
+    ByteArrayOutputStream packageCsvDataToZipFile(Map<String, byte[]> dataByFilename)
             throws SubmissionCodeServerException, IOException;
 
     }
