@@ -78,12 +78,6 @@ public class GenerateServiceImpl implements IGenerateService {
         this.submissionCodeService = submissionCodeService;
     }
 
-    @Override
-    public List<CodeDetailedDto> generateUUIDv4Codes(long size)
-            throws SubmissionCodeServerException
-    {
-        return this.generateCodeGeneric(size, CodeTypeEnum.UUIDv4, OffsetDateTime.now(), new Lot());
-    }
 
     @Override
     public CodeSimpleDto generateAlphaNumericShortCode()
