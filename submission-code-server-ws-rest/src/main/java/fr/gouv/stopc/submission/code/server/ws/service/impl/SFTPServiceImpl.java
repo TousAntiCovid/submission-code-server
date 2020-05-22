@@ -3,6 +3,7 @@ package fr.gouv.stopc.submission.code.server.ws.service.impl;
 import com.jcraft.jsch.*;
 import fr.gouv.stopc.submission.code.server.database.entity.SubmissionCode;
 import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeServerException;
+import fr.gouv.stopc.submission.code.server.ws.dto.SftpUser;
 import fr.gouv.stopc.submission.code.server.ws.service.ISFTPService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -25,6 +26,9 @@ import java.util.Properties;
 @Service
 public class SFTPServiceImpl implements ISFTPService {
 
+
+    private static final String ALGORITHM_SHA256 = "SHA-256";
+    private static final String ALGORITHM_MD5 = "MD5";
 
     @Value("${submission.code.server.sftp.remote.host}")
     private String remoteDir;
@@ -53,8 +57,11 @@ public class SFTPServiceImpl implements ISFTPService {
     @Value("${submission.code.server.sftp.path}")
     private String pathFile;
 
-    @Value("${md5.filename.formatter}")
-    private String md5FileNameFormat;
+    @Value("${digest.filename.formatter.sha256}")
+    private String digestFileNameFormatSHA256;
+
+    @Value("${digest.filename.formatter.md5}")
+    private String digestFileNameFormatMD5;
 
     public SFTPServiceImpl(@Value("${submission.code.server.sftp.passphrase}") final String passphrase) {
         if(passphrase != null) {
@@ -99,8 +106,8 @@ public class SFTPServiceImpl implements ISFTPService {
         }
         log.info("SFTP: files have been pushed");
 
-
-        this.createMD5ThenTransferToSFTP(file, channelSftp);
+        this.createDigestThenTransferToSFTP(file, channelSftp,ALGORITHM_SHA256,digestFileNameFormatSHA256);
+        this.createDigestThenTransferToSFTP(file,channelSftp,ALGORITHM_MD5,digestFileNameFormatMD5);
 
         log.info("SFTP: connection is about to be closed");
         channelSftp.exit();
@@ -116,12 +123,18 @@ public class SFTPServiceImpl implements ISFTPService {
     private ChannelSftp createConnection() throws SubmissionCodeServerException{
         try{
             JSch jSch = new JSch();
+
+            SftpUser userInfo = new SftpUser(this.username, this.passphrase);
+
             jSch.addIdentity(keyPrivate,passphrase);
+
             Session jsSession= jSch.getSession(username, remoteDir, port);
 
             Properties config = new Properties();
             config.put("StrictHostKeyChecking", "yes");
+
             jsSession.setConfig(config);
+            jsSession.setUserInfo(userInfo);
 
             jsSession.connect();
 
@@ -157,15 +170,15 @@ public class SFTPServiceImpl implements ISFTPService {
      * @param channelSftp already opened channel. Should be an open connection.
      * @throws SubmissionCodeServerException if an error occurs at MD5 instantiation or if the MD5 file cannot be pushed to SFTP server
      */
-    private void createMD5ThenTransferToSFTP(final ByteArrayOutputStream file, final ChannelSftp channelSftp) throws SubmissionCodeServerException {
-        log.info("Transferring md5 file to SFTP");
+    private void createDigestThenTransferToSFTP(final ByteArrayOutputStream file, final ChannelSftp channelSftp, String algorithm, String digestFileNameFormat ) throws SubmissionCodeServerException {
+        log.info("Transferring digest file to SFTP");
 
         try{
-            // Formatting the name of the md5 file
+            // Formatting the name of the digest file
             OffsetDateTime date = OffsetDateTime.now(ZoneId.of(targetZoneId));
-            String fileNameMD5 = String.format(md5FileNameFormat, date.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+            String fileNameDigest = String.format(digestFileNameFormat, date.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
 
-            MessageDigest messageDigest = MessageDigest.getInstance("MD5");
+            MessageDigest messageDigest = MessageDigest.getInstance(algorithm);
             byte[] hash = messageDigest.digest(file.toByteArray());
 
 
@@ -174,8 +187,8 @@ public class SFTPServiceImpl implements ISFTPService {
                     .toLowerCase()
                     .getBytes(StandardCharsets.UTF_8);
 
-            log.info("SFTP: is about to pushed the md5 file. {}", fileNameMD5);
-            channelSftp.put(new ByteArrayInputStream(data), fileNameMD5);
+            log.info("SFTP: is about to pushed the digest file. {}", fileNameDigest);
+            channelSftp.put(new ByteArrayInputStream(data), fileNameDigest);
             log.info("SFTP: files have been pushed");
 
         }  catch (SftpException | NoSuchAlgorithmException e) {
