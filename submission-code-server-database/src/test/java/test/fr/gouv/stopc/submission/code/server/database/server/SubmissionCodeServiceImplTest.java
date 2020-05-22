@@ -4,7 +4,6 @@ import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
 import fr.gouv.stopc.submission.code.server.database.entity.SubmissionCode;
 import fr.gouv.stopc.submission.code.server.database.repository.SubmissionCodeRepository;
 import fr.gouv.stopc.submission.code.server.database.service.impl.SubmissionCodeServiceImpl;
-import org.apache.commons.collections4.IterableUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -13,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.StreamSupport;
 
 @Transactional
 public class SubmissionCodeServiceImplTest {
@@ -39,7 +39,7 @@ public class SubmissionCodeServiceImplTest {
         SubmissionCodeDto submissionCodeDto = new SubmissionCodeDto();
         submissionCodeDtos.add(submissionCodeDto);
         Iterable<SubmissionCode> result = submissionCodeServiceTest.saveAllCodes(submissionCodeDtos);
-        Assertions.assertTrue(IterableUtils.size(result) != 0);
+        Assertions.assertTrue(StreamSupport.stream(result.spliterator(), false).count() != 0);
     }
 
     @Test
