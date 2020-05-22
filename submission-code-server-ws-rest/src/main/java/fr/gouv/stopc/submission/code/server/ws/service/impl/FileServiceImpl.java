@@ -166,7 +166,7 @@ public class FileServiceImpl implements IFileService {
 
         long diffDays= ChronoUnit.DAYS.between(fromWithoutHours, toWithoutHours) + 1;
         int diff = Integer.parseInt(Long.toString(diffDays));
-        List<OffsetDateTime> datesFromList = generateService.getValidFromList(diff, from);
+        List<OffsetDateTime> datesFromList = generateService.getListOfValidDatesFor(diff, from);
         for(OffsetDateTime dateFromDay: datesFromList) {
             List<CodeDetailedDto> codeSaves = generateService.generateCodeGeneric(
                     codePerDays,

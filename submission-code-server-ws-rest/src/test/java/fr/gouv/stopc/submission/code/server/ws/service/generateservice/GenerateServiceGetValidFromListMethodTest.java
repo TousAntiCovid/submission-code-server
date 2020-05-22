@@ -55,7 +55,7 @@ public class GenerateServiceGetValidFromListMethodTest {
 
 
         // Tested method call
-        List<OffsetDateTime> validFromList = this.generateService.getValidFromList(size, validFromFirstValue);
+        List<OffsetDateTime> validFromList = this.generateService.getListOfValidDatesFor(size, validFromFirstValue);
 
         final ZoneOffset zuluZoneOffset = ZoneOffset.of("Z");
 

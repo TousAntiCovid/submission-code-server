@@ -138,17 +138,6 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
         return true;
     }
 
-
-    @Override
-    public List<SubmissionCodeDto> getCodeUUIDv4CodesForCsv(String lot, String type) {
-        List<SubmissionCode> submissionCodes = submissionCodeRepository.findAllByLotkeyIdAndTypeEquals(Long.parseLong(lot), type);
-        if (CollectionUtils.isEmpty(submissionCodes)){
-            return Collections.emptyList();
-        }
-        ModelMapper modelMapper = new ModelMapper();
-        return submissionCodes.stream().map(tmp->modelMapper.map(tmp, SubmissionCodeDto.class)).collect(Collectors.toList());
-    }
-
     @Override
     public long getNumberOfCodesForLotIdentifier(long lotIdentifier) {
         return this.submissionCodeRepository.countSubmissionCodeByLotkeyId(lotIdentifier);
