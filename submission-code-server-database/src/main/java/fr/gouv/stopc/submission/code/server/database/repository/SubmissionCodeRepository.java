@@ -1,5 +1,6 @@
 package fr.gouv.stopc.submission.code.server.database.repository;
 
+import fr.gouv.stopc.submission.code.server.database.entity.Lot;
 import fr.gouv.stopc.submission.code.server.database.entity.SubmissionCode;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,4 +25,6 @@ public interface SubmissionCodeRepository extends PagingAndSortingRepository<Sub
 
 
      SubmissionCode findByCodeAndTypeAndAndDateEndValidityLessThan(String code, String type, OffsetDateTime validityLessThanDate);
+
+     void deleteAllByLotkey(Lot lotkey);
 }

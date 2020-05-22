@@ -1,9 +1,10 @@
 package fr.gouv.stopc.submission.code.server.ws.dto;
 
 import com.opencsv.bean.CsvDate;
-import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
-import lombok.*;
-import lombok.experimental.SuperBuilder;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;

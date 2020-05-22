@@ -2,7 +2,6 @@ package fr.gouv.stopc.submission.code.server.ws.vo;
 
 import fr.gouv.stopc.submission.code.server.ws.annotations.CodePerDay;
 import fr.gouv.stopc.submission.code.server.ws.annotations.PresentOrFutureTruncateDay;
-import fr.gouv.stopc.submission.code.server.ws.dto.ViewDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

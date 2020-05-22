@@ -1,6 +1,8 @@
 package fr.gouv.stopc.submission.code.server.database.entity;
 
 import lombok.Data;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
 import java.time.OffsetDateTime;
@@ -16,6 +18,7 @@ public class SubmissionCode {
     private long id;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Lot lotkey;
 
     @Column(name = "code", nullable = false, unique = true)

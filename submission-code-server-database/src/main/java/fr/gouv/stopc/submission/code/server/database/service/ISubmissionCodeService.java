@@ -36,4 +36,5 @@ public interface ISubmissionCodeService {
      */
     Page<SubmissionCode> getSubmissionCodesFor(long lotIdentifier, int page, int elementsByPage);
 
+    void removeByLot(Lot lot);
 }

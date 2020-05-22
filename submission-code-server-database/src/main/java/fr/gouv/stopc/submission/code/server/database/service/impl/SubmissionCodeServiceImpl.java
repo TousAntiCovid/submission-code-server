@@ -13,7 +13,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -28,6 +27,7 @@ import java.util.stream.Collectors;
 public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
 
     private SubmissionCodeRepository submissionCodeRepository;
+
 
     @Value("${code.generation.security.alphanum6.hours}")
     private Integer securityTimeBetweenTwoUsagesOf6AlphanumCode;
@@ -151,6 +151,10 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
 
     }
 
+    @Override
+    public void removeByLot(Lot lot) {
+        this.submissionCodeRepository.deleteAllByLotkey(lot);
+    }
 
 
 }
