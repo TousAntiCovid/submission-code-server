@@ -5,7 +5,6 @@ import fr.gouv.stopc.submission.code.server.database.entity.Lot;
 import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeServerException;
 import fr.gouv.stopc.submission.code.server.ws.dto.CodeDetailedDto;
 import fr.gouv.stopc.submission.code.server.ws.dto.CodeSimpleDto;
-import fr.gouv.stopc.submission.code.server.ws.vo.GenerateRequestVo;
 
 import java.time.OffsetDateTime;
 import java.util.List;
