@@ -1,10 +1,13 @@
 package fr.gouv.stopc.submission.code.server.ws.service.impl;
 
 import fr.gouv.stopc.submission.code.server.commun.enums.CodeTypeEnum;
+import fr.gouv.stopc.submission.code.server.commun.service.impl.AlphaNumericCodeServiceImpl;
+import fr.gouv.stopc.submission.code.server.commun.service.impl.UUIDv4CodeServiceImpl;
 import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
 import fr.gouv.stopc.submission.code.server.database.entity.Lot;
 import fr.gouv.stopc.submission.code.server.database.service.impl.SubmissionCodeServiceImpl;
 import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeServerException;
+import fr.gouv.stopc.submission.code.server.ws.dto.CodeDetailedDto;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,7 +20,9 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.io.*;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.zip.GZIPInputStream;
 
@@ -53,30 +58,43 @@ class FileServiceTest {
         ReflectionTestUtils.setField(this.fileExportService, "csvDelimiter", '"');
         ReflectionTestUtils.setField(this.fileExportService, "csvFilenameFormat", "%s.csv");
         ReflectionTestUtils.setField(this.fileExportService, "transferFile", true);
-
+        ReflectionTestUtils.setField(this.generateService, "targetZoneId","Europe/Paris");
+        ReflectionTestUtils.setField(this.generateService, "numberOfTryInCaseOfError",1);
+        ReflectionTestUtils.setField(this.generateService, "timeValidityUuid",2);
+        ReflectionTestUtils.setField(this.generateService, "timeValidityAlphanum",15);
+        ReflectionTestUtils.setField(this.generateService, "submissionCodeService", this.submissionCodeService);
+        ReflectionTestUtils.setField(this.generateService, "alphaNumericCodeService", new AlphaNumericCodeServiceImpl());
+        ReflectionTestUtils.setField(this.generateService, "uuiDv4CodeService", new UUIDv4CodeServiceImpl());
     }
 
     @Test
     public void testCreateZipComplete() throws IOException, SubmissionCodeServerException {
         // String numberCodeDay, String lot, String dateFrom, String dateTo
-        final SubmissionCodeDto sc = SubmissionCodeDto.builder()
-                .type(CodeTypeEnum.UUIDv4.getTypeCode())
-                .dateEndValidity(OffsetDateTime.now())
-                .dateAvailable(OffsetDateTime.now())
+        final CodeDetailedDto sc = CodeDetailedDto.builder()
+                .typeAsString(CodeTypeEnum.UUIDv4.getTypeCode())
+                .validUntil(OffsetDateTime.now().toString())
+                .validFrom(OffsetDateTime.now().toString())
                 .code("3d27eeb8-956c-4660-bc04-8612a4c0a7f1")
-                .lot(1)
                 .build();
 
-        Mockito.when(this.submissionCodeService
-                .getCodeUUIDv4CodesForCsv(Mockito.any(), Mockito.any()))
-                .thenReturn(Arrays.asList(sc));
-
-        Optional<ByteArrayOutputStream> result = Optional.empty();
-
-        String nowDay = OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
+        OffsetDateTime startDate = OffsetDateTime.now();
+        String nowDay = startDate.format(DateTimeFormatter.ISO_DATE_TIME);
         String endDay = OffsetDateTime.now().plusDays(4L).format(DateTimeFormatter.ISO_DATE_TIME);
 
-        result = fileExportService.zipExport("10", new Lot(), nowDay, endDay);
+        Lot lot= new Lot();
+        lot.setId(1L);
+
+        OffsetDateTime date= OffsetDateTime.now().plusDays(1L);
+        List<OffsetDateTime> dates = new ArrayList<>();
+        dates.add(date);
+
+        Mockito.when(generateService.generateCodeGeneric(10, CodeTypeEnum.UUIDv4,date, lot)).thenReturn(Arrays.asList(sc));
+        Mockito.when(generateService.getValidFromList(5,startDate)).thenReturn(dates);
+        Optional<ByteArrayOutputStream> result = Optional.empty();
+
+
+
+        result = fileExportService.zipExport("10", lot, nowDay, endDay);
 
         ByteArrayOutputStream byteArray;
         if(result.isPresent()) {
@@ -114,23 +132,26 @@ class FileServiceTest {
         // String numberCodeDay, String lot, String dateFrom, String dateTo
         Optional<ByteArrayOutputStream> result;
 
-        final SubmissionCodeDto sc = SubmissionCodeDto.builder()
-                .type(CodeTypeEnum.UUIDv4.getTypeCode())
-                .dateEndValidity(OffsetDateTime.now())
-                .dateAvailable(OffsetDateTime.now())
+        final CodeDetailedDto sc = CodeDetailedDto.builder()
+                .typeAsString(CodeTypeEnum.UUIDv4.getTypeCode())
+                .validUntil(OffsetDateTime.now().toString())
+                .validFrom(OffsetDateTime.now().toString())
                 .code("3d27eeb8-956c-4660-bc04-8612a4c0a7f1")
-                .lot(1)
                 .build();
 
-        Mockito.when(this.submissionCodeService
-                .getCodeUUIDv4CodesForCsv(Mockito.any(), Mockito.any()))
-                .thenReturn(Arrays.asList(sc));
+        OffsetDateTime nowDay = OffsetDateTime.now();
+        String nowDayString = nowDay.format(DateTimeFormatter.ISO_DATE_TIME);
+        String endDay = nowDayString;
 
+        Lot lot= new Lot();
+        lot.setId(1L);
 
-        String nowDay = OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
-        String endDay = nowDay;
+        Mockito.when(generateService.generateCodeGeneric(10, CodeTypeEnum.UUIDv4,nowDay, lot)).thenReturn(Arrays.asList(sc));
+        List<OffsetDateTime> dates = new ArrayList<>();
+        dates.add(nowDay);
+        Mockito.when(generateService.getValidFromList(1,nowDay)).thenReturn(dates);
 
-        result = fileExportService.zipExport("10", new Lot(), nowDay, endDay);
+        result = fileExportService.zipExport("10", lot, nowDayString, endDay);
 
         Assert.notNull(result.get());
 

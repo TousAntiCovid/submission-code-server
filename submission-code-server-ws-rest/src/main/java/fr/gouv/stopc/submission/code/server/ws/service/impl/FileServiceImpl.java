@@ -10,6 +10,7 @@ import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
 import fr.gouv.stopc.submission.code.server.database.entity.Lot;
 import fr.gouv.stopc.submission.code.server.database.service.ISubmissionCodeService;
 import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeServerException;
+import fr.gouv.stopc.submission.code.server.ws.dto.CodeDetailedDto;
 import fr.gouv.stopc.submission.code.server.ws.dto.SubmissionCodeCsvDto;
 import fr.gouv.stopc.submission.code.server.ws.service.IFileService;
 import fr.gouv.stopc.submission.code.server.ws.service.IGenerateService;
@@ -37,10 +38,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPOutputStream;
 import java.net.URLEncoder;
@@ -117,16 +115,13 @@ public class FileServiceImpl implements IFileService {
 
 
         // STEP 1 - create codes
-        this.persistUUIDv4CodesFor(numberCodeDay, lotObject, dateTimeFrom, dateTimeTo);
+        List<CodeDetailedDto> listUUIDv4Saves = this.persistUUIDv4CodesFor(numberCodeDay, lotObject, dateTimeFrom, dateTimeTo);
 
-        // STEP 1 BIS Retrieve data
-        List<SubmissionCodeDto> submissionCodeDtos = submissionCodeService
-                .getCodeUUIDv4CodesForCsv(Long.toString(lotObject.getId()), CodeTypeEnum.UUIDv4.getTypeCode());
-
-        if (CollectionUtils.isEmpty(submissionCodeDtos)){
+        if (CollectionUtils.isEmpty(listUUIDv4Saves)){
             return Optional.empty();
         }
 
+        List<SubmissionCodeDto> submissionCodeDtos = listUUIDv4Saves.stream().map(codeDetailedDto-> mapToSubmissionCodeDto(codeDetailedDto,lotObject.getId())).collect(Collectors.toList());
         //get distinct dates
         final List<OffsetDateTime> availableDates = submissionCodeDtos
                 .stream().map(SubmissionCodeDto::getDateAvailable).distinct().collect(Collectors.toList());
@@ -161,9 +156,10 @@ public class FileServiceImpl implements IFileService {
 
 
     @Override
-    public void persistUUIDv4CodesFor(String codePerDays, Lot lotObject, OffsetDateTime from, OffsetDateTime to)
+    public List<CodeDetailedDto> persistUUIDv4CodesFor(String codePerDays, Lot lotObject, OffsetDateTime from, OffsetDateTime to)
             throws SubmissionCodeServerException
     {
+        List<CodeDetailedDto> listCodeDetailedDto = new ArrayList<>();
         OffsetDateTime fromWithoutHours = from.truncatedTo(ChronoUnit.DAYS);
         OffsetDateTime toWithoutHours = to.truncatedTo(ChronoUnit.DAYS);
 
@@ -171,13 +167,17 @@ public class FileServiceImpl implements IFileService {
         int diff = Integer.parseInt(Long.toString(diffDays));
         List<OffsetDateTime> datesFromList = generateService.getValidFromList(diff, from);
         for(OffsetDateTime dateFromDay: datesFromList) {
-            generateService.generateCodeGeneric(
+            List<CodeDetailedDto> codeSaves = generateService.generateCodeGeneric(
                     Long.parseLong(codePerDays),
                     CodeTypeEnum.UUIDv4,
                     dateFromDay,
                     lotObject
             );
+            if(CollectionUtils.isNotEmpty(codeSaves)){
+                listCodeDetailedDto.addAll(codeSaves);
+            }
         }
+        return listCodeDetailedDto;
     }
 
     @Override
@@ -341,6 +341,18 @@ public class FileServiceImpl implements IFileService {
     private String getCsvFilename(OffsetDateTime date) {
         date = date.withOffsetSameInstant(OffsetDateTime.now(ZoneId.of(this.targetZoneId)).getOffset());
         return  String.format(csvFilenameFormat,date.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+    }
+
+    private SubmissionCodeDto mapToSubmissionCodeDto(CodeDetailedDto codeDetailedDto, Long idLot ){
+        SubmissionCodeDto submissionCodeDto = new SubmissionCodeDto();
+        submissionCodeDto.setLot(idLot);
+        submissionCodeDto.setUsed(false);
+        submissionCodeDto.setType(CodeTypeEnum.UUIDv4.getTypeCode());
+        submissionCodeDto.setDateGeneration(OffsetDateTime.parse(codeDetailedDto.getValidFrom(), DateTimeFormatter.ISO_DATE_TIME));
+        submissionCodeDto.setDateEndValidity(OffsetDateTime.parse(codeDetailedDto.getValidUntil(), DateTimeFormatter.ISO_DATE_TIME));
+        submissionCodeDto.setCode(codeDetailedDto.getCode());
+        submissionCodeDto.setDateAvailable(OffsetDateTime.parse(codeDetailedDto.getValidFrom(), DateTimeFormatter.ISO_DATE_TIME));
+        return submissionCodeDto;
     }
 
 }

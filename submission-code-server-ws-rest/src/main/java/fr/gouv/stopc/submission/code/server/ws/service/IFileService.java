@@ -3,6 +3,7 @@ package fr.gouv.stopc.submission.code.server.ws.service;
 import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
 import fr.gouv.stopc.submission.code.server.database.entity.Lot;
 import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeServerException;
+import fr.gouv.stopc.submission.code.server.ws.dto.CodeDetailedDto;
 import org.springframework.scheduling.annotation.Async;
 
 import javax.validation.constraints.NotNull;
@@ -42,8 +43,9 @@ public interface IFileService {
      * @param from start date of the series of days code generation
      * @param to end date of the series of days code generation
      * @throws SubmissionCodeServerException
+     * @return
      */
-     void persistUUIDv4CodesFor(String codePerDays, Lot lotObject, OffsetDateTime from, OffsetDateTime to)
+     List<CodeDetailedDto> persistUUIDv4CodesFor(String codePerDays, Lot lotObject, OffsetDateTime from, OffsetDateTime to)
              throws SubmissionCodeServerException;
 
     /**
