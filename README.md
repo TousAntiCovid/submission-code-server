@@ -3,5 +3,6 @@
 Ce projet gitlab.inria.fr est un des composants de la solution plus globale [StopCovid](https://gitlab.inria.fr/stopcovid19/accueil/-/blob/master/README.md).
 
 Ce composant propose les services suivants :
-* Submission-code-server : code de la l’API pour le serveur de code/token.
+* génération de codes courts et longs : pour les professionnels de santé (laboratoires, médecins...)
+* vérification et consommation de codes par la partie de la plateforme StopCovid
 
