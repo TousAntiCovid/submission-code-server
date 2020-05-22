@@ -36,12 +36,4 @@ public interface ISubmissionCodeService {
      */
     Page<SubmissionCode> getSubmissionCodesFor(long lotIdentifier, int page, int elementsByPage);
 
-    /**
-     * Get specific lot of submissionCodes for extract in CSV file.
-     * @param lot
-     * @param type
-     * @return
-     */
-    List<SubmissionCodeDto> getCodeUUIDv4CodesForCsv(String lot, String type);
-
 }

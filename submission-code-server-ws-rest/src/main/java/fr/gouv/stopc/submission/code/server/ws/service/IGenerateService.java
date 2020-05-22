@@ -34,5 +34,5 @@ public interface IGenerateService {
      * @param validFromFirstValue seed time from the list should be generated from.
      * @return List of OffsetDateTime increment by day and truncate to day.
      */
-    List<OffsetDateTime> getValidFromList(int size, OffsetDateTime validFromFirstValue);
+    List<OffsetDateTime> getListOfValidDatesFor(int size, OffsetDateTime validFromFirstValue);
 }

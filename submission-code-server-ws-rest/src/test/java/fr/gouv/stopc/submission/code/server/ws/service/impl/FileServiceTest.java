@@ -88,7 +88,7 @@ class FileServiceTest {
         dates.add(date);
 
         Mockito.when(generateService.generateCodeGeneric(10, CodeTypeEnum.UUIDv4,date, lot)).thenReturn(Arrays.asList(sc));
-        Mockito.when(generateService.getValidFromList(5,startDate)).thenReturn(dates);
+        Mockito.when(generateService.getListOfValidDatesFor(5,startDate)).thenReturn(dates);
         Optional<ByteArrayOutputStream> result = Optional.empty();
 
 
@@ -147,7 +147,7 @@ class FileServiceTest {
         Mockito.when(generateService.generateCodeGeneric(10, CodeTypeEnum.UUIDv4,nowDay, lot)).thenReturn(Arrays.asList(sc));
         List<OffsetDateTime> dates = new ArrayList<>();
         dates.add(nowDay);
-        Mockito.when(generateService.getValidFromList(1,nowDay)).thenReturn(dates);
+        Mockito.when(generateService.getListOfValidDatesFor(1,nowDay)).thenReturn(dates);
 
         result = fileExportService.zipExport(10L, lot, nowDayString, endDay);
 

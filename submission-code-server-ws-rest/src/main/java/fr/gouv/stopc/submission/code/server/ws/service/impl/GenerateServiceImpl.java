@@ -178,7 +178,7 @@ public class GenerateServiceImpl implements IGenerateService {
     }
 
     @Override
-    public List<OffsetDateTime> getValidFromList(int size, OffsetDateTime validFromFirstValue)
+    public List<OffsetDateTime> getListOfValidDatesFor(int size, OffsetDateTime validFromFirstValue)
     {
         final ArrayList<OffsetDateTime> validFromList = new ArrayList<>();
 
