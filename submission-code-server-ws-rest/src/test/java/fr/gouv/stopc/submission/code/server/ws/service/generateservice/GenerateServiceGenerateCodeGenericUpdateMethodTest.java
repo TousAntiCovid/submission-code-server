@@ -1,7 +1,7 @@
 package fr.gouv.stopc.submission.code.server.ws.service.generateservice;
 
 import fr.gouv.stopc.submission.code.server.commun.enums.CodeTypeEnum;
-import fr.gouv.stopc.submission.code.server.commun.service.IAlphaNumericCodeService;
+import fr.gouv.stopc.submission.code.server.commun.service.IShortCodeService;
 import fr.gouv.stopc.submission.code.server.database.entity.SubmissionCode;
 import fr.gouv.stopc.submission.code.server.database.repository.SubmissionCodeRepository;
 import fr.gouv.stopc.submission.code.server.database.service.impl.SubmissionCodeServiceImpl;
@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class GenerateServiceGenerateCodeGenericUpdateMethodTest {
 
     @Mock
-    private IAlphaNumericCodeService alphanumCodeService;
+    private IShortCodeService shortCodeService;
 
     @Mock
     private SubmissionCodeRepository submissionCodeRepository;
@@ -47,7 +47,7 @@ class GenerateServiceGenerateCodeGenericUpdateMethodTest {
         ReflectionTestUtils.setField(this.generateService, "numberOfTryInCaseOfError", 0);
 
         //SET 24 hours of lock security
-        ReflectionTestUtils.setField(this.submissionCodeService, "securityTimeBetweenTwoUsagesOf6AlphanumCode", 24);
+        ReflectionTestUtils.setField(this.submissionCodeService, "securityTimeBetweenTwoUsagesOfShortCode", 24);
         ReflectionTestUtils.setField(this.generateService, "submissionCodeService", this.submissionCodeService);
     }
 
@@ -56,13 +56,13 @@ class GenerateServiceGenerateCodeGenericUpdateMethodTest {
      * Simulate a same code insertion when validity date is not compliant with
      */
     @Test
-    void testSameAlphanumericAndSecurityDelayNotRespected() {
+    void testSameShortCodeAndSecurityDelayNotRespected() {
         // asserting gsi is available
         final long size = Long.parseLong("1");
-        final CodeTypeEnum cte = CodeTypeEnum.ALPHANUM_6;
+        final CodeTypeEnum cte = CodeTypeEnum.SHORT;
         final OffsetDateTime validFrom = OffsetDateTime.now();
 
-        Mockito.when(alphanumCodeService.generateCode())
+        Mockito.when(shortCodeService.generateCode())
                 .thenReturn("5d98e3");
 
         final SubmissionCode submissionCode = new SubmissionCode();
@@ -92,13 +92,13 @@ class GenerateServiceGenerateCodeGenericUpdateMethodTest {
      * Number of tries reach
      */
     @Test
-    void testSameAlphanumericAndSecurityDelayIsRespected() throws SubmissionCodeServerException {
+    void testSameShortCodeAndSecurityDelayIsRespected() throws SubmissionCodeServerException {
         // asserting gsi is available
         final long size = Long.parseLong("1");
-        final CodeTypeEnum cte = CodeTypeEnum.ALPHANUM_6;
+        final CodeTypeEnum cte = CodeTypeEnum.SHORT;
         final OffsetDateTime validFrom = OffsetDateTime.now();
 
-        Mockito.when(alphanumCodeService.generateCode())
+        Mockito.when(shortCodeService.generateCode())
                 .thenReturn("5d98e3");
 
         final SubmissionCode submissionCode = new SubmissionCode();

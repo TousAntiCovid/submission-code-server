@@ -11,7 +11,7 @@ import java.util.List;
 
 public interface IGenerateService {
 
-    CodeSimpleDto generateAlphaNumericShortCode()
+    CodeSimpleDto generateShortCode()
             throws SubmissionCodeServerException;
 
     /**

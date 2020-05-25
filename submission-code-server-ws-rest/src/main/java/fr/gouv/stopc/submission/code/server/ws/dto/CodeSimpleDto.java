@@ -11,7 +11,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 public class CodeSimpleDto {
     /**
-     *  code generated formatted as uuidv4 or 6-alphanum
+     *  code generated formatted as long code or short code
      */
     private String code;
 

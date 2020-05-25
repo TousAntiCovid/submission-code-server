@@ -1,8 +1,8 @@
 package fr.gouv.stopc.submission.code.server.ws.service.impl;
 
 import fr.gouv.stopc.submission.code.server.commun.enums.CodeTypeEnum;
-import fr.gouv.stopc.submission.code.server.commun.service.IAlphaNumericCodeService;
-import fr.gouv.stopc.submission.code.server.commun.service.IUUIDv4CodeService;
+import fr.gouv.stopc.submission.code.server.commun.service.IShortCodeService;
+import fr.gouv.stopc.submission.code.server.commun.service.ILongCodeService;
 import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
 import fr.gouv.stopc.submission.code.server.database.entity.Lot;
 import fr.gouv.stopc.submission.code.server.database.entity.SubmissionCode;
@@ -30,9 +30,9 @@ import java.util.Optional;
 @Slf4j
 @Service
 public class GenerateServiceImpl implements IGenerateService {
-    private final IUUIDv4CodeService uuiDv4CodeService;
+    private final ILongCodeService longCodeService;
     private final ISubmissionCodeService submissionCodeService;
-    private final IAlphaNumericCodeService alphaNumericCodeService;
+    private final IShortCodeService shortCodeService;
 
     /**TargetZoneId is the time zone id (in the java.time.ZoneId way) on which the submission code server should deliver the codes.
      * eg.: for France is "Europe/Paris"
@@ -48,44 +48,44 @@ public class GenerateServiceImpl implements IGenerateService {
     private long numberOfTryInCaseOfError;
 
     /**
-     * Interval in days of the validity of an UUIDv4 code
+     * Interval in days of the validity of a long code
      * it is set in application.properties file
      */
-    @Value("${generation.code.uuid.validity}")
-    private long timeValidityUuid;
+    @Value("${generation.code.longcode.validity}")
+    private long timeValidityLongCode;
 
     /**
-     * Interval in minutes of the validity of a 6-alphanum code
+     * Interval in minutes of the validity of a short code
      * it is set in application.properties file
      */
     @Value("${generation.code.shortcode.validity}")
-    private long timeValidityAlphanum;
+    private long timeValidityShortCode;
 
 
     /**
      * Default constructor
-     * @param uuiDv4CodeService Spring-injection of the uuiDv4CodeService generating the code of type UUIDv4
-     * @param alphaNumericCodeService Spring-injection of the alphaNumericCodeService generating the code of type 6-alphanum
-     * @param submissionCodeService Spring-injection of the alphaNumericCodeService giving access to persistence in db.
+     * @param longCodeService Spring-injection of the longCodeService generating long codes
+     * @param shortCodeService Spring-injection of the shortCodeService generating short codes
+     * @param submissionCodeService Spring-injection of the shortCodeService giving access to persistence in db.
      */
     @Inject
-    public GenerateServiceImpl(IUUIDv4CodeService uuiDv4CodeService,
-                               IAlphaNumericCodeService alphaNumericCodeService,
+    public GenerateServiceImpl(ILongCodeService longCodeService,
+                               IShortCodeService shortCodeService,
                                ISubmissionCodeService submissionCodeService)
     {
-        this.alphaNumericCodeService= alphaNumericCodeService;
-        this.uuiDv4CodeService = uuiDv4CodeService;
+        this.shortCodeService = shortCodeService;
+        this.longCodeService = longCodeService;
         this.submissionCodeService = submissionCodeService;
     }
 
 
     @Override
-    public CodeSimpleDto generateAlphaNumericShortCode()
+    public CodeSimpleDto generateShortCode()
             throws SubmissionCodeServerException
     {
         final CodeSimpleDto shortCodeInstance = new CodeSimpleDto();
         new ModelMapper().map(
-                this.generateCodeGeneric(1, CodeTypeEnum.ALPHANUM_6, OffsetDateTime.now(), new Lot()).get(0),
+                this.generateCodeGeneric(1, CodeTypeEnum.SHORT, OffsetDateTime.now(), new Lot()).get(0),
                 shortCodeInstance
         );
         return shortCodeInstance;
@@ -160,18 +160,18 @@ public class GenerateServiceImpl implements IGenerateService {
             throws SubmissionCodeServerException
     {
         switch (cte) {
-            case UUIDv4:
+            case LONG:
                 return SubmissionCodeDto.builder()
-                        .code(this.uuiDv4CodeService.generateCode())
+                        .code(this.longCodeService.generateCode())
                         .type(cte.getTypeCode())
                         .dateAvailable(validFrom)
-                        .dateEndValidity(this.getValidityDateUUIDCode(validFrom));
-            case ALPHANUM_6:
+                        .dateEndValidity(this.getExpirationDateForLongCodeStartingFrom(validFrom));
+            case SHORT:
                 return SubmissionCodeDto.builder()
-                        .code(this.alphaNumericCodeService.generateCode())
+                        .code(this.shortCodeService.generateCode())
                         .type(cte.getTypeCode())
                         .dateAvailable(validFrom)
-                        .dateEndValidity(this.getValidityDateAlphaNum6(validFrom));
+                        .dateEndValidity(this.getExpirationDateForShortCodeStartingFrom(validFrom));
             default:
                 throw new SubmissionCodeServerException(
                         SubmissionCodeServerException.ExceptionEnum.INVALID_CODE_TYPE_ERROR
@@ -223,28 +223,26 @@ public class GenerateServiceImpl implements IGenerateService {
     }
 
     /**
-     * Method gives the validUntil date of UUIDv4 code from the date given in parameter.
-     * It calculates the validity end date of the code using value set in application.properties and inject by Spring. {@link #timeValidityUuid}
+     * Method gives the validUntil date of long code from the date given in parameter.
+     * It calculates the validity end date of the code using value set in application.properties and inject by Spring. {@link #timeValidityLongCode}
      * The ValidUntil should be hh:mm formatted as 23:59 in paris.
-     * @param validFrom the OffsetDateTime start validity applied to calculate end of UUIDv4 code validity
-     * @return OffsetDateTime corresponding to the "validFrom" plus days in {@link #timeValidityUuid} at Zulu Offset
+     * @param validFrom the OffsetDateTime start validity applied to calculate end of long code validity
+     * @return OffsetDateTime corresponding to the "validFrom" plus days in {@link #timeValidityLongCode} at Zulu Offset
      */
-    private OffsetDateTime getValidityDateUUIDCode(OffsetDateTime validFrom)
+    private OffsetDateTime getExpirationDateForLongCodeStartingFrom(OffsetDateTime validFrom)
     {
         // ensuring that validFrom is based
-        log.info("Generating date until the UUIDv4 code should be valid. Validity time is set to : {} ", timeValidityUuid);
-
         validFrom =  validFrom.withOffsetSameInstant(this.getTargetOffset());
         return validFrom
                 .withOffsetSameInstant(this.getTargetOffset())
-                .plusDays(timeValidityUuid + 1)
+                .plusDays(timeValidityLongCode + 1)
                 .truncatedTo(ChronoUnit.DAYS)
                 .minusMinutes(1)
                 .withOffsetSameInstant(this.getZuluOffset());
     }
 
     /**
-     * @return return current offset of paris
+     * @return return current offset of targeted zone where the codes should be used
      */
     private ZoneOffset getTargetOffset()
     {
@@ -260,17 +258,16 @@ public class GenerateServiceImpl implements IGenerateService {
     }
 
     /**
-     * Method gives the validUntil date of 6-alphanum code from the date given in parameter.
-     * It calculates the validity end date of the code using value set in application.properties and inject by Spring. {@link #timeValidityAlphanum}
-     * @param validFrom the OffsetDateTime start validity applied to calculate end of 6-alphanum code validity
-     * @return OffsetDateTime corresponding to the "validFrom" plus minutes in {@link #timeValidityAlphanum} at Zulu Offset
+     * Method gives the validUntil date of short code from the date given in parameter.
+     * It calculates the validity end date of the code using value set in application.properties and inject by Spring. {@link #timeValidityShortCode}
+     * @param validFrom the OffsetDateTime start validity applied to calculate end of short code validity
+     * @return OffsetDateTime corresponding to the "validFrom" plus minutes in {@link #timeValidityShortCode} at Zulu Offset
      */
-    private OffsetDateTime getValidityDateAlphaNum6(OffsetDateTime validFrom)
+    private OffsetDateTime getExpirationDateForShortCodeStartingFrom(OffsetDateTime validFrom)
     {
-        log.info("Generating date until the 6-alphanum code should be valid. Validity time is set to : {} ", timeValidityAlphanum);
 
         return validFrom
-                .plusMinutes(timeValidityAlphanum)
+                .plusMinutes(timeValidityShortCode)
                 .truncatedTo(ChronoUnit.MINUTES)
                 .withOffsetSameInstant(this.getZuluOffset());
     }

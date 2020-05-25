@@ -1,8 +1,8 @@
 package fr.gouv.stopc.submission.code.server.ws.service.generateservice;
 
 import fr.gouv.stopc.submission.code.server.commun.enums.CodeTypeEnum;
-import fr.gouv.stopc.submission.code.server.commun.service.impl.AlphaNumericCodeServiceImpl;
-import fr.gouv.stopc.submission.code.server.commun.service.impl.UUIDv4CodeServiceImpl;
+import fr.gouv.stopc.submission.code.server.commun.service.impl.ShortCodeServiceImpl;
+import fr.gouv.stopc.submission.code.server.commun.service.impl.LongCodeServiceImpl;
 import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
 import fr.gouv.stopc.submission.code.server.database.service.impl.SubmissionCodeServiceImpl;
 import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeServerException;
@@ -23,7 +23,7 @@ import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-public class GenerateServiceGetValidityDateUUIDCodeMethodTest {
+public class GenerateServiceGetValidityDateLongCodeMethodTest {
 
     @Mock
     private SubmissionCodeServiceImpl submissionCodeService;
@@ -42,23 +42,23 @@ public class GenerateServiceGetValidityDateUUIDCodeMethodTest {
         ReflectionTestUtils.setField(this.generateService, "numberOfTryInCaseOfError", 0);
 
         //SET 24 hours of lock security
-        ReflectionTestUtils.setField(this.submissionCodeService, "securityTimeBetweenTwoUsagesOf6AlphanumCode", 24);
-        ReflectionTestUtils.setField(this.generateService, "uuiDv4CodeService", new UUIDv4CodeServiceImpl());
-        ReflectionTestUtils.setField(this.generateService, "alphaNumericCodeService", new AlphaNumericCodeServiceImpl());
+        ReflectionTestUtils.setField(this.submissionCodeService, "securityTimeBetweenTwoUsagesOfShortCode", 24);
+        ReflectionTestUtils.setField(this.generateService, "longCodeService", new LongCodeServiceImpl());
+        ReflectionTestUtils.setField(this.generateService, "shortCodeService", new ShortCodeServiceImpl());
     }
 
     @Test
     void testCheckValidUntilFormat() throws SubmissionCodeServerException {
 
         final long validityDays = 10;
-        ReflectionTestUtils.setField(this.generateService, "timeValidityUuid", validityDays);
+        ReflectionTestUtils.setField(this.generateService, "timeValidityLongCode", validityDays);
 
         OffsetDateTime testedValidFrom = OffsetDateTime.now(ZoneId.of(this.targetZoneId));
 
 
         testedValidFrom = testedValidFrom.withMonth(01).withDayOfMonth(01).withHour(1).withMinute(12).truncatedTo(ChronoUnit.MINUTES);
 
-        final SubmissionCodeDto submissionCodeDto = this.generateService.preGenerateSubmissionCodeDtoForCodeTypeAndDateValidity(CodeTypeEnum.UUIDv4, testedValidFrom).build();
+        final SubmissionCodeDto submissionCodeDto = this.generateService.preGenerateSubmissionCodeDtoForCodeTypeAndDateValidity(CodeTypeEnum.LONG, testedValidFrom).build();
 
         assertNotNull(submissionCodeDto);
 

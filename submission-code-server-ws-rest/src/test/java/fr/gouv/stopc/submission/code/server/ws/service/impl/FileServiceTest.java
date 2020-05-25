@@ -1,8 +1,8 @@
 package fr.gouv.stopc.submission.code.server.ws.service.impl;
 
 import fr.gouv.stopc.submission.code.server.commun.enums.CodeTypeEnum;
-import fr.gouv.stopc.submission.code.server.commun.service.impl.AlphaNumericCodeServiceImpl;
-import fr.gouv.stopc.submission.code.server.commun.service.impl.UUIDv4CodeServiceImpl;
+import fr.gouv.stopc.submission.code.server.commun.service.impl.ShortCodeServiceImpl;
+import fr.gouv.stopc.submission.code.server.commun.service.impl.LongCodeServiceImpl;
 import fr.gouv.stopc.submission.code.server.database.entity.Lot;
 import fr.gouv.stopc.submission.code.server.database.service.impl.SubmissionCodeServiceImpl;
 import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeServerException;
@@ -59,18 +59,18 @@ class FileServiceTest {
         ReflectionTestUtils.setField(this.fileExportService, "transferFile", true);
         ReflectionTestUtils.setField(this.generateService, "targetZoneId","Europe/Paris");
         ReflectionTestUtils.setField(this.generateService, "numberOfTryInCaseOfError",1);
-        ReflectionTestUtils.setField(this.generateService, "timeValidityUuid",2);
-        ReflectionTestUtils.setField(this.generateService, "timeValidityAlphanum",15);
+        ReflectionTestUtils.setField(this.generateService, "timeValidityLongCode",2);
+        ReflectionTestUtils.setField(this.generateService, "timeValidityShortCode",15);
         ReflectionTestUtils.setField(this.generateService, "submissionCodeService", this.submissionCodeService);
-        ReflectionTestUtils.setField(this.generateService, "alphaNumericCodeService", new AlphaNumericCodeServiceImpl());
-        ReflectionTestUtils.setField(this.generateService, "uuiDv4CodeService", new UUIDv4CodeServiceImpl());
+        ReflectionTestUtils.setField(this.generateService, "shortCodeService", new ShortCodeServiceImpl());
+        ReflectionTestUtils.setField(this.generateService, "longCodeService", new LongCodeServiceImpl());
     }
 
     @Test
     public void testCreateZipComplete() throws IOException, SubmissionCodeServerException {
         // String numberCodeDay, String lot, String dateFrom, String dateTo
         final CodeDetailedDto sc = CodeDetailedDto.builder()
-                .typeAsString(CodeTypeEnum.UUIDv4.getTypeCode())
+                .typeAsString(CodeTypeEnum.LONG.getTypeCode())
                 .validUntil(OffsetDateTime.now().toString())
                 .validFrom(OffsetDateTime.now().toString())
                 .code("3d27eeb8-956c-4660-bc04-8612a4c0a7f1")
@@ -87,7 +87,7 @@ class FileServiceTest {
         List<OffsetDateTime> dates = new ArrayList<>();
         dates.add(date);
 
-        Mockito.when(generateService.generateCodeGeneric(10, CodeTypeEnum.UUIDv4,date, lot)).thenReturn(Arrays.asList(sc));
+        Mockito.when(generateService.generateCodeGeneric(10, CodeTypeEnum.LONG,date, lot)).thenReturn(Arrays.asList(sc));
         Mockito.when(generateService.getListOfValidDatesFor(5,startDate)).thenReturn(dates);
         Optional<ByteArrayOutputStream> result = Optional.empty();
 
@@ -131,7 +131,7 @@ class FileServiceTest {
         Optional<ByteArrayOutputStream> result;
 
         final CodeDetailedDto sc = CodeDetailedDto.builder()
-                .typeAsString(CodeTypeEnum.UUIDv4.getTypeCode())
+                .typeAsString(CodeTypeEnum.LONG.getTypeCode())
                 .validUntil(OffsetDateTime.now().toString())
                 .validFrom(OffsetDateTime.now().toString())
                 .code("3d27eeb8-956c-4660-bc04-8612a4c0a7f1")
@@ -144,7 +144,7 @@ class FileServiceTest {
         Lot lot= new Lot();
         lot.setId(1L);
 
-        Mockito.when(generateService.generateCodeGeneric(10, CodeTypeEnum.UUIDv4,nowDay, lot)).thenReturn(Arrays.asList(sc));
+        Mockito.when(generateService.generateCodeGeneric(10, CodeTypeEnum.LONG,nowDay, lot)).thenReturn(Arrays.asList(sc));
         List<OffsetDateTime> dates = new ArrayList<>();
         dates.add(nowDay);
         Mockito.when(generateService.getListOfValidDatesFor(1,nowDay)).thenReturn(dates);

@@ -21,10 +21,10 @@ public interface IFileService {
 
     /**
      * Method:
-     * 1)generate the codes type UUIDv4 between dateFrom to dateTo
+     * 1)generate long codes between dateFrom to dateTo
      * 2) export from database
      * 3) create one csv file each day between dateFrom to dateTo
-     * 4) create file zip with csv files
+     * 4) create archive with csv files
      * @param numberCodeDay
      * @param lotObject
      * @param dateFrom
@@ -45,7 +45,7 @@ public interface IFileService {
      * @return
      */
 
-     List<CodeDetailedDto> persistUUIDv4CodesFor(Long codePerDays, Lot lotObject, OffsetDateTime from, OffsetDateTime to)
+     List<CodeDetailedDto> persistLongCodes(Long codePerDays, Lot lotObject, OffsetDateTime from, OffsetDateTime to)
              throws SubmissionCodeServerException;
 
     /**
@@ -54,7 +54,7 @@ public interface IFileService {
      * @param dates
      * @return List of csv dataByFilename
      */
-    Map<String, byte[]> serializeCodesToCsv (List<SubmissionCodeDto> submissionCodeDtos, List<OffsetDateTime> dates)
+    Map<String, byte[]> serializeCodesToCsv(List<SubmissionCodeDto> submissionCodeDtos, List<OffsetDateTime> dates)
             throws SubmissionCodeServerException;
 
 

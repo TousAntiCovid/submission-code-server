@@ -7,8 +7,8 @@ import java.util.Arrays;
 @Getter
 public enum CodeTypeEnum {
 
-    UUIDv4("1", "UUIDv4", Pattern.UUIDV4),
-    ALPHANUM_6 ("2", "6-alphanum", Pattern.ALPHANUM_6);
+    LONG("1", "UUIDv4", Pattern.LONG),
+    SHORT("2", "6-alphanum", Pattern.SHORT);
 
 
     /**
@@ -61,7 +61,7 @@ public enum CodeTypeEnum {
     }
 
     public interface Pattern {
-        String ALPHANUM_6 = "([a-zA-Z0-9]{6})";
-        String UUIDV4 = "([a-f0-9]{8}(-[a-f0-9]{4}){4}[a-f0-9]{8})";
+        String SHORT = "([a-zA-Z0-9]{6})";
+        String LONG = "([a-f0-9]{8}(-[a-f0-9]{4}){4}[a-f0-9]{8})";
     }
 }
