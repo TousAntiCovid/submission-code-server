@@ -25,8 +25,8 @@ public class VerifyRequestVo {
      * The code value to verify
      */
    @NotNull
-   @Pattern(regexp = CodeTypeEnum.Pattern.ALPHANUM_6 + "|" + CodeTypeEnum.Pattern.UUIDV4,
-           message = "UUIDv4 or 6-ALPHANUM pattern should be respected here"
+   @Pattern(regexp = CodeTypeEnum.Pattern.SHORT + "|" + CodeTypeEnum.Pattern.LONG,
+           message = "Short code pattern or long code pattern should be respected here"
    )
    private String code;
 

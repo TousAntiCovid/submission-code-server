@@ -27,7 +27,7 @@ public class ViewsServiceImpl implements IViewService {
 
     /**
      * Default constructor
-     * @param submissionCodeService Spring-injection of the alphaNumericCodeService giving access to persistence in db.
+     * @param submissionCodeService Spring-injection of the shortCodeService giving access to persistence in db.
      */
     @Inject
     public ViewsServiceImpl(ISubmissionCodeService submissionCodeService,

@@ -2,11 +2,11 @@ package fr.gouv.stopc.submission.code.server.commun.service;
 
 import java.util.List;
 
-public interface IUUIDv4CodeService {
+public interface ILongCodeService {
 
     /**
-     * generate and stringify uuidv4
-     * @return  A randomly generated {@code UUID}
+     * generate and stringify a long code
+     * @return  A randomly generated long code
      */
      String generateCode();
 

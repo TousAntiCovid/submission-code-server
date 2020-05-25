@@ -1,7 +1,7 @@
 package fr.gouv.stopc.submission.code.server.ws.service.generateservice;
 
 import fr.gouv.stopc.submission.code.server.commun.enums.CodeTypeEnum;
-import fr.gouv.stopc.submission.code.server.commun.service.impl.UUIDv4CodeServiceImpl;
+import fr.gouv.stopc.submission.code.server.commun.service.impl.LongCodeServiceImpl;
 import fr.gouv.stopc.submission.code.server.database.entity.Lot;
 import fr.gouv.stopc.submission.code.server.database.entity.SubmissionCode;
 import fr.gouv.stopc.submission.code.server.database.service.impl.SubmissionCodeServiceImpl;
@@ -18,9 +18,9 @@ import java.util.Optional;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-class GenerateServiceGenerateUUIDv4CodesMethodTest {
+class GenerateServiceGenerateLongCodesMethodTest {
     @Mock
-    private UUIDv4CodeServiceImpl uuiDv4CodeService;
+    private LongCodeServiceImpl longCodeService;
 
     @Mock
     private SubmissionCodeServiceImpl submissionCodeService;
@@ -38,21 +38,21 @@ class GenerateServiceGenerateUUIDv4CodesMethodTest {
         ReflectionTestUtils.setField(this.generateService, "numberOfTryInCaseOfError", 0);
 
         //SET 24 hours of lock security
-        ReflectionTestUtils.setField(this.submissionCodeService, "securityTimeBetweenTwoUsagesOf6AlphanumCode", 24);
+        ReflectionTestUtils.setField(this.submissionCodeService, "securityTimeBetweenTwoUsagesOfShortCode", 24);
     }
     /**
-     * Calling generateUUIDv4Codes and assert that it returns the right size and the right elements
+     * Calling generateCodeGeneric and assert that it returns the right size and the right elements
      */
     @Test
-    void testSizeGenerateResponseDtoListUUID() throws SubmissionCodeServerException {
+    void testSizeLongCodeGenerateResponseDtoList() throws SubmissionCodeServerException {
         int size = 12;
 
         Mockito.when(this.submissionCodeService.saveCode(Mockito.any(), Mockito.any()))
                 .thenReturn(Optional.of(new SubmissionCode()));
 
-        this.generateService.generateCodeGeneric(size, CodeTypeEnum.UUIDv4, OffsetDateTime.now(), new Lot());
+        this.generateService.generateCodeGeneric(size, CodeTypeEnum.LONG, OffsetDateTime.now(), new Lot());
 
-        verify(uuiDv4CodeService, times(12)).generateCode();
+        verify(longCodeService, times(12)).generateCode();
 
     }
 

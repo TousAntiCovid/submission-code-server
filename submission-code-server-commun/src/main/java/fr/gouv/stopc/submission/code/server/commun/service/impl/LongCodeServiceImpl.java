@@ -1,6 +1,6 @@
 package fr.gouv.stopc.submission.code.server.commun.service.impl;
 
-import fr.gouv.stopc.submission.code.server.commun.service.IUUIDv4CodeService;
+import fr.gouv.stopc.submission.code.server.commun.service.ILongCodeService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -11,7 +11,7 @@ import java.util.stream.Stream;
 
 @Service
 @Slf4j
-public class UUIDv4CodeServiceImpl implements IUUIDv4CodeService {
+public class LongCodeServiceImpl implements ILongCodeService {
 
 
     public String generateCode() {

@@ -1,6 +1,6 @@
 package fr.gouv.stopc.submission.code.server.commun.service.impl;
 
-import fr.gouv.stopc.submission.code.server.commun.service.IAlphaNumericCodeService;
+import fr.gouv.stopc.submission.code.server.commun.service.IShortCodeService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-public class AlphaNumericCodeServiceImpl implements IAlphaNumericCodeService {
+public class ShortCodeServiceImpl implements IShortCodeService {
 
     private static final String ALPHA_UPPER_CASE = "abcdefghijklmnopqrstuvwxyz".toUpperCase();
     private static final String NUMERIC= "0123456789";
@@ -30,7 +30,7 @@ public class AlphaNumericCodeServiceImpl implements IAlphaNumericCodeService {
             .collect(Collectors.toList());
 
     public String generateCode() {
-        log.info("Generating random 6-alphanum code");
+        log.info("Generating random short code");
         final List<Character> characters = getShuffledAlphaNumList();
 
         String alphaNum = "";

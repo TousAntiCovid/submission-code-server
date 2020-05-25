@@ -27,7 +27,7 @@ public class GenerateControllerImpl implements IGenerateController {
 			log.info("Trying to generate code with sequential method");
 
 			return ResponseEntity.ok(
-					this.generateService.generateAlphaNumericShortCode()
+					this.generateService.generateShortCode()
 			);
 	}
 

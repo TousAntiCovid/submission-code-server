@@ -1,8 +1,8 @@
 package fr.gouv.stopc.submission.code.server.ws.service.generateservice;
 
 import fr.gouv.stopc.submission.code.server.commun.enums.CodeTypeEnum;
-import fr.gouv.stopc.submission.code.server.commun.service.impl.AlphaNumericCodeServiceImpl;
-import fr.gouv.stopc.submission.code.server.commun.service.impl.UUIDv4CodeServiceImpl;
+import fr.gouv.stopc.submission.code.server.commun.service.impl.ShortCodeServiceImpl;
+import fr.gouv.stopc.submission.code.server.commun.service.impl.LongCodeServiceImpl;
 import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
 import fr.gouv.stopc.submission.code.server.database.entity.Lot;
 import fr.gouv.stopc.submission.code.server.database.entity.SubmissionCode;
@@ -44,9 +44,9 @@ class GenerateServiceGenerateCodeGenericMethodTest {
         ReflectionTestUtils.setField(this.generateService, "numberOfTryInCaseOfError", 0);
 
         //SET 24 hours of lock security
-        ReflectionTestUtils.setField(this.submissionCodeService, "securityTimeBetweenTwoUsagesOf6AlphanumCode", 24);
-        ReflectionTestUtils.setField(this.generateService, "uuiDv4CodeService", new UUIDv4CodeServiceImpl());
-        ReflectionTestUtils.setField(this.generateService, "alphaNumericCodeService", new AlphaNumericCodeServiceImpl());
+        ReflectionTestUtils.setField(this.submissionCodeService, "securityTimeBetweenTwoUsagesOfShortCode", 24);
+        ReflectionTestUtils.setField(this.generateService, "longCodeService", new LongCodeServiceImpl());
+        ReflectionTestUtils.setField(this.generateService, "shortCodeService", new ShortCodeServiceImpl());
     }
 
     /**
@@ -58,7 +58,7 @@ class GenerateServiceGenerateCodeGenericMethodTest {
     {
         // asserting generateService is available
         final long size = Long.parseLong("10");
-        final CodeTypeEnum cte = CodeTypeEnum.UUIDv4;
+        final CodeTypeEnum cte = CodeTypeEnum.LONG;
         final OffsetDateTime validFrom = OffsetDateTime.now();
         final Lot lot = new Lot();
 
@@ -82,7 +82,7 @@ class GenerateServiceGenerateCodeGenericMethodTest {
             throws SubmissionCodeServerException
     {
         // asserting generateService is available
-        final CodeTypeEnum cte = CodeTypeEnum.UUIDv4;
+        final CodeTypeEnum cte = CodeTypeEnum.LONG;
         final OffsetDateTime validFrom = OffsetDateTime.now();
 
 
@@ -111,11 +111,11 @@ class GenerateServiceGenerateCodeGenericMethodTest {
      * Check elements in list have each a code.
      */
     @Test
-    void testCodeWithUUIDv4Pattern()
+    void testCodeWithLongCodePattern()
             throws SubmissionCodeServerException
     {
         // asserting generateService is available
-        final CodeTypeEnum cte = CodeTypeEnum.UUIDv4;
+        final CodeTypeEnum cte = CodeTypeEnum.LONG;
         final OffsetDateTime validFrom = OffsetDateTime.now();
 
         final SubmissionCodeDto submissionCodeDto = this.generateService
@@ -138,11 +138,11 @@ class GenerateServiceGenerateCodeGenericMethodTest {
      * Check elements in list have each a code.
      */
     @Test
-    void testCodeWith6ALPHANUMPattern()
+    void testCodeWithShortCodePattern()
             throws SubmissionCodeServerException
     {
         // asserting generateService is available
-        final CodeTypeEnum cte = CodeTypeEnum.ALPHANUM_6;
+        final CodeTypeEnum cte = CodeTypeEnum.SHORT;
         final OffsetDateTime validFrom = OffsetDateTime.now();
 
         final SubmissionCodeDto submissionCodeDto = this.generateService
@@ -172,7 +172,7 @@ class GenerateServiceGenerateCodeGenericMethodTest {
             throws SubmissionCodeServerException
     {
         // asserting generateService is available
-        final CodeTypeEnum cte = CodeTypeEnum.UUIDv4;
+        final CodeTypeEnum cte = CodeTypeEnum.LONG;
         final OffsetDateTime validFrom = OffsetDateTime.now();
 
         final SubmissionCodeDto submissionCodeDto = this.generateService
@@ -184,7 +184,7 @@ class GenerateServiceGenerateCodeGenericMethodTest {
         assertNotNull(submissionCodeDto);
 
         // assert the returning code corresponding to the given CodeTypeEnum in parameter
-        assertEquals(CodeTypeEnum.UUIDv4.getTypeCode(), submissionCodeDto.getType());
+        assertEquals(CodeTypeEnum.LONG.getTypeCode(), submissionCodeDto.getType());
     }
 
     /**
@@ -196,7 +196,7 @@ class GenerateServiceGenerateCodeGenericMethodTest {
     {
         // asserting generateService is available
         final long size = Long.parseLong("1");
-        final CodeTypeEnum cte = CodeTypeEnum.UUIDv4;
+        final CodeTypeEnum cte = CodeTypeEnum.LONG;
         final OffsetDateTime validFrom = OffsetDateTime.now();
         final Lot lot = new Lot();
 
@@ -245,7 +245,7 @@ class GenerateServiceGenerateCodeGenericMethodTest {
     {
         // asserting generateService is available
         final long size = Long.parseLong("10");
-        final CodeTypeEnum cte = CodeTypeEnum.UUIDv4;
+        final CodeTypeEnum cte = CodeTypeEnum.LONG;
         final OffsetDateTime validFrom = OffsetDateTime.now();
         final Lot lot = new Lot();
 
@@ -274,7 +274,7 @@ class GenerateServiceGenerateCodeGenericMethodTest {
     {
         // asserting generateService is available
         final long size = Long.parseLong("10");
-        final CodeTypeEnum cte = CodeTypeEnum.UUIDv4;
+        final CodeTypeEnum cte = CodeTypeEnum.LONG;
         final OffsetDateTime validFrom = OffsetDateTime.now();
         final Lot lot = new Lot();
 

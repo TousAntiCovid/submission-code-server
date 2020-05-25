@@ -116,13 +116,13 @@ public class FileServiceImpl implements IFileService {
 
 
         // STEP 1 - create codes
-        List<CodeDetailedDto> listUUIDv4Saves = this.persistUUIDv4CodesFor(numberCodeDay, lotObject, dateTimeFrom, dateTimeTo);
+        List<CodeDetailedDto> longCodeListSaved = this.persistLongCodes(numberCodeDay, lotObject, dateTimeFrom, dateTimeTo);
 
-        if (CollectionUtils.isEmpty(listUUIDv4Saves)){
+        if (CollectionUtils.isEmpty(longCodeListSaved)){
             return Optional.empty();
         }
 
-        List<SubmissionCodeDto> submissionCodeDtos = listUUIDv4Saves.stream().map(codeDetailedDto-> mapToSubmissionCodeDto(codeDetailedDto,lotObject.getId())).collect(Collectors.toList());
+        List<SubmissionCodeDto> submissionCodeDtos = longCodeListSaved.stream().map(codeDetailedDto-> mapToSubmissionCodeDto(codeDetailedDto,lotObject.getId())).collect(Collectors.toList());
         //get distinct dates
         final List<OffsetDateTime> availableDates = submissionCodeDtos
                 .stream().map(SubmissionCodeDto::getDateAvailable).distinct().collect(Collectors.toList());
@@ -157,7 +157,7 @@ public class FileServiceImpl implements IFileService {
 
 
     @Override
-    public List<CodeDetailedDto> persistUUIDv4CodesFor(Long codePerDays, Lot lotObject, OffsetDateTime from, OffsetDateTime to)
+    public List<CodeDetailedDto> persistLongCodes(Long codePerDays, Lot lotObject, OffsetDateTime from, OffsetDateTime to)
             throws SubmissionCodeServerException
     {
         List<CodeDetailedDto> listCodeDetailedDto = new ArrayList<>();
@@ -170,7 +170,7 @@ public class FileServiceImpl implements IFileService {
         for(OffsetDateTime dateFromDay: datesFromList) {
             List<CodeDetailedDto> codeSaves = generateService.generateCodeGeneric(
                     codePerDays,
-                    CodeTypeEnum.UUIDv4,
+                    CodeTypeEnum.LONG,
                     dateFromDay,
                     lotObject
             );
@@ -348,7 +348,7 @@ public class FileServiceImpl implements IFileService {
         SubmissionCodeDto submissionCodeDto = new SubmissionCodeDto();
         submissionCodeDto.setLot(idLot);
         submissionCodeDto.setUsed(false);
-        submissionCodeDto.setType(CodeTypeEnum.UUIDv4.getTypeCode());
+        submissionCodeDto.setType(CodeTypeEnum.LONG.getTypeCode());
         submissionCodeDto.setDateGeneration(OffsetDateTime.parse(codeDetailedDto.getValidFrom(), DateTimeFormatter.ISO_DATE_TIME));
         submissionCodeDto.setDateEndValidity(OffsetDateTime.parse(codeDetailedDto.getValidUntil(), DateTimeFormatter.ISO_DATE_TIME));
         submissionCodeDto.setCode(codeDetailedDto.getCode());
