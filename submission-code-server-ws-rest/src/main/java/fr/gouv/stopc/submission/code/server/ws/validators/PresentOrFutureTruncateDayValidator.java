@@ -18,10 +18,10 @@ public class PresentOrFutureTruncateDayValidator implements ConstraintValidator<
      */
     @Override
     public boolean isValid(OffsetDateTime date, ConstraintValidatorContext constraintValidatorContext) {
-        final OffsetDateTime now = OffsetDateTime.now().truncatedTo(ChronoUnit.DAYS);
+        final OffsetDateTime now = OffsetDateTime.now();
         final ZoneOffset offset = now.getOffset();
-        final OffsetDateTime dateToTest = date.toInstant().atOffset(offset).truncatedTo(ChronoUnit.DAYS);
-        log.info("days between {}", ChronoUnit.DAYS.between(dateToTest, now));
-        return ChronoUnit.DAYS.between(dateToTest, now) <= 0;
+        final OffsetDateTime dateToTest = date.toInstant().atOffset(offset);
+        log.info("seconds between {}", ChronoUnit.SECONDS.between(dateToTest, now));
+        return ChronoUnit.SECONDS.between(dateToTest, now) <= 60;
     }
 }
