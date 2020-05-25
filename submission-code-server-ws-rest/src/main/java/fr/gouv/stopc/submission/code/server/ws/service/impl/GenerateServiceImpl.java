@@ -268,7 +268,6 @@ public class GenerateServiceImpl implements IGenerateService {
 
         return validFrom
                 .plusMinutes(timeValidityShortCode)
-                .truncatedTo(ChronoUnit.MINUTES)
                 .withOffsetSameInstant(this.getZuluOffset());
     }
 
