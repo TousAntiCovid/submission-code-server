@@ -129,7 +129,7 @@ public class GenerateServiceImpl implements IGenerateService {
                         .typeAsString(cte.getType())
                         .typeAsInt(Integer.parseInt(cte.getTypeCode()))
                         .validFrom(sc !=null && sc.getDateAvailable() != null ? formatOffsetDateTime(sc.getDateAvailable()) : "")
-                        .validUntil(sc !=null && sc.getDateAvailable() != null ? formatOffsetDateTime(sc.getDateEndValidity()) : "")
+                        .validUntil(sc !=null && sc.getDateEndValidity() != null ? formatOffsetDateTime(sc.getDateEndValidity()) : "")
                         .build()
                 );
 
