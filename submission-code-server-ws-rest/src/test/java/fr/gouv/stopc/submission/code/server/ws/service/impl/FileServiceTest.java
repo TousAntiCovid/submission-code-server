@@ -56,7 +56,7 @@ class FileServiceTest {
         ReflectionTestUtils.setField(this.fileExportService, "csvSeparator", ',');
         ReflectionTestUtils.setField(this.fileExportService, "csvDelimiter", '"');
         ReflectionTestUtils.setField(this.fileExportService, "csvFilenameFormat", "%s.csv");
-        ReflectionTestUtils.setField(this.fileExportService, "transferFile", true);
+        ReflectionTestUtils.setField(this.fileExportService, "transferFile", false);
         ReflectionTestUtils.setField(this.generateService, "targetZoneId","Europe/Paris");
         ReflectionTestUtils.setField(this.generateService, "numberOfTryInCaseOfError",1);
         ReflectionTestUtils.setField(this.generateService, "timeValidityLongCode",2);

@@ -28,10 +28,10 @@ public class SubmissionCodeCsvDto {
     private String code;
 
     @NotNull
-    @CsvDate(value = "yyyy-MM-dd'T'HH:mm'Z'")
+    @CsvDate(value = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
     private OffsetDateTime dateEndValidity;
 
-    @CsvDate(value = "yyyy-MM-dd'T'HH:mm'Z'")
+    @CsvDate(value = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
     @NotNull
     private OffsetDateTime dateAvailable;
 
