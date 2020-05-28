@@ -29,8 +29,20 @@ public class SFTPServiceImpl implements ISFTPService {
     private static final String ALGORITHM_MD5 = "MD5";
     public static final String DATEFORMATFILE = "yyyyMMddHHmmss";
 
-    @Value("${submission.code.server.sftp.remote.host}")
-    private String remoteDir;
+    @Value("${submission.code.server.sftp.host}")
+    private String host;
+
+    @Value("${submission.code.server.sftp.host.port}")
+    private int port;
+
+    @Value("${submission.code.server.sftp.host.key.algorithm}")
+    private String hostKeyAlgorithm;
+
+    @Value("${submission.code.server.sftp.knownhosts.file}")
+    private String knownHostFile;
+
+    @Value("${submission.code.server.sftp.host.path}")
+    private String pathFile;
 
     @Value("${submission.code.server.sftp.user}")
     private String username;
@@ -43,8 +55,6 @@ public class SFTPServiceImpl implements ISFTPService {
      */
     private byte[] passphrase;
 
-    @Value("${submission.code.server.sftp.port}")
-    private int port;
 
     /**TargetZoneId is the time zone id (in the java.time.ZoneId way) on which the submission code server should deliver the codes. eg.: for France is "Europe/Paris"*/
     @Value("${stop.covid.qr.code.targetzone}")
@@ -52,9 +62,6 @@ public class SFTPServiceImpl implements ISFTPService {
 
     @Value("${zip.filename.formatter}")
     private String zipFilenameFormat;
-
-    @Value("${submission.code.server.sftp.path}")
-    private String pathFile;
 
     @Value("${digest.filename.formatter.sha256}")
     private String digestFileNameFormatSHA256;
@@ -127,8 +134,14 @@ public class SFTPServiceImpl implements ISFTPService {
         try{
             JSch jSch = new JSch();
 
-            Session jsSession= jSch.getSession(this.username, this.remoteDir, this.port);
+            Session jsSession= jSch.getSession(this.username, this.host, this.port);
             jSch.addIdentity(this.keyPrivate, this.passphrase);
+
+            // /!\ mandatory set the knownhosts file.
+            if(StringUtils.isNotBlank(this.knownHostFile)) {
+                log.info("Using known_hosts file specified in configuration: {} ", this.knownHostFile);
+                jSch.setKnownHosts(this.knownHostFile);
+            }
 
             Properties config = new Properties();
 
@@ -141,7 +154,12 @@ public class SFTPServiceImpl implements ISFTPService {
             config.put("mac.c2s", "hmac-sha2-256");
 
             config.put("kex", "ecdh-sha2-nistp256,ecdh-sha2-nistp384,ecdh-sha2-nistp521");
-            config.put("server_host_key", "ssh-rsa,ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521");
+
+            // /!\ set of only one server host key algorithm
+            if(StringUtils.isNotBlank(this.hostKeyAlgorithm)) {
+                log.info("Using Host key algorithm specified in configuration: {} ", this.hostKeyAlgorithm);
+                config.put("server_host_key", this.hostKeyAlgorithm);
+            }
 
             jsSession.setConfig(config);
 
