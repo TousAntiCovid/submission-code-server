@@ -27,6 +27,7 @@ public class SFTPServiceImpl implements ISFTPService {
 
     private static final String ALGORITHM_SHA256 = "SHA-256";
     private static final String ALGORITHM_MD5 = "MD5";
+    public static final String DATEFORMATFILE = "yyyyMMddHHmmss";
 
     @Value("${submission.code.server.sftp.remote.host}")
     private String remoteDir;
@@ -61,6 +62,9 @@ public class SFTPServiceImpl implements ISFTPService {
     @Value("${digest.filename.formatter.md5}")
     private String digestFileNameFormatMD5;
 
+    @Value("${submission.code.server.sftp.enablestricthost}")
+    private String strictHostCheck;
+
     public SFTPServiceImpl(@Value("${submission.code.server.sftp.passphrase}") final String passphrase) {
         if(passphrase != null) {
             try {
@@ -89,7 +93,8 @@ public class SFTPServiceImpl implements ISFTPService {
         log.info("SFTP: connected");
 
         OffsetDateTime date = OffsetDateTime.now(ZoneId.of(targetZoneId));
-        String fileNameZip = String.format(zipFilenameFormat, date.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+        String dateFile= date.format(DateTimeFormatter.ofPattern(DATEFORMATFILE));
+        String fileNameZip = String.format(zipFilenameFormat,dateFile );
 
         log.info("SFTP: is about to pushed the zip file.");
         try {
@@ -104,8 +109,8 @@ public class SFTPServiceImpl implements ISFTPService {
         }
         log.info("SFTP: files have been pushed");
 
-        this.createDigestThenTransferToSFTP(file, channelSftp,ALGORITHM_SHA256,digestFileNameFormatSHA256);
-        this.createDigestThenTransferToSFTP(file,channelSftp,ALGORITHM_MD5,digestFileNameFormatMD5);
+        this.createDigestThenTransferToSFTP(file, channelSftp,ALGORITHM_SHA256,digestFileNameFormatSHA256, dateFile);
+        this.createDigestThenTransferToSFTP(file,channelSftp,ALGORITHM_MD5,digestFileNameFormatMD5, dateFile);
 
         log.info("SFTP: connection is about to be closed");
         channelSftp.exit();
@@ -127,7 +132,7 @@ public class SFTPServiceImpl implements ISFTPService {
 
             Properties config = new Properties();
 
-            config.put("StrictHostKeyChecking", "yes");
+            config.put("StrictHostKeyChecking", strictHostCheck);
 
             config.put("cipher.s2c", "aes256-ctr,aes256-cbc");
             config.put("cipher.c2s", "aes256-ctr,aes256-cbc");
@@ -174,13 +179,12 @@ public class SFTPServiceImpl implements ISFTPService {
      * @param channelSftp already opened channel. Should be an open connection.
      * @throws SubmissionCodeServerException if an error occurs at MD5 instantiation or if the MD5 file cannot be pushed to SFTP server
      */
-    private void createDigestThenTransferToSFTP(final ByteArrayOutputStream file, final ChannelSftp channelSftp, String algorithm, String digestFileNameFormat ) throws SubmissionCodeServerException {
+    private void createDigestThenTransferToSFTP(final ByteArrayOutputStream file, final ChannelSftp channelSftp, String algorithm, String digestFileNameFormat, String dateFile ) throws SubmissionCodeServerException {
         log.info("Transferring digest file to SFTP");
 
         try{
             // Formatting the name of the digest file
-            OffsetDateTime date = OffsetDateTime.now(ZoneId.of(targetZoneId));
-            String fileNameDigest = String.format(digestFileNameFormat, date.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+            String fileNameDigest = String.format(digestFileNameFormat, dateFile);
 
             MessageDigest messageDigest = MessageDigest.getInstance(algorithm);
             byte[] hash = messageDigest.digest(file.toByteArray());
