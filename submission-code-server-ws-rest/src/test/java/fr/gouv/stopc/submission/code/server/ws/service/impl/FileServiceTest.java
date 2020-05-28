@@ -71,8 +71,9 @@ class FileServiceTest {
         // String numberCodeDay, String lot, String dateFrom, String dateTo
         final CodeDetailedDto sc = CodeDetailedDto.builder()
                 .typeAsString(CodeTypeEnum.LONG.getTypeCode())
-                .validUntil(OffsetDateTime.now().toString())
-                .validFrom(OffsetDateTime.now().toString())
+                .validUntil(OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME))
+                .validFrom(OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME))
+                .dateGenerate(OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME))
                 .code("3d27eeb8-956c-4660-bc04-8612a4c0a7f1")
                 .build();
 
@@ -134,6 +135,7 @@ class FileServiceTest {
                 .typeAsString(CodeTypeEnum.LONG.getTypeCode())
                 .validUntil(OffsetDateTime.now().toString())
                 .validFrom(OffsetDateTime.now().toString())
+                .dateGenerate(OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME))
                 .code("3d27eeb8-956c-4660-bc04-8612a4c0a7f1")
                 .build();
 
