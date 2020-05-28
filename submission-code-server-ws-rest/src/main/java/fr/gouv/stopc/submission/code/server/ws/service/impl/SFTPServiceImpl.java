@@ -2,7 +2,6 @@ package fr.gouv.stopc.submission.code.server.ws.service.impl;
 
 import com.jcraft.jsch.*;
 import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeServerException;
-import fr.gouv.stopc.submission.code.server.ws.dto.SftpUser;
 import fr.gouv.stopc.submission.code.server.ws.service.ISFTPService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -12,7 +11,6 @@ import org.springframework.stereotype.Service;
 import javax.xml.bind.DatatypeConverter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -124,13 +122,12 @@ public class SFTPServiceImpl implements ISFTPService {
         try{
             JSch jSch = new JSch();
 
-            SftpUser userInfo = new SftpUser(this.username, this.passphrase);
             Session jsSession= jSch.getSession(this.username, this.remoteDir, this.port);
             jSch.addIdentity(this.keyPrivate, this.passphrase);
 
             Properties config = new Properties();
 
-            config.put("StrictHostKeyChecking", "true");
+            config.put("StrictHostKeyChecking", "yes");
 
             config.put("cipher.s2c", "aes256-ctr,aes256-cbc");
             config.put("cipher.c2s", "aes256-ctr,aes256-cbc");
@@ -141,7 +138,6 @@ public class SFTPServiceImpl implements ISFTPService {
             config.put("kex", "ecdh-sha2-nistp256,ecdh-sha2-nistp384,ecdh-sha2-nistp521");
             config.put("server_host_key", "ssh-rsa,ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521");
 
-            jsSession.setUserInfo(userInfo);
             jsSession.setConfig(config);
 
             jsSession.connect();
