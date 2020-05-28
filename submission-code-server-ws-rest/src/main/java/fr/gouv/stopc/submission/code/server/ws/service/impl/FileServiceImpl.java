@@ -100,7 +100,7 @@ public class FileServiceImpl implements IFileService {
         try {
             dateTimeFrom = OffsetDateTime.parse(dateFrom, DateTimeFormatter.ISO_DATE_TIME);
             dateTimeTo = OffsetDateTime.parse(dateTo, DateTimeFormatter.ISO_DATE_TIME);
-        } catch (DateTimeParseException e) {
+        } catch (RuntimeException e) {
             log.error(SubmissionCodeServerException.ExceptionEnum.PARSE_STR_DATE_ERROR.getMessage());
             throw new SubmissionCodeServerException(
                     SubmissionCodeServerException.ExceptionEnum.PARSE_STR_DATE_ERROR
@@ -122,7 +122,15 @@ public class FileServiceImpl implements IFileService {
             return Optional.empty();
         }
 
-        List<SubmissionCodeDto> submissionCodeDtos = longCodeListSaved.stream().map(codeDetailedDto-> mapToSubmissionCodeDto(codeDetailedDto,lotObject.getId())).collect(Collectors.toList());
+        List<SubmissionCodeDto> submissionCodeDtos;
+        try {
+            submissionCodeDtos = longCodeListSaved.stream().map(codeDetailedDto-> mapToSubmissionCodeDto(codeDetailedDto,lotObject.getId())).collect(Collectors.toList());
+        } catch (RuntimeException e) {
+            log.error(SubmissionCodeServerException.ExceptionEnum.PARSE_STR_DATE_ERROR.getMessage());
+            throw new SubmissionCodeServerException(
+                    SubmissionCodeServerException.ExceptionEnum.PARSE_STR_DATE_ERROR
+            );
+        }
         //get distinct dates
         final List<OffsetDateTime> availableDates = submissionCodeDtos
                 .stream().map(SubmissionCodeDto::getDateAvailable).distinct().collect(Collectors.toList());
@@ -210,40 +218,40 @@ public class FileServiceImpl implements IFileService {
         GZIPOutputStream gzipOutputStream = null;
         TarArchiveOutputStream tarArchiveOutputStream = null;
 
-    try{
-        gzipOutputStream = new GZIPOutputStream(byteOutputStream);
-        tarArchiveOutputStream = new TarArchiveOutputStream(gzipOutputStream);
+        try{
+            gzipOutputStream = new GZIPOutputStream(byteOutputStream);
+            tarArchiveOutputStream = new TarArchiveOutputStream(gzipOutputStream);
 
-        for (String filename: dataByFilename.keySet()){
-            TarArchiveEntry entry = new TarArchiveEntry(filename);
-            byte[] data = dataByFilename.get(filename);
-            entry.setSize(data.length);
-            tarArchiveOutputStream.putArchiveEntry(entry);
-            final ByteArrayInputStream inputByteArray = new ByteArrayInputStream(dataByFilename.get(filename));
-            IOUtils.copy(inputByteArray, tarArchiveOutputStream);
-            inputByteArray.close();
-            tarArchiveOutputStream.closeArchiveEntry();
-        }
+            for (String filename: dataByFilename.keySet()){
+                TarArchiveEntry entry = new TarArchiveEntry(filename);
+                byte[] data = dataByFilename.get(filename);
+                entry.setSize(data.length);
+                tarArchiveOutputStream.putArchiveEntry(entry);
+                final ByteArrayInputStream inputByteArray = new ByteArrayInputStream(dataByFilename.get(filename));
+                IOUtils.copy(inputByteArray, tarArchiveOutputStream);
+                inputByteArray.close();
+                tarArchiveOutputStream.closeArchiveEntry();
+            }
 
-    } catch (IOException ioe) {
+        } catch (IOException ioe) {
             log.error(SubmissionCodeServerException.ExceptionEnum.PACKAGING_CSV_FILE_ERROR.getMessage(), ioe);
             throw new SubmissionCodeServerException(
                     SubmissionCodeServerException.ExceptionEnum.PACKAGING_CSV_FILE_ERROR,
                     ioe
             );
         } finally {
-        {
-            if(byteOutputStream!= null){
-                byteOutputStream.close();
-            }
-            if(tarArchiveOutputStream!=null){
-                tarArchiveOutputStream.close();
-            }
-            if(gzipOutputStream!= null){
-                gzipOutputStream.close();
+            {
+                if(byteOutputStream!= null){
+                    byteOutputStream.close();
+                }
+                if(tarArchiveOutputStream!=null){
+                    tarArchiveOutputStream.close();
+                }
+                if(gzipOutputStream!= null){
+                    gzipOutputStream.close();
+                }
             }
         }
-    }
         return byteOutputStream;
     }
 
@@ -349,7 +357,7 @@ public class FileServiceImpl implements IFileService {
         submissionCodeDto.setLot(idLot);
         submissionCodeDto.setUsed(false);
         submissionCodeDto.setType(CodeTypeEnum.LONG.getTypeCode());
-        submissionCodeDto.setDateGeneration(OffsetDateTime.parse(codeDetailedDto.getValidFrom(), DateTimeFormatter.ISO_DATE_TIME));
+        submissionCodeDto.setDateGeneration(OffsetDateTime.parse(codeDetailedDto.getDateGenerate(), DateTimeFormatter.ISO_DATE_TIME));
         submissionCodeDto.setDateEndValidity(OffsetDateTime.parse(codeDetailedDto.getValidUntil(), DateTimeFormatter.ISO_DATE_TIME));
         submissionCodeDto.setCode(codeDetailedDto.getCode());
         submissionCodeDto.setDateAvailable(OffsetDateTime.parse(codeDetailedDto.getValidFrom(), DateTimeFormatter.ISO_DATE_TIME));
