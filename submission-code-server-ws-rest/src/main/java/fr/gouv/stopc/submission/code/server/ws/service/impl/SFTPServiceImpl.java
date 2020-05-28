@@ -122,22 +122,21 @@ public class SFTPServiceImpl implements ISFTPService {
         try{
             JSch jSch = new JSch();
 
-            Session jsSession = jSch.getSession(this.username, this.remoteDir, this.port);
+            Session jsSession= jSch.getSession(this.username, this.remoteDir, this.port);
             jSch.addIdentity(this.keyPrivate, this.passphrase);
 
             Properties config = new Properties();
 
             config.put("StrictHostKeyChecking", "yes");
 
-            // TODO: reenable when SFTP is able to support these specific ciphers
-            //config.put("cipher.s2c", "aes256-ctr,aes256-cbc");
-            //config.put("cipher.c2s", "aes256-ctr,aes256-cbc");
+            config.put("cipher.s2c", "aes256-ctr,aes256-cbc");
+            config.put("cipher.c2s", "aes256-ctr,aes256-cbc");
 
-            //config.put("mac.s2c", "hmac-sha2-256");
-            //config.put("mac.c2s", "hmac-sha2-256");
+            config.put("mac.s2c", "hmac-sha2-256");
+            config.put("mac.c2s", "hmac-sha2-256");
 
-            //config.put("kex", "ecdh-sha2-nistp256,ecdh-sha2-nistp384,ecdh-sha2-nistp521");
-            //config.put("server_host_key", "ssh-rsa,ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521");
+            config.put("kex", "ecdh-sha2-nistp256,ecdh-sha2-nistp384,ecdh-sha2-nistp521");
+            config.put("server_host_key", "ssh-rsa,ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521");
 
             jsSession.setConfig(config);
 
