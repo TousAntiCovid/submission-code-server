@@ -16,7 +16,7 @@ import java.util.List;
 @Produces(MediaType.APPLICATION_JSON_VALUE)
 public interface IKPIGenerateController {
 
-    @GetMapping(value = "/generate/kpi")
+    @GetMapping(value = "/kpi")
     ResponseEntity<List<SubmissionCodeServerKpi>> generateKPI(@RequestParam(name = "fromDate")@DateTimeFormat(iso=DateTimeFormat.ISO.DATE) LocalDate fromDate, @RequestParam(name = "toDate") @DateTimeFormat(iso=DateTimeFormat.ISO.DATE) LocalDate toDate) throws SubmissionCodeServerException;
 
 }
