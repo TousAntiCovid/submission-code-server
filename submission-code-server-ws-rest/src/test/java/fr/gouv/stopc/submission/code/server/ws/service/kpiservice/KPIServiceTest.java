@@ -126,6 +126,9 @@ public class KPIServiceTest {
         });
     }
 
+    /**
+     * Check if the service KPI create 7 KPI for a week.
+     */
     @Test
     public void getKPIForWeek(){
         LocalDate fromDate = OffsetDateTime.now().toLocalDate();

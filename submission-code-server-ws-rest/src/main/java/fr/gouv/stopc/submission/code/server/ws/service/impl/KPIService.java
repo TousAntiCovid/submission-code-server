@@ -29,6 +29,13 @@ public class KPIService implements IKPIService {
         this.submissionCodeRepository= submissionCodeRepository;
     }
 
+    /**
+     * Create the KPI for each day from the dateFrom until dateTo. KPI of expired ou used codes (long and short).
+     * @param dateFrom
+     * @param dateTo
+     * @return
+     * @throws SubmissionCodeServerException
+     */
     @Override
     public List<SubmissionCodeServerKpi> generateKPI(LocalDate dateFrom, LocalDate dateTo) throws SubmissionCodeServerException {
         if (!validationDate(dateFrom, dateTo)){
@@ -51,6 +58,13 @@ public class KPIService implements IKPIService {
         return dateFrom.isBefore(dateTo) || dateFrom.isEqual(dateTo);
     }
 
+    /**
+     * The method creates KPI of expired code, the method searches the expired code for localDate. First it searches the number of expired codes until localDate-1,
+     * then it searches the number of expired codes until localDate. The result is the subtraction of these counts.
+     * @param localDate
+     * @param typeCode
+     * @return
+     */
     private long calculateExpiredCode(LocalDate localDate, String typeCode){
         LocalDate dateLeft = localDate.minusDays(1L);
         LocalDate dateRight= localDate;

@@ -30,9 +30,22 @@ public interface SubmissionCodeRepository extends PagingAndSortingRepository<Sub
 
      void deleteAllByLotkey(Lot lotkey);
 
-     @Query("SELECT COUNT(*) FROM SubmissionCode s where s.type = :type and s.dateUse >= :fromDate and  s.dateUse <= :toDate")
+     /**
+      * The method serches the used codes from fromDate until dateTo of type
+      * @param dateFrom
+      * @param dateTo
+      * @param type
+      * @return
+      */
+     @Query("SELECT COUNT(*) FROM SubmissionCode s where s.type = :type and s.dateUse >= :fromDate and  s.dateUse < :toDate")
      long countSubmissionCodeUsedByDate(@Param("fromDate")OffsetDateTime dateFrom, @Param("toDate") OffsetDateTime dateTo, @Param("type") String type);
 
-     @Query("SELECT COUNT(*) FROM SubmissionCode s where s.dateUse is NULL and s.type = :type and s.dateEndValidity <= :dateExpire")
+     /**
+      *
+      * @param dateTime
+      * @param type
+      * @return
+      */
+     @Query("SELECT COUNT(*) FROM SubmissionCode s where s.dateUse is NULL and s.type = :type and s.dateEndValidity < :dateExpire")
      long countSubmissionCodeExpiredDate(@Param("dateExpire") OffsetDateTime dateTime, @Param("type") String type);
 }

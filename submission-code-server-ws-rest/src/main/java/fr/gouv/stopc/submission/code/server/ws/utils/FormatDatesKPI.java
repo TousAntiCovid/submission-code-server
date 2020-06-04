@@ -3,19 +3,29 @@ package fr.gouv.stopc.submission.code.server.ws.utils;
 import java.time.*;
 
 public final class FormatDatesKPI {
-
+    /**
+     * The method calculates the date dateTmpTo in UTC. This date uses for search the KPI (codes used or expired until this date).
+     * @param dateTmpTo
+     * @param targetZoneId
+     * @return
+     */
     public static OffsetDateTime normaliseDateTo(LocalDate dateTmpTo, String targetZoneId) {
-        LocalTime time= LocalTime.of(23,59,59,999000000);
+        LocalDateTime localDateTimeToStart = dateTmpTo.plusDays(1L).atStartOfDay();
         ZoneOffset zoneOffset= OffsetDateTime.now(ZoneId.of(targetZoneId)).getOffset();
-        OffsetDateTime dateToZone = OffsetDateTime.of(dateTmpTo,time, zoneOffset);
+        OffsetDateTime dateToZone = OffsetDateTime.of(localDateTimeToStart, zoneOffset);
         return dateToZone.withOffsetSameInstant(ZoneOffset.UTC);
     }
 
+    /**
+     * The method calculates the date dateFrom in UTC. This date uses for search the KPI (codes used since this date).
+     * @param dateFrom
+     * @param targetZoneId
+     * @return
+     */
     public static OffsetDateTime normaliseDateFrom(LocalDate dateFrom, String targetZoneId) {
-        LocalTime time= LocalTime.MIN;
-        LocalDateTime.of(dateFrom,time).atZone(ZoneId.systemDefault());
         ZoneOffset zoneOffset= OffsetDateTime.now(ZoneId.of(targetZoneId)).getOffset();
-        OffsetDateTime dateBeginZone = OffsetDateTime.of(dateFrom,time, zoneOffset);
+        LocalDateTime localDateTimeStart = dateFrom.atStartOfDay();
+        OffsetDateTime dateBeginZone = OffsetDateTime.of(localDateTimeStart, zoneOffset);
         return dateBeginZone.withOffsetSameInstant(ZoneOffset.UTC);
     }
 }
