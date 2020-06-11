@@ -147,14 +147,11 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
     public Page<SubmissionCode> getSubmissionCodesFor(long lotIdentifier, int page, int elementsByPage) {
         return this.submissionCodeRepository
                 .findAllByLotkeyId(lotIdentifier, PageRequest.of(page, elementsByPage));
-
-
     }
 
     @Override
     public void removeByLot(Lot lot) {
         this.submissionCodeRepository.deleteAllByLotkey(lot);
     }
-
 
 }

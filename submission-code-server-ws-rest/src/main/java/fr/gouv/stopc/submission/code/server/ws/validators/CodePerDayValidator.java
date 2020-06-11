@@ -23,10 +23,6 @@ public class CodePerDayValidator implements ConstraintValidator<CodePerDay, Long
      */
     @Override
     public boolean isValid(Long codePerDay, ConstraintValidatorContext constraintValidatorContext) {
-       log.info("trying to validate code per day : {} {}", codePerDay, codePerDay != null && minCodePerDay <= codePerDay && codePerDay <= maxCodePerDay ? "oui": "non");
-       log.info("trying to validate code per day : 1 {}", codePerDay != null ? "oui": "non");
-       log.info("trying to validate code per day min{}: {}", minCodePerDay, minCodePerDay <= codePerDay ? "oui": "non");
-       log.info("trying to validate code per day max{}: {}",maxCodePerDay, codePerDay <= maxCodePerDay ? "oui": "non");
        return codePerDay != null && minCodePerDay <= codePerDay && codePerDay <= maxCodePerDay;
     }
 }
