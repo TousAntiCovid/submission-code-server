@@ -1,5 +1,6 @@
 package fr.gouv.stopc.submission.code.server.database.service;
 
+import fr.gouv.stopc.submission.code.server.commun.enums.CodeTypeEnum;
 import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
 import fr.gouv.stopc.submission.code.server.database.entity.Lot;
 import fr.gouv.stopc.submission.code.server.database.entity.SubmissionCode;
@@ -9,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ISubmissionCodeService {
-    Optional<SubmissionCodeDto> getCodeValidity(String code, String type);
+    Optional<SubmissionCodeDto> getCodeValidity(String code, CodeTypeEnum type);
 
     Iterable<SubmissionCode> saveAllCodes(List<SubmissionCodeDto> submissionCodeDtos);
     Iterable<SubmissionCode> saveAllCodes(List<SubmissionCodeDto> submissionCodeDtos, Lot lot);

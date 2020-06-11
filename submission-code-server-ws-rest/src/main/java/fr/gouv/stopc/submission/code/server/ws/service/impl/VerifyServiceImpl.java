@@ -1,5 +1,6 @@
 package fr.gouv.stopc.submission.code.server.ws.service.impl;
 
+import fr.gouv.stopc.submission.code.server.commun.enums.CodeTypeEnum;
 import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
 import fr.gouv.stopc.submission.code.server.database.service.ISubmissionCodeService;
 import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeServerException;
@@ -35,7 +36,12 @@ public class VerifyServiceImpl implements IVerifyService {
 
             log.info("Searching code from database");
 
-            Optional<SubmissionCodeDto> codeDtoOptional = submissionCodeService.getCodeValidity(code, type);
+        Optional<CodeTypeEnum> typeToFound = CodeTypeEnum.searchMatchType(type);
+        CodeTypeEnum typeFound = null;
+        if(typeToFound.isPresent()){
+           typeFound = typeToFound.get();
+        }
+        Optional<SubmissionCodeDto> codeDtoOptional = submissionCodeService.getCodeValidity(code, typeFound);
 
 
             if (!codeDtoOptional.isPresent()) {

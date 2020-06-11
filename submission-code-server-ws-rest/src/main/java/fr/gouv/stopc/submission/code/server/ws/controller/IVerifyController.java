@@ -29,5 +29,5 @@ public interface IVerifyController {
      * @return
      */
     @GetMapping(value="/verify")
-     ResponseEntity verifySubmissionCode(@ModelAttribute @Valid VerifyRequestVo verifyRequestVo) throws SubmissionCodeServerException;
+     ResponseEntity verifySubmissionCode(VerifyRequestVo verifyRequestVo) throws SubmissionCodeServerException;
 }
