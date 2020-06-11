@@ -21,7 +21,6 @@ public class PresentOrFutureTruncateDayValidator implements ConstraintValidator<
         final OffsetDateTime now = OffsetDateTime.now();
         final ZoneOffset offset = now.getOffset();
         final OffsetDateTime dateToTest = date.toInstant().atOffset(offset);
-        log.info("seconds between {}", ChronoUnit.SECONDS.between(dateToTest, now));
         return ChronoUnit.SECONDS.between(dateToTest, now) <= 60;
     }
 }

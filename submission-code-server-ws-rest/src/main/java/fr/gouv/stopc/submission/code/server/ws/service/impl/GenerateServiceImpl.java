@@ -1,8 +1,8 @@
 package fr.gouv.stopc.submission.code.server.ws.service.impl;
 
 import fr.gouv.stopc.submission.code.server.commun.enums.CodeTypeEnum;
-import fr.gouv.stopc.submission.code.server.commun.service.IShortCodeService;
 import fr.gouv.stopc.submission.code.server.commun.service.ILongCodeService;
+import fr.gouv.stopc.submission.code.server.commun.service.IShortCodeService;
 import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
 import fr.gouv.stopc.submission.code.server.database.entity.Lot;
 import fr.gouv.stopc.submission.code.server.database.entity.SubmissionCode;
@@ -12,6 +12,8 @@ import fr.gouv.stopc.submission.code.server.ws.dto.CodeDetailedDto;
 import fr.gouv.stopc.submission.code.server.ws.dto.CodeSimpleDto;
 import fr.gouv.stopc.submission.code.server.ws.service.IGenerateService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.IterableUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -24,8 +26,10 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -103,7 +107,7 @@ public class GenerateServiceImpl implements IGenerateService {
 
         long failCount = 0;
 
-        // The date available/validFrom is date of now in this time
+       // The date available/validFrom is date of now in this time
         OffsetDateTime validGenDate= OffsetDateTime.now();
 
         log.info("Generating an amount of {} {} codes", size, cte);
@@ -211,6 +215,66 @@ public class GenerateServiceImpl implements IGenerateService {
             validFromList.add(oft);
         }
         return validFromList;
+    }
+
+
+    @Override
+    public List<CodeDetailedDto> generateLongCodesWithBulkMethod(
+            final OffsetDateTime validFrom,
+            final long dailyAmount,
+            final Lot lot,
+            final OffsetDateTime validGenDate
+    )   throws SubmissionCodeServerException
+    {
+
+
+        final OffsetDateTime validUntil = getExpirationDateForLongCodeStartingFrom(validFrom);
+
+        final List<SubmissionCodeDto> submissionCodeDtos = this.longCodeService
+                .generateCodes(dailyAmount)
+                .stream()
+                .map(code ->
+                        SubmissionCodeDto.builder()
+                                .code(code)
+                                .type(CodeTypeEnum.LONG.getTypeCode())
+                                .dateGeneration(validGenDate)
+                                .dateAvailable(validFrom)
+                                .dateEndValidity(validUntil)
+                                .used(false)
+                                .build()
+                )
+                .collect(Collectors.toList());
+
+        Iterable<SubmissionCode> submissionCodes = null;
+        try {
+            submissionCodes = this.submissionCodeService
+                    .saveAllCodes(submissionCodeDtos, lot);
+
+        }  catch (DataIntegrityViolationException divException) {
+            submissionCodeService.removeByLot(lot);
+            log.error("code generated error integration");
+            throw new SubmissionCodeServerException(
+                    SubmissionCodeServerException.ExceptionEnum.CODE_GENERATION_FAILED_ERROR
+            );
+    }
+        return this.submissionCodeListToCodeDetailDtoList(submissionCodes);
+    }
+
+    public List<CodeDetailedDto> submissionCodeListToCodeDetailDtoList(Iterable<SubmissionCode> submissionCodes) {
+        if(submissionCodes == null){
+            return Collections.emptyList();
+        }
+        return IterableUtils.toList(submissionCodes).stream()
+                .map(sc -> CodeDetailedDto.builder()
+                        .code(sc.getCode())
+                        .typeAsString(CodeTypeEnum.LONG.getType())
+                        .typeAsInt(Integer.parseInt(CodeTypeEnum.LONG.getTypeCode()))
+                        .validFrom(sc != null && sc.getDateAvailable() != null ? formatOffsetDateTime(sc.getDateAvailable()) : "")
+                        .validUntil(sc != null && sc.getDateAvailable() != null ? formatOffsetDateTime(sc.getDateEndValidity()) : "")
+                        .dateGenerate(sc != null && sc.getDateGeneration()!= null ? formatOffsetDateTime(sc.getDateGeneration()) : "")
+                        .build()
+                )
+                .collect(Collectors.toList());
     }
 
     /**

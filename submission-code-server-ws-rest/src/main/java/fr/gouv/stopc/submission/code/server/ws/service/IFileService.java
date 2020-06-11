@@ -7,6 +7,7 @@ import fr.gouv.stopc.submission.code.server.ws.dto.CodeDetailedDto;
 import org.springframework.scheduling.annotation.Async;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -52,9 +53,10 @@ public interface IFileService {
      * STEP 2 - [ PARSING DATA TO CSV Data ]
      * @param submissionCodeDtos
      * @param dates
+     * @param tmpDirectory
      * @return List of csv dataByFilename
      */
-    Map<String, byte[]> serializeCodesToCsv(List<SubmissionCodeDto> submissionCodeDtos, List<OffsetDateTime> dates)
+    List<String> serializeCodesToCsv(List<SubmissionCodeDto> submissionCodeDtos, List<OffsetDateTime> dates, File tmpDirectory)
             throws SubmissionCodeServerException;
 
 
@@ -63,7 +65,7 @@ public interface IFileService {
      * @param dataByFilename csv data to be zipped.
      * @return ZipOutputStream instance containing csv data.
      */
-    ByteArrayOutputStream packageCsvDataToZipFile(Map<String, byte[]> dataByFilename)
+    ByteArrayOutputStream packageCsvDataToZipFile(List<String> dataByFilename, File tmpDirectory)
             throws SubmissionCodeServerException, IOException;
 
     }

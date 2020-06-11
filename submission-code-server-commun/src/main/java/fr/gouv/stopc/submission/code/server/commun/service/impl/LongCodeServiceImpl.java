@@ -15,7 +15,6 @@ public class LongCodeServiceImpl implements ILongCodeService {
 
 
     public String generateCode() {
-        log.info("Generating random UUIDv4 code");
         return (UUID.randomUUID()).toString();
     }
 

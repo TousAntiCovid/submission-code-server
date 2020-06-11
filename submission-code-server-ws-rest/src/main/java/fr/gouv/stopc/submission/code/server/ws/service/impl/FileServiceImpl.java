@@ -34,11 +34,12 @@ import java.time.DateTimeException;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPOutputStream;
+
+import static org.apache.tomcat.util.http.fileupload.FileUtils.deleteDirectory;
 
 
 @Slf4j
@@ -72,6 +73,9 @@ public class FileServiceImpl implements IFileService {
     @Value("${submission.code.server.sftp.enableautotransfer}")
     private boolean transferFile;
 
+    @Value("${csv.directory.tmp}")
+    private String directoryTmpCsv;
+
 
 
     @Inject
@@ -86,14 +90,22 @@ public class FileServiceImpl implements IFileService {
     public Optional<ByteArrayOutputStream> zipExportAsync(Long numberCodeDay, Lot lotObject, String dateFrom, String dateTo)
             throws SubmissionCodeServerException
     {
-        return this.zipExport(numberCodeDay, lotObject, dateFrom, dateTo);
+        final OffsetDateTime start = OffsetDateTime.now();
+
+        log.info("generating asynchrouniously long code with archive method");
+
+        final Optional<ByteArrayOutputStream> byteArrayOutputStream = this.zipExport(numberCodeDay, lotObject, dateFrom, dateTo);
+
+        log.info("It took {} seconds to generate {} codes", ChronoUnit.SECONDS.between(start, OffsetDateTime.now()), ChronoUnit.DAYS.between(OffsetDateTime.parse(dateFrom), OffsetDateTime.parse(dateTo)) * numberCodeDay);
+
+        return byteArrayOutputStream;
     }
 
     @Override
     public Optional<ByteArrayOutputStream> zipExport(Long numberCodeDay, Lot lotObject, String dateFrom, String dateTo)
             throws SubmissionCodeServerException
     {
-
+        log.info("Generate {} codes per day from {} to {}", numberCodeDay, dateFrom, dateTo);
         OffsetDateTime dateTimeFrom;
         OffsetDateTime dateTimeTo;
 
@@ -116,33 +128,17 @@ public class FileServiceImpl implements IFileService {
 
 
         // STEP 1 - create codes
-        List<CodeDetailedDto> longCodeListSaved = this.persistLongCodes(numberCodeDay, lotObject, dateTimeFrom, dateTimeTo);
-
-        if (CollectionUtils.isEmpty(longCodeListSaved)){
-            return Optional.empty();
-        }
-
-        List<SubmissionCodeDto> submissionCodeDtos;
-        try {
-            submissionCodeDtos = longCodeListSaved.stream().map(codeDetailedDto-> mapToSubmissionCodeDto(codeDetailedDto,lotObject.getId())).collect(Collectors.toList());
-        } catch (RuntimeException e) {
-            log.error(SubmissionCodeServerException.ExceptionEnum.PARSE_STR_DATE_ERROR.getMessage());
-            throw new SubmissionCodeServerException(
-                    SubmissionCodeServerException.ExceptionEnum.PARSE_STR_DATE_ERROR
-            );
-        }
-        //get distinct dates
-        final List<OffsetDateTime> availableDates = submissionCodeDtos
-                .stream().map(SubmissionCodeDto::getDateAvailable).distinct().collect(Collectors.toList());
-
         // STEP 2 parsing codes to csv dataByFilename
-        Map<String, byte[]> dataByFilename = serializeCodesToCsv(submissionCodeDtos, availableDates);
+        File tmpDirectory = new File(System.getProperty("java.io.tmpdir")+directoryTmpCsv);
+        tmpDirectory.mkdir();
+        log.info("Create directory {} and Start generation codes bulk method", tmpDirectory.getAbsolutePath());
+        List<String> dataByFilename = this.persistLongCodesQuiet(numberCodeDay, lotObject, dateTimeFrom, dateTimeTo, tmpDirectory);
 
-
+        log.info("End generation codes");
         // STEP 3 packaging csv data
         ByteArrayOutputStream zipOutputStream = null;
         try {
-            zipOutputStream = packageCsvDataToZipFile(dataByFilename);
+            zipOutputStream = packageCsvDataToZipFile(dataByFilename, tmpDirectory);
         } catch (IOException e) {
             log.error(SubmissionCodeServerException.ExceptionEnum.PACKAGING_CSV_FILE_ERROR.getMessage(), e);
             throw new SubmissionCodeServerException(
@@ -160,6 +156,14 @@ public class FileServiceImpl implements IFileService {
             log.info("No SFTP transfer have been submitted.");
         }
 
+        //delete directory
+        try {
+            log.info("Delete directory {}",tmpDirectory.getAbsolutePath());
+            deleteDirectory(tmpDirectory);
+        } catch (IOException e) {
+            log.error("Delete directory is not good");
+        }
+
         return  Optional.of(zipOutputStream);
     }
 
@@ -172,16 +176,22 @@ public class FileServiceImpl implements IFileService {
         OffsetDateTime fromWithoutHours = from.truncatedTo(ChronoUnit.DAYS);
         OffsetDateTime toWithoutHours = to.truncatedTo(ChronoUnit.DAYS);
 
+        OffsetDateTime validGenDate= OffsetDateTime.now();
+
         long diffDays= ChronoUnit.DAYS.between(fromWithoutHours, toWithoutHours) + 1;
         int diff = Integer.parseInt(Long.toString(diffDays));
         List<OffsetDateTime> datesFromList = generateService.getListOfValidDatesFor(diff, from);
+        int i = 0;
         for(OffsetDateTime dateFromDay: datesFromList) {
-            List<CodeDetailedDto> codeSaves = generateService.generateCodeGeneric(
-                    codePerDays,
-                    CodeTypeEnum.LONG,
+            i++;
+            log.info("Generate code for start validity date : {} [{}/{}]", dateFromDay, i, datesFromList.size());
+            List<CodeDetailedDto> codeSaves = this.generateService.generateLongCodesWithBulkMethod(
                     dateFromDay,
-                    lotObject
+                    codePerDays,
+                    lotObject,
+                    validGenDate
             );
+
             if(CollectionUtils.isNotEmpty(codeSaves)){
                 listCodeDetailedDto.addAll(codeSaves);
             }
@@ -189,30 +199,72 @@ public class FileServiceImpl implements IFileService {
         return listCodeDetailedDto;
     }
 
-    @Override
-    public Map<String, byte[]> serializeCodesToCsv  (
-            List<SubmissionCodeDto> submissionCodeDtos,
-            List<OffsetDateTime> dates
-    )
+    public List<String> persistLongCodesQuiet(Long codePerDays, Lot lotObject, OffsetDateTime from, OffsetDateTime to, File tmpDirectory)
             throws SubmissionCodeServerException
     {
-        Map<String, byte[]> dataByFilename = new HashMap<>();
+        List<String> listFile = new ArrayList<>();
+
+        OffsetDateTime fromWithoutHours = from.truncatedTo(ChronoUnit.DAYS);
+        OffsetDateTime toWithoutHours = to.truncatedTo(ChronoUnit.DAYS);
+        OffsetDateTime validGenDate= OffsetDateTime.now();
+
+        long diffDays= ChronoUnit.DAYS.between(fromWithoutHours, toWithoutHours) + 1;
+        int diff = Integer.parseInt(Long.toString(diffDays));
+        List<OffsetDateTime> datesFromList = generateService.getListOfValidDatesFor(diff, from);
+        for(OffsetDateTime dateFromDay: datesFromList) {
+            List<CodeDetailedDto> codeSaves = this.generateService.generateLongCodesWithBulkMethod(
+                    dateFromDay,
+                    codePerDays,
+                    lotObject,
+                    validGenDate
+            );
+
+            if(CollectionUtils.isNotEmpty(codeSaves)){
+                final List<SubmissionCodeDto> collect = codeSaves.stream()
+                        .map(codeDetailedDto -> mapToSubmissionCodeDto(codeDetailedDto, lotObject.getId()))
+                        .collect(Collectors.toList());
+
+                listFile.addAll((this.serializeCodesToCsv(collect, Arrays.asList(dateFromDay),tmpDirectory)));
+            }
+        }
+        return listFile;
+    }
+
+    @Override
+    public List<String> serializeCodesToCsv(
+            List<SubmissionCodeDto> submissionCodeDtos,
+            List<OffsetDateTime> dates,
+            File tmpDirectory)
+            throws SubmissionCodeServerException
+    {
+        List<String> dataByFilename = new ArrayList<>();
 
         for(OffsetDateTime dateTime : dates){
             List<SubmissionCodeDto> listForDay= submissionCodeDtos
                     .stream().filter(tmp-> dateTime.isEqual(tmp.getDateAvailable()))
                     .collect(Collectors.toList());
 
-            if(CollectionUtils.isNotEmpty(listForDay)){
-                byte[] file = createCSV(listForDay, dateTime);
-                dataByFilename.put(this.getCsvFilename(dateTime), file );
+            if(CollectionUtils.isNotEmpty(listForDay)) {
+                byte[] fileByte = createCSV(listForDay, dateTime);
+                String filename = this.getCsvFilename(dateTime);
+                dataByFilename.add(filename);
+                OutputStream os = null;
+                try {
+                    os = new FileOutputStream(tmpDirectory.getAbsolutePath()+ File.separator+ filename);
+                    os.write(fileByte);
+                    os.close();
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
         return dataByFilename;
     }
 
     @Override
-    public ByteArrayOutputStream packageCsvDataToZipFile(Map<String, byte[]> dataByFilename)
+    public ByteArrayOutputStream packageCsvDataToZipFile(List<String> dataByFilename, File tmpDirectory)
             throws SubmissionCodeServerException, IOException {
         ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
         GZIPOutputStream gzipOutputStream = null;
@@ -222,14 +274,18 @@ public class FileServiceImpl implements IFileService {
             gzipOutputStream = new GZIPOutputStream(byteOutputStream);
             tarArchiveOutputStream = new TarArchiveOutputStream(gzipOutputStream);
 
-            for (String filename: dataByFilename.keySet()){
+            for (String filename: dataByFilename){
                 TarArchiveEntry entry = new TarArchiveEntry(filename);
-                byte[] data = dataByFilename.get(filename);
-                entry.setSize(data.length);
+                File file = new File(tmpDirectory.getAbsolutePath() + File.separator+ filename);
+                FileInputStream fileInputStream = new FileInputStream(tmpDirectory.getAbsolutePath() + File.separator+ filename);
+                byte [] data = new byte [(int) file.length()];
+                fileInputStream.read(data);
+                entry.setSize(file.length());
                 tarArchiveOutputStream.putArchiveEntry(entry);
-                final ByteArrayInputStream inputByteArray = new ByteArrayInputStream(dataByFilename.get(filename));
+                final ByteArrayInputStream inputByteArray = new ByteArrayInputStream(data);
                 IOUtils.copy(inputByteArray, tarArchiveOutputStream);
                 inputByteArray.close();
+                fileInputStream.close();
                 tarArchiveOutputStream.closeArchiveEntry();
             }
 
