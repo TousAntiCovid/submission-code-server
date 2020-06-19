@@ -43,7 +43,7 @@ public class VerifyServiceVerifyCodeMethodTest {
     @Test
     void testCodeNotExist() throws SubmissionCodeServerException {
 
-        when(this.submissionCodeService.getCodeValidity(FALSE_CODE, CodeTypeEnum.SHORT.getType()))
+        when(this.submissionCodeService.getCodeValidity(FALSE_CODE, CodeTypeEnum.SHORT))
                 .thenReturn(Optional.empty());
 
         final boolean isPresent = this.verifyService.verifyCode(FALSE_CODE, CodeTypeEnum.SHORT.getType());
@@ -57,7 +57,7 @@ public class VerifyServiceVerifyCodeMethodTest {
     @Test
     void testCodeExistForGivenCodeType() throws SubmissionCodeServerException {
 
-        when(this.submissionCodeService.getCodeValidity(FALSE_CODE, CodeTypeEnum.SHORT.getTypeCode()))
+        when(this.submissionCodeService.getCodeValidity(FALSE_CODE, CodeTypeEnum.SHORT))
                 .thenReturn(Optional.of(
                         SubmissionCodeDto.builder()
                                 .code(FALSE_CODE)
@@ -81,7 +81,7 @@ public class VerifyServiceVerifyCodeMethodTest {
     @Test
     void testCodeNotExistForGivenCodeType() throws SubmissionCodeServerException {
 
-        when(this.submissionCodeService.getCodeValidity(FALSE_CODE, CodeTypeEnum.SHORT.getTypeCode()))
+        when(this.submissionCodeService.getCodeValidity(FALSE_CODE, CodeTypeEnum.SHORT))
                 .thenReturn(Optional.empty());
 
 
@@ -95,7 +95,7 @@ public class VerifyServiceVerifyCodeMethodTest {
     @Test
     void testCodeAlreadyVerify() throws SubmissionCodeServerException {
 
-         when(this.submissionCodeService.getCodeValidity(FALSE_CODE, CodeTypeEnum.SHORT.getTypeCode()))
+         when(this.submissionCodeService.getCodeValidity(FALSE_CODE, CodeTypeEnum.SHORT))
                 .thenReturn(Optional.of(
                         SubmissionCodeDto.builder()
                                 .code(FALSE_CODE)
@@ -116,7 +116,7 @@ public class VerifyServiceVerifyCodeMethodTest {
     @Test
     void testExpiredCode() throws SubmissionCodeServerException {
 
-        when(this.submissionCodeService.getCodeValidity(FALSE_CODE, CodeTypeEnum.SHORT.getTypeCode()))
+        when(this.submissionCodeService.getCodeValidity(FALSE_CODE, CodeTypeEnum.SHORT))
                 .thenReturn(Optional.of(
                         SubmissionCodeDto.builder()
                                 .code(FALSE_CODE)

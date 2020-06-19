@@ -1,8 +1,9 @@
 package fr.gouv.stopc.submission.code.server.ws.service.impl;
 
 import fr.gouv.stopc.submission.code.server.commun.enums.CodeTypeEnum;
-import fr.gouv.stopc.submission.code.server.commun.service.impl.ShortCodeServiceImpl;
 import fr.gouv.stopc.submission.code.server.commun.service.impl.LongCodeServiceImpl;
+import fr.gouv.stopc.submission.code.server.commun.service.impl.ShortCodeServiceImpl;
+import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
 import fr.gouv.stopc.submission.code.server.database.entity.Lot;
 import fr.gouv.stopc.submission.code.server.database.service.impl.SubmissionCodeServiceImpl;
 import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeServerException;
@@ -23,8 +24,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.zip.GZIPInputStream;
 
+import static org.apache.tomcat.util.http.fileupload.FileUtils.deleteDirectory;
 
 
 @TestPropertySource("classpath:application.properties")
@@ -56,6 +57,7 @@ class FileServiceTest {
         ReflectionTestUtils.setField(this.fileExportService, "csvSeparator", ',');
         ReflectionTestUtils.setField(this.fileExportService, "csvDelimiter", '"');
         ReflectionTestUtils.setField(this.fileExportService, "csvFilenameFormat", "%s.csv");
+        ReflectionTestUtils.setField(this.fileExportService, "directoryTmpCsv", "tmp");
         ReflectionTestUtils.setField(this.fileExportService, "transferFile", false);
         ReflectionTestUtils.setField(this.generateService, "targetZoneId","Europe/Paris");
         ReflectionTestUtils.setField(this.generateService, "numberOfTryInCaseOfError",1);
@@ -64,6 +66,7 @@ class FileServiceTest {
         ReflectionTestUtils.setField(this.generateService, "submissionCodeService", this.submissionCodeService);
         ReflectionTestUtils.setField(this.generateService, "shortCodeService", new ShortCodeServiceImpl());
         ReflectionTestUtils.setField(this.generateService, "longCodeService", new LongCodeServiceImpl());
+        System.setProperty("java.io.tmpdir", "");
     }
 
     @Test
@@ -88,40 +91,14 @@ class FileServiceTest {
         List<OffsetDateTime> dates = new ArrayList<>();
         dates.add(date);
 
-        Mockito.when(generateService.generateCodeGeneric(10, CodeTypeEnum.LONG,date, lot)).thenReturn(Arrays.asList(sc));
+        Mockito.when(generateService.generateLongCodesWithBulkMethod(date,10, lot, date)).thenReturn(Arrays.asList(sc));
         Mockito.when(generateService.getListOfValidDatesFor(5,startDate)).thenReturn(dates);
         Optional<ByteArrayOutputStream> result = Optional.empty();
 
 
         result = fileExportService.zipExport(10L, lot, nowDay, endDay);
 
-        ByteArrayOutputStream byteArray;
-        if(result.isPresent()) {
-            byteArray = result.get();
-
-            OutputStream outputStream = new FileOutputStream(TEST_FILE_ZIP);
-            byteArray.writeTo(outputStream);
-
-            //unzip
-            FileInputStream fis = new FileInputStream(TEST_FILE_ZIP);
-            TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(new GZIPInputStream(fis));
-            TarArchiveEntry tarEntry = tarArchiveInputStream.getNextTarEntry();
-
-            int countCsv = 0;
-            while (tarEntry != null) {
-                countCsv = countCsv + 1;
-                tarEntry =tarArchiveInputStream.getNextTarEntry();
-            }
-            Assert.isTrue(countCsv != 0);
-            fis.close();
-            outputStream.flush();
-            outputStream.close();
-            File fileToDelete = new File(TEST_FILE_ZIP);
-            fileToDelete.deleteOnExit();
-
-        } else{
-            Assert.isTrue(false);
-        }
+        Assert.notNull(result.get());
 
 
     }
@@ -146,7 +123,7 @@ class FileServiceTest {
         Lot lot= new Lot();
         lot.setId(1L);
 
-        Mockito.when(generateService.generateCodeGeneric(10, CodeTypeEnum.LONG,nowDay, lot)).thenReturn(Arrays.asList(sc));
+        Mockito.when(generateService.generateLongCodesWithBulkMethod(nowDay, 10, lot, nowDay)).thenReturn(Arrays.asList(sc));
         List<OffsetDateTime> dates = new ArrayList<>();
         dates.add(nowDay);
         Mockito.when(generateService.getListOfValidDatesFor(1,nowDay)).thenReturn(dates);
@@ -163,6 +140,71 @@ class FileServiceTest {
         OffsetDateTime startDay = OffsetDateTime.now().minusDays(1l);
         OffsetDateTime endDay = OffsetDateTime.now().plusDays(4L);
         Assert.isTrue(!fileExportService.isDateValid(startDay, endDay));
+
+    }
+
+    @Test
+    public void testSerializeCodesToCsv()  {
+        File tmpDirectory = new  File("test");
+        tmpDirectory.mkdir();
+        List<SubmissionCodeDto> submissionCodeDtos = new ArrayList<>();
+        OffsetDateTime nowDay = OffsetDateTime.now();
+        SubmissionCodeDto submissionCodeDto =  SubmissionCodeDto.builder().code("test").dateAvailable(nowDay).dateEndValidity(nowDay.plusDays(1L))
+                .dateGeneration(nowDay).lot(1L).used(false).type("test").build();
+
+        submissionCodeDtos.add(submissionCodeDto);
+        List<OffsetDateTime> dates = new ArrayList<>();
+        dates.add(nowDay);
+        try {
+            fileExportService.serializeCodesToCsv(submissionCodeDtos, dates, tmpDirectory);
+        } catch (SubmissionCodeServerException e) {
+            e.printStackTrace();
+        }
+
+        Assert.notNull(tmpDirectory.list());
+        try {
+            deleteDirectory(tmpDirectory);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void testPackageCsvDataToZipFile(){
+        File tmpDirectory = new  File("test");
+        tmpDirectory.mkdir();
+        List<SubmissionCodeDto> submissionCodeDtos = new ArrayList<>();
+        OffsetDateTime nowDay = OffsetDateTime.now();
+        SubmissionCodeDto submissionCodeDto =  SubmissionCodeDto.builder().code("test").dateAvailable(nowDay).dateEndValidity(nowDay.plusDays(1L))
+                .dateGeneration(nowDay).lot(1L).used(false).type("test").build();
+
+        submissionCodeDtos.add(submissionCodeDto);
+        List<OffsetDateTime> dates = new ArrayList<>();
+        dates.add(nowDay);
+        //create csv in directory
+        try {
+            fileExportService.serializeCodesToCsv(submissionCodeDtos, dates, tmpDirectory);
+        } catch (SubmissionCodeServerException e) {
+            e.printStackTrace();
+        }
+        List<String> datesZip= new ArrayList<>();
+        datesZip.add(String.format("%s.csv",nowDay.format(DateTimeFormatter.ofPattern("yyyyMMdd"))));
+        ByteArrayOutputStream result= null;
+        //call package zip
+        try {
+           result = fileExportService.packageCsvDataToZipFile(datesZip, tmpDirectory);
+        } catch (SubmissionCodeServerException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        Assert.notNull(result);
+        //remove resources
+        try {
+            deleteDirectory(tmpDirectory);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
     }
 }

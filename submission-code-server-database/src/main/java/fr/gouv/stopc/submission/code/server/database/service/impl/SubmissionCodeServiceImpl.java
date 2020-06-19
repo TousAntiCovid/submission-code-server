@@ -38,11 +38,12 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
     }
 
     @Override
-    public Optional<SubmissionCodeDto> getCodeValidity(String code, String type) {
+    public Optional<SubmissionCodeDto> getCodeValidity(String code, CodeTypeEnum type) {
         if(Strings.isBlank(code)){
             return Optional.empty();
         }
-        SubmissionCode submissionCode = submissionCodeRepository.findByCodeAndType(code,type);
+        String typeCode = type.getTypeCode();
+        SubmissionCode submissionCode = submissionCodeRepository.findByCodeAndType(code,typeCode);
         if(Objects.isNull(submissionCode)){
             return Optional.empty();
         }
@@ -101,7 +102,7 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
 
             // if Unique code exists for short code try to update
             if(securityTimeBetweenTwoUsagesOfShortCode != null
-                    && CodeTypeEnum.SHORT.isTypeOf(submissionCodeToSave.getType()))
+                    && CodeTypeEnum.SHORT.isTypeOrTypeCodeOf(submissionCodeToSave.getType()))
             {
                 SubmissionCode sc = this.submissionCodeRepository.findByCodeAndTypeAndAndDateEndValidityLessThan(
                         submissionCodeToSave.getCode(),
@@ -147,14 +148,11 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
     public Page<SubmissionCode> getSubmissionCodesFor(long lotIdentifier, int page, int elementsByPage) {
         return this.submissionCodeRepository
                 .findAllByLotkeyId(lotIdentifier, PageRequest.of(page, elementsByPage));
-
-
     }
 
     @Override
     public void removeByLot(Lot lot) {
         this.submissionCodeRepository.deleteAllByLotkey(lot);
     }
-
 
 }

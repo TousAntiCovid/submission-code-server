@@ -3,6 +3,7 @@ package fr.gouv.stopc.submission.code.server.commun.enums;
 import lombok.Getter;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 @Getter
 public enum CodeTypeEnum {
@@ -37,31 +38,37 @@ public enum CodeTypeEnum {
         this.pattern = pattern;
     }
 
+    public static Optional<CodeTypeEnum> searchMatchType(String type) {
+        for (CodeTypeEnum et :  Arrays.asList(values())) {
+            if(et.isTypeOrTypeCodeOf(type)) return Optional.of(et);
+        }
+        return Optional.empty();
+    }
+
 
     /**
      * Method equals get a string (ex. "1" or "UUIDv4") to know if the enum is corresponding to the value.
      * @param typeOrTypeCode (ex. "1" or "UUIDv4") value to test if the enum is corresponding to "typeOrTypeCode"
      * @return if the enum is corresponding to the parameter in method returned value is "true" otherwise returned value is "false"
      */
-    public final Boolean isTypeOf(String typeOrTypeCode) {
+    public final Boolean isTypeOrTypeCodeOf(String typeOrTypeCode) {
         return this.type.equals(typeOrTypeCode) || this.typeCode.equals(typeOrTypeCode) ;
     }
 
     /**
      * Static method exists get a string (ex. "1" or "UUIDv4") to know if an enum is corresponding to the value.
-     * It uses the methode {@link #isTypeOf(String)} to check the value.
+     * It uses the methode {@link #isTypeOrTypeCodeOf(String)} to check the value.
      * @param typeOrTypeCode (ex. "1" or "UUIDv4") value to test if the enum is corresponding to "typeOrTypeCode"
      * @return if an enum is corresponding to the parameter in method returned value is "true" otherwise returned value is "false"
      */
     public static final Boolean exists(final String typeOrTypeCode) {
-        for (CodeTypeEnum et :  Arrays.asList(values())) {
-            if(et.isTypeOf(typeOrTypeCode)) return true;
-        }
-        return false;
+        Optional<CodeTypeEnum> matchType = searchMatchType(typeOrTypeCode);
+        return matchType.isPresent();
     }
 
     public interface Pattern {
         String SHORT = "([a-zA-Z0-9]{6})";
         String LONG = "([a-f0-9]{8}(-[a-f0-9]{4}){4}[a-f0-9]{8})";
     }
+
 }

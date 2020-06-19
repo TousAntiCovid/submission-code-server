@@ -25,7 +25,6 @@ public interface SubmissionCodeRepository extends PagingAndSortingRepository<Sub
 
      Page<SubmissionCode> findAllByLotkeyId(long lotIdentifier, Pageable pageable);
 
-
      SubmissionCode findByCodeAndTypeAndAndDateEndValidityLessThan(String code, String type, OffsetDateTime validityLessThanDate);
 
      void deleteAllByLotkey(Lot lotkey);

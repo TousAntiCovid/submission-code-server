@@ -33,11 +33,15 @@ public class ShortCodeServiceImpl implements IShortCodeService {
         log.info("Generating random short code");
         final List<Character> characters = getShuffledAlphaNumList();
 
-        String alphaNum = "";
+        /**
+         *  The function sRandom.nexInt(i) create a number random from 0 to i-1.
+         *  The StringBuilder is more performing than string+=string.tu
+         */
+        StringBuilder alphaNum = new StringBuilder();
         for (int i = 0; i < CODE_SIZE; i++) {
-            alphaNum += characters.get(sRandom.nextInt(ALPHA_NUMERIC_CHAR_ARRAY.size()-1)).toString();
+            alphaNum.append(characters.get(sRandom.nextInt(ALPHA_NUMERIC_CHAR_ARRAY.size())));
         }
-        return alphaNum;
+        return alphaNum.toString();
     }
 
     /**
@@ -45,7 +49,7 @@ public class ShortCodeServiceImpl implements IShortCodeService {
      */
     protected static List<Character> getShuffledAlphaNumList() {
         final ArrayList<Character> tempAlphaNumList = new ArrayList<>(ALPHA_NUMERIC_CHAR_ARRAY);
-        Collections.shuffle(ALPHA_NUMERIC_CHAR_ARRAY,sRandom);
+        Collections.shuffle(tempAlphaNumList,sRandom);
         return tempAlphaNumList;
     }
 

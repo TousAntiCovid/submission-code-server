@@ -1,5 +1,6 @@
 package test.fr.gouv.stopc.submission.code.server.database.server;
 
+import fr.gouv.stopc.submission.code.server.commun.enums.CodeTypeEnum;
 import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
 import fr.gouv.stopc.submission.code.server.database.entity.SubmissionCode;
 import fr.gouv.stopc.submission.code.server.database.repository.SubmissionCodeRepository;
@@ -23,8 +24,8 @@ public class SubmissionCodeServiceImplTest {
         SubmissionCode submissionCode = new SubmissionCode();
         Mockito.when(submissionCodeRepositoryMock.findByCodeAndType(Mockito.anyString(),Mockito.anyString())).thenReturn(submissionCode);
         SubmissionCodeServiceImpl submissionCodeServiceImplTest = new SubmissionCodeServiceImpl(submissionCodeRepositoryMock);
-        String code = "test";
-        Optional<SubmissionCodeDto> result = submissionCodeServiceImplTest.getCodeValidity(code,"test");
+        String code= "test";
+        Optional<SubmissionCodeDto> result = submissionCodeServiceImplTest.getCodeValidity(code, CodeTypeEnum.LONG);
         Assertions.assertTrue(result.isPresent());
     }
 
@@ -59,7 +60,7 @@ public class SubmissionCodeServiceImplTest {
         Mockito.when(submissionCodeRepositoryMock.findByCodeAndType(Mockito.anyString(),Mockito.anyString())).thenReturn(submissionCode);
         SubmissionCodeServiceImpl submissionCodeService = new SubmissionCodeServiceImpl(submissionCodeRepositoryMock);
         String code = "";
-        Optional<SubmissionCodeDto> result = submissionCodeService.getCodeValidity(code, "test");
+        Optional<SubmissionCodeDto> result = submissionCodeService.getCodeValidity(code, CodeTypeEnum.LONG);
         Assertions.assertTrue(!result.isPresent());
     }
 
