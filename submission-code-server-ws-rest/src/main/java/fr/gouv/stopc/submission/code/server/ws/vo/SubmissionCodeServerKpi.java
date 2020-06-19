@@ -5,20 +5,39 @@ import lombok.Data;
 
 import java.time.LocalDate;
 
+/**
+ * Aggregation of Kpi reflecting the usage of codes
+ * 
+ * @author plant-stopcovid
+ *
+ */
 @Data
 @Builder
 public class SubmissionCodeServerKpi {
 
-        private LocalDate date;
+	/**
+	 * Date of computation
+	 */
+	private LocalDate date;
 
-        private Long nbShortCodesUsed;
+	/**
+	 * Number of short codes used
+	 */
+	private Long nbShortCodesUsed;
 
-        private Long nbLongCodesUsed;
+	/**
+	 * Number of long codes used
+	 */
+	private Long nbLongCodesUsed;
 
-        private Long nbLongExpiredCodes;
+	/**
+	 * Number of long codes expired
+	 */
+	private Long nbLongExpiredCodes;
 
-        private Long nbShortExpiredCodes;
+	/**
+	 * Number of short codes expired
+	 */
+	private Long nbShortExpiredCodes;
 
 }
-
-

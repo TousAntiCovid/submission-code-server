@@ -3,7 +3,7 @@ package fr.gouv.stopc.submission.code.server.ws.service.impl;
 import fr.gouv.stopc.submission.code.server.commun.enums.CodeTypeEnum;
 import fr.gouv.stopc.submission.code.server.database.repository.SubmissionCodeRepository;
 import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeServerException;
-import fr.gouv.stopc.submission.code.server.ws.service.IKPIService;
+import fr.gouv.stopc.submission.code.server.ws.service.IKpiService;
 import fr.gouv.stopc.submission.code.server.ws.utils.FormatDatesKPI;
 import fr.gouv.stopc.submission.code.server.ws.vo.SubmissionCodeServerKpi;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +17,7 @@ import java.util.List;
 
 @Slf4j
 @Service
-public class KPIService implements IKPIService {
+public class KpiServiceImpl implements IKpiService {
 
     @Value("${stop.covid.qr.code.targetzone}")
     private String targetZoneId;
@@ -25,7 +25,7 @@ public class KPIService implements IKPIService {
     private SubmissionCodeRepository submissionCodeRepository;
 
     @Autowired
-    public KPIService (SubmissionCodeRepository submissionCodeRepository){
+    public KpiServiceImpl (SubmissionCodeRepository submissionCodeRepository){
         this.submissionCodeRepository= submissionCodeRepository;
     }
 
