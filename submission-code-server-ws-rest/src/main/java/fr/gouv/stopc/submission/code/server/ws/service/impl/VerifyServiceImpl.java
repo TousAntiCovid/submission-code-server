@@ -1,9 +1,8 @@
 package fr.gouv.stopc.submission.code.server.ws.service.impl;
 
-import fr.gouv.stopc.submission.code.server.commun.enums.CodeTypeEnum;
 import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
 import fr.gouv.stopc.submission.code.server.database.service.ISubmissionCodeService;
-import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeServerException;
+import fr.gouv.stopc.submission.code.server.commun.enums.CodeTypeEnum;
 import fr.gouv.stopc.submission.code.server.ws.service.IVerifyService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -31,64 +30,81 @@ public class VerifyServiceImpl implements IVerifyService {
     }
 
     @Override
-    public boolean verifyCode(String code, String type) throws SubmissionCodeServerException {
-        log.info("Verifying code method");
-
-            log.info("Searching code from database");
-
+    public boolean verifyCode(String code, String type) {
         Optional<CodeTypeEnum> typeToFound = CodeTypeEnum.searchMatchType(type);
         CodeTypeEnum typeFound = null;
         if(typeToFound.isPresent()){
-           typeFound = typeToFound.get();
+            typeFound = typeToFound.get();
         }
+
         Optional<SubmissionCodeDto> codeDtoOptional = submissionCodeService.getCodeValidity(code, typeFound);
 
+        if (!codeDtoOptional.isPresent()) {
+            log.warn("Code {} ({}) was not found.", code, type);
+            return false;
+        }
 
-            if (!codeDtoOptional.isPresent()) {
-                log.warn("No codes were found");
-                return false;
-            }
+        SubmissionCodeDto codeDto = codeDtoOptional.get();
 
-            log.info("Code was found");
+        if (codeDto.getUsed().equals(Boolean.TRUE) || Objects.nonNull(codeDto.getDateUse())){
+            log.warn("Code {} ({}) has already been used.", code, type);
+            return false;
+        }
 
-            SubmissionCodeDto codeDto = codeDtoOptional.get();
+        ZoneOffset zoneOffset = codeDto.getDateAvailable().getOffset();
+        OffsetDateTime dateNow = LocalDateTime.now().atOffset(zoneOffset);
 
-            /*
-             *  we don't use the code already used.
-             */
-            if (codeDto.getUsed().equals(Boolean.TRUE) || Objects.nonNull(codeDto.getDateUse())){
-                log.warn("The code has already been used.");
-                return false;
-            }
+        if(validateDate(code, type, dateNow,codeDto.getDateAvailable(),codeDto.getDateEndValidity())){
+            log.warn("Code {} ({}) rejected because outside acceptable validity range.", code, type);
+            return false;
+        }
 
-            ZoneOffset zoneOffeset = codeDto.getDateAvailable().getOffset();
-            OffsetDateTime dateNow = LocalDateTime.now().atOffset(zoneOffeset);
+        codeDto.setUsed(true);
+        codeDto.setDateUse(dateNow);
+        final boolean isUpdated = submissionCodeService.updateCodeUsed(codeDto);
 
-            if(validateDate(dateNow,codeDto.getDateAvailable(),codeDto.getDateEndValidity())){
-                log.warn("The code validity is out of the requested date.");
-                return false;
-            }
-
-            log.info("The code is about to be updated.");
-
-            codeDto.setUsed(true);
-            codeDto.setDateUse(dateNow);
-            final boolean isUpdated = submissionCodeService.updateCodeUsed(codeDto);
-
-            if(isUpdated) {
-                log.info("The code has been updated.");
-            } else {
-                log.error("Tried to update the code but an error occurred...");
-            }
-            return isUpdated;
+        if(isUpdated) {
+            log.info("Code {} ({}) has been updated successfully.", code, type);
+        } else {
+            log.error("Code {} ({}) could not be updated.", code, type);
+        }
+        return isUpdated;
     }
 
-    /**A code cannot be used before he is valid or after it has expired.*/
-    private boolean validateDate(OffsetDateTime dateNow, OffsetDateTime dateAvailable, OffsetDateTime dateEndValidity) {
-        log.info("Check the validity of 'from' and 'to' dates.");
+    /**
+     * A code cannot be used before he is valid or after it has expired.
+     * @param code
+     * @param dateNow
+     * @param dateAvailable
+     * @param dateEndValidity
+     * @return
+     */
+    private boolean validateDate(String code,
+                                 String type,
+                                 OffsetDateTime dateNow,
+                                 OffsetDateTime dateAvailable,
+                                 OffsetDateTime dateEndValidity) {
         if(Objects.isNull(dateAvailable) || Objects.isNull(dateEndValidity)){
+            log.info("Code {} ({}) does not have a complete validity period (start date or end date missing)",
+                    code,
+                    type);
+            return false;
+        }
+
+        if  (dateNow.isBefore(dateAvailable)) {
+            log.info("Code {} ({}) being used before validity period start {}.",
+                    code,
+                    type,
+                    dateAvailable);
+            return false;
+        } else if (dateNow.isAfter(dateEndValidity)) {
+            log.info("Code {} ({}) being used after validity period end {}.",
+                    code,
+                    type,
+                    dateEndValidity);
+            return false;
+        } else {
             return true;
         }
-        return (dateAvailable.isAfter(dateNow) || dateNow.isAfter(dateEndValidity));
     }
 }

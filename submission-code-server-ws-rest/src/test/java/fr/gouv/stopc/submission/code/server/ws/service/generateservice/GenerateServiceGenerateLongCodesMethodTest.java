@@ -7,6 +7,7 @@ import fr.gouv.stopc.submission.code.server.database.entity.SubmissionCode;
 import fr.gouv.stopc.submission.code.server.database.service.impl.SubmissionCodeServiceImpl;
 import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeServerException;
 import fr.gouv.stopc.submission.code.server.ws.service.impl.GenerateServiceImpl;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
@@ -18,6 +19,7 @@ import java.util.Optional;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+@Slf4j
 class GenerateServiceGenerateLongCodesMethodTest {
     @Mock
     private LongCodeServiceImpl longCodeService;
@@ -54,6 +56,12 @@ class GenerateServiceGenerateLongCodesMethodTest {
 
         verify(longCodeService, times(12)).generateCode();
 
+    }
+
+    @Test
+    void testGenerateLongCode() {
+        LongCodeServiceImpl longCodeService = new LongCodeServiceImpl();
+        log.info("{}", longCodeService.generateCode());
     }
 
 }

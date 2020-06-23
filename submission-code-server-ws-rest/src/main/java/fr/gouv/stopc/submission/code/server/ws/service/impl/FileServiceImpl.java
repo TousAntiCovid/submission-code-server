@@ -79,7 +79,7 @@ public class FileServiceImpl implements IFileService {
 
 
     @Inject
-    public FileServiceImpl(ISubmissionCodeService submissionCodeService, IGenerateService generateService, ISFTPService sftpService){
+    public FileServiceImpl(ISubmissionCodeService submissionCodeService, IGenerateService generateService, ISFTPService sftpService) {
         this.submissionCodeService = submissionCodeService;
         this.generateService=generateService;
         this.sftpService=sftpService;
@@ -88,11 +88,10 @@ public class FileServiceImpl implements IFileService {
     @Async
     @Override
     public Optional<ByteArrayOutputStream> zipExportAsync(Long numberCodeDay, Lot lotObject, String dateFrom, String dateTo)
-            throws SubmissionCodeServerException
-    {
+            throws SubmissionCodeServerException {
         final OffsetDateTime start = OffsetDateTime.now();
 
-        log.info("generating asynchrouniously long code with archive method");
+        log.info("Generating long codes with archive method asynchronously");
 
         final Optional<ByteArrayOutputStream> byteArrayOutputStream = this.zipExport(numberCodeDay, lotObject, dateFrom, dateTo);
 
@@ -103,8 +102,7 @@ public class FileServiceImpl implements IFileService {
 
     @Override
     public Optional<ByteArrayOutputStream> zipExport(Long numberCodeDay, Lot lotObject, String dateFrom, String dateTo)
-            throws SubmissionCodeServerException
-    {
+            throws SubmissionCodeServerException {
         log.info("Generate {} codes per day from {} to {}", numberCodeDay, dateFrom, dateTo);
         OffsetDateTime dateTimeFrom;
         OffsetDateTime dateTimeTo;
@@ -170,8 +168,7 @@ public class FileServiceImpl implements IFileService {
 
     @Override
     public List<CodeDetailedDto> persistLongCodes(Long codePerDays, Lot lotObject, OffsetDateTime from, OffsetDateTime to)
-            throws SubmissionCodeServerException
-    {
+            throws SubmissionCodeServerException {
         List<CodeDetailedDto> listCodeDetailedDto = new ArrayList<>();
         OffsetDateTime fromWithoutHours = from.truncatedTo(ChronoUnit.DAYS);
         OffsetDateTime toWithoutHours = to.truncatedTo(ChronoUnit.DAYS);
@@ -200,8 +197,7 @@ public class FileServiceImpl implements IFileService {
     }
 
     public List<String> persistLongCodesQuiet(Long codePerDays, Lot lotObject, OffsetDateTime from, OffsetDateTime to, File tmpDirectory)
-            throws SubmissionCodeServerException
-    {
+            throws SubmissionCodeServerException {
         List<String> listFile = new ArrayList<>();
 
         OffsetDateTime fromWithoutHours = from.truncatedTo(ChronoUnit.DAYS);
@@ -235,8 +231,7 @@ public class FileServiceImpl implements IFileService {
             List<SubmissionCodeDto> submissionCodeDtos,
             List<OffsetDateTime> dates,
             File tmpDirectory)
-            throws SubmissionCodeServerException
-    {
+            throws SubmissionCodeServerException {
         List<String> dataByFilename = new ArrayList<>();
 
         for(OffsetDateTime dateTime : dates){
@@ -270,7 +265,7 @@ public class FileServiceImpl implements IFileService {
         GZIPOutputStream gzipOutputStream = null;
         TarArchiveOutputStream tarArchiveOutputStream = null;
 
-        try{
+        try {
             gzipOutputStream = new GZIPOutputStream(byteOutputStream);
             tarArchiveOutputStream = new TarArchiveOutputStream(gzipOutputStream);
 
@@ -318,8 +313,7 @@ public class FileServiceImpl implements IFileService {
      * @return submissionCodeDtoList parsed into a csv file
      */
     private byte[] createCSV(List<SubmissionCodeDto> submissionCodeDtoList, OffsetDateTime date)
-            throws SubmissionCodeServerException
-    {
+            throws SubmissionCodeServerException {
         String header= HEADER_CSV.replaceAll("%s",Character.toString(csvSeparator));
         // converting list SubmissionCodeDto to SubmissionCodeCsvDto to be proceeded in csv generator
         final List<SubmissionCodeCsvDto> submissionCodeCsvDtos = convert(submissionCodeDtoList);
@@ -359,8 +353,7 @@ public class FileServiceImpl implements IFileService {
      */
 
     protected Boolean isDateValid(OffsetDateTime from, OffsetDateTime to)
-            throws DateTimeException
-    {
+            throws DateTimeException {
         return !(OffsetDateTime.now().toLocalDate().compareTo(from.toLocalDate()) > 0 || from.isAfter(to));
     }
 
@@ -408,7 +401,7 @@ public class FileServiceImpl implements IFileService {
         return  String.format(csvFilenameFormat,date.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
     }
 
-    private SubmissionCodeDto mapToSubmissionCodeDto(CodeDetailedDto codeDetailedDto, Long idLot ){
+    private SubmissionCodeDto mapToSubmissionCodeDto(CodeDetailedDto codeDetailedDto, Long idLot) {
         SubmissionCodeDto submissionCodeDto = new SubmissionCodeDto();
         submissionCodeDto.setLot(idLot);
         submissionCodeDto.setUsed(false);
