@@ -22,7 +22,7 @@ import fr.gouv.stopc.submission.code.server.ws.vo.SubmissionCodeServerKpi;
  *
  */
 @RestController
-@RequestMapping(value = "${controller.path.prefix}")
+@RequestMapping(value = "/internal/api/v1")
 @Produces(MediaType.APPLICATION_JSON_VALUE)
 public class KpiGenerateControllerImpl implements IKpiGenerateController {
 
