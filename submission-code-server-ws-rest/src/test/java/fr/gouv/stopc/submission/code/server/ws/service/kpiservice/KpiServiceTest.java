@@ -1,13 +1,17 @@
 package fr.gouv.stopc.submission.code.server.ws.service.kpiservice;
 
-import fr.gouv.stopc.submission.code.server.database.repository.SubmissionCodeRepository;
-import fr.gouv.stopc.submission.code.server.ws.SubmissionCodeServerClientApiWsRestApplication;
-import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeServerException;
-import fr.gouv.stopc.submission.code.server.ws.service.impl.KpiServiceImpl;
-import fr.gouv.stopc.submission.code.server.ws.utils.FormatDatesKPI;
-import fr.gouv.stopc.submission.code.server.ws.vo.SubmissionCodeServerKpi;
-import org.junit.Assert;
-import org.junit.jupiter.api.Assertions;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.Mockito.when;
+
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,13 +20,16 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import java.time.*;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.mockito.Mockito.when;
+import fr.gouv.stopc.submission.code.server.commun.enums.CodeTypeEnum;
+import fr.gouv.stopc.submission.code.server.database.repository.SubmissionCodeRepository;
+import fr.gouv.stopc.submission.code.server.ws.SubmissionCodeServerClientApiWsRestApplication;
+import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeServerException;
+import fr.gouv.stopc.submission.code.server.ws.service.impl.KpiServiceImpl;
+import fr.gouv.stopc.submission.code.server.ws.utils.FormatDatesKPI;
+import fr.gouv.stopc.submission.code.server.ws.vo.SubmissionCodeServerKpi;
 
 /**
  * Test class for the Kpi generation service
@@ -33,183 +40,222 @@ import static org.mockito.Mockito.when;
 @ExtendWith(SpringExtension.class)
 @EnableAutoConfiguration(exclude = { DataSourceAutoConfiguration.class })
 @SpringBootTest(classes = {
-		SubmissionCodeServerClientApiWsRestApplication.class }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+        SubmissionCodeServerClientApiWsRestApplication.class }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@TestPropertySource("classpath:application.properties")
 public class KpiServiceTest {
 
-	/**
-	 * Zone ID to use
-	 */
-	@Value("${stop.covid.qr.code.targetzone}")
-	private String targetZoneId;
+    private static final String SHOULD_NOT_FAIL_MESSAGE = "This should not fail.";
 
-	/**
-	 * Mock of the DAO layer
-	 */
-	@MockBean
-	private SubmissionCodeRepository submissionCodeRepositoryMock;
+    /**
+     * Zone ID to use
+     */
+    @Value("${stop.covid.qr.code.targetzone}")
+    private String targetZoneId;
 
-	/**
-	 * The service to test
-	 */
-	@Autowired
-	private KpiServiceImpl kpiService;
+    /**
+     * Mock of the DAO layer
+     */
+    @MockBean
+    private SubmissionCodeRepository submissionCodeRepositoryMock;
 
-	@Test
-	public void getCodeLongUsedForDay() {
-		LocalDate fromDate = OffsetDateTime.now().toLocalDate();
-		LocalDate toDate = OffsetDateTime.now().toLocalDate();
+    /**
+     * The service to test
+     */
+    @Autowired
+    private KpiServiceImpl kpiService;
 
-		when(submissionCodeRepositoryMock.countSubmissionCodeUsedByDate(
-				FormatDatesKPI.normaliseDateFrom(fromDate, targetZoneId),
-				FormatDatesKPI.normaliseDateTo(fromDate, targetZoneId), "1")).thenReturn(2L);
-		when(submissionCodeRepositoryMock.countSubmissionCodeUsedByDate(
-				FormatDatesKPI.normaliseDateFrom(fromDate, targetZoneId),
-				FormatDatesKPI.normaliseDateTo(fromDate, targetZoneId), "2")).thenReturn(0L);
-		when(submissionCodeRepositoryMock
-				.countSubmissionCodeExpiredDate(FormatDatesKPI.normaliseDateTo(fromDate, targetZoneId), "1"))
-						.thenReturn(0L);
-		when(submissionCodeRepositoryMock
-				.countSubmissionCodeExpiredDate(FormatDatesKPI.normaliseDateTo(toDate, targetZoneId), "2"))
-						.thenReturn(0L);
-		List<SubmissionCodeServerKpi> result = new ArrayList<>();
-		try {
-			result = kpiService.generateKPI(fromDate, toDate);
-		} catch (SubmissionCodeServerException s) {
-			Assert.fail();
-		}
-		Assert.assertTrue(result.get(0).getNbLongCodesUsed() != 0);
-		Assert.assertTrue(result.size() == 1);
-	}
+    private LocalDate startDate;
 
-	@Test
-	public void getCodeShortUsedForDay() {
-		LocalDate fromDate = OffsetDateTime.now().toLocalDate();
-		LocalDate toDate = OffsetDateTime.now().toLocalDate();
+    private LocalDate endDate;
 
-		when(submissionCodeRepositoryMock.countSubmissionCodeUsedByDate(
-				FormatDatesKPI.normaliseDateFrom(fromDate, targetZoneId),
-				FormatDatesKPI.normaliseDateTo(fromDate, targetZoneId), "1")).thenReturn(0L);
-		when(submissionCodeRepositoryMock.countSubmissionCodeUsedByDate(
-				FormatDatesKPI.normaliseDateFrom(fromDate, targetZoneId),
-				FormatDatesKPI.normaliseDateTo(fromDate, targetZoneId), "2")).thenReturn(2L);
-		when(submissionCodeRepositoryMock
-				.countSubmissionCodeExpiredDate(FormatDatesKPI.normaliseDateTo(fromDate, targetZoneId), "1"))
-						.thenReturn(0L);
-		when(submissionCodeRepositoryMock
-				.countSubmissionCodeExpiredDate(FormatDatesKPI.normaliseDateTo(toDate, targetZoneId), "2"))
-						.thenReturn(0L);
-		List<SubmissionCodeServerKpi> result = new ArrayList<>();
-		try {
-			result = kpiService.generateKPI(fromDate, toDate);
-		} catch (SubmissionCodeServerException s) {
-			Assert.fail();
-		}
-		Assert.assertTrue(result.get(0).getNbShortCodesUsed() != 0);
-		Assert.assertTrue(result.size() == 1);
-	}
+    private OffsetDateTime startDateTime;
 
-	@Test
-	public void getCodeShortExpiredForDay() {
-		LocalDate fromDate = OffsetDateTime.now().toLocalDate();
-		LocalDate toDate = OffsetDateTime.now().toLocalDate();
+    private OffsetDateTime endDateTime;
 
-		when(submissionCodeRepositoryMock.countSubmissionCodeUsedByDate(
-				FormatDatesKPI.normaliseDateFrom(fromDate, targetZoneId),
-				FormatDatesKPI.normaliseDateTo(fromDate, targetZoneId), "1")).thenReturn(0L);
-		when(submissionCodeRepositoryMock.countSubmissionCodeUsedByDate(
-				FormatDatesKPI.normaliseDateFrom(fromDate, targetZoneId),
-				FormatDatesKPI.normaliseDateTo(fromDate, targetZoneId), "2")).thenReturn(0L);
-		when(submissionCodeRepositoryMock
-				.countSubmissionCodeExpiredDate(FormatDatesKPI.normaliseDateTo(fromDate, targetZoneId), "1"))
-						.thenReturn(0L);
-		when(submissionCodeRepositoryMock
-				.countSubmissionCodeExpiredDate(FormatDatesKPI.normaliseDateTo(toDate, targetZoneId), "2"))
-						.thenReturn(1L);
-		List<SubmissionCodeServerKpi> result = new ArrayList<>();
-		try {
-			result = kpiService.generateKPI(fromDate, toDate);
-		} catch (SubmissionCodeServerException s) {
-			Assert.fail();
-		}
-		Assert.assertTrue(result.get(0).getNbShortExpiredCodes() != 0);
-		Assert.assertTrue(result.size() == 1);
+    @BeforeEach
+    public void init() {
+        this.startDate = LocalDate.now();
+        this.endDate = this.startDate.plusDays(1);
 
-	}
+        this.startDateTime = FormatDatesKPI.normaliseDateFrom(this.startDate, this.targetZoneId);
+        this.endDateTime = FormatDatesKPI.normaliseDateTo(this.startDate,this.targetZoneId);
+    }
 
-	@Test
-	public void getCodeLongExpiredForDay() {
-		LocalDate fromDate = OffsetDateTime.now().toLocalDate();
-		LocalDate toDate = OffsetDateTime.now().toLocalDate();
+    @Test
+    public void getCodeLongUsedForDay() {
+        LocalDate fromDate = OffsetDateTime.now().toLocalDate();
+        LocalDate toDate = OffsetDateTime.now().toLocalDate();
 
-		when(submissionCodeRepositoryMock.countSubmissionCodeUsedByDate(
-				FormatDatesKPI.normaliseDateFrom(fromDate, targetZoneId),
-				FormatDatesKPI.normaliseDateTo(fromDate, targetZoneId), "1")).thenReturn(0L);
-		when(submissionCodeRepositoryMock.countSubmissionCodeUsedByDate(
-				FormatDatesKPI.normaliseDateFrom(fromDate, targetZoneId),
-				FormatDatesKPI.normaliseDateTo(fromDate, targetZoneId), "2")).thenReturn(0L);
-		when(submissionCodeRepositoryMock
-				.countSubmissionCodeExpiredDate(FormatDatesKPI.normaliseDateTo(fromDate, targetZoneId), "1"))
-						.thenReturn(1L);
-		when(submissionCodeRepositoryMock
-				.countSubmissionCodeExpiredDate(FormatDatesKPI.normaliseDateTo(toDate, targetZoneId), "2"))
-						.thenReturn(0L);
-		List<SubmissionCodeServerKpi> result = new ArrayList<>();
-		try {
-			result = kpiService.generateKPI(fromDate, toDate);
-		} catch (SubmissionCodeServerException s) {
-			Assert.fail();
-		}
-		Assert.assertTrue(result.get(0).getNbLongExpiredCodes() != 0);
-		Assert.assertTrue(result.size() == 1);
+        when(this.submissionCodeRepositoryMock.countSubmissionCodeUsedByDate(
+                FormatDatesKPI.normaliseDateFrom(fromDate, this.targetZoneId),
+                FormatDatesKPI.normaliseDateTo(fromDate, this.targetZoneId), "1")).thenReturn(2L);
+        when(this.submissionCodeRepositoryMock.countSubmissionCodeUsedByDate(
+                FormatDatesKPI.normaliseDateFrom(fromDate, this.targetZoneId),
+                FormatDatesKPI.normaliseDateTo(fromDate, this.targetZoneId), "2")).thenReturn(0L);
+        when(this.submissionCodeRepositoryMock
+                .countSubmissionCodeExpiredDate(FormatDatesKPI.normaliseDateTo(fromDate, this.targetZoneId), "1"))
+                        .thenReturn(0L);
+        when(this.submissionCodeRepositoryMock
+                .countSubmissionCodeExpiredDate(FormatDatesKPI.normaliseDateTo(toDate, this.targetZoneId), "2"))
+                        .thenReturn(0L);
+        List<SubmissionCodeServerKpi> result = new ArrayList<>();
+        try {
+            result = this.kpiService.generateKPI(fromDate, toDate);
+        } catch (SubmissionCodeServerException s) {
+            fail(SHOULD_NOT_FAIL_MESSAGE);
+        }
+        assertTrue(result.get(0).getNbLongCodesUsed() != 0);
+        assertTrue(result.size() == 1);
+    }
 
-	}
+    @Test
+    public void getCodeShortUsedForDay() {
+        LocalDate fromDate = OffsetDateTime.now().toLocalDate();
+        LocalDate toDate = OffsetDateTime.now().toLocalDate();
 
-	@Test
-	public void validationDate() {
-		LocalDate fromDate = OffsetDateTime.now().toLocalDate();
-		LocalDate toDate = OffsetDateTime.now().toLocalDate().minusDays(1L);
-		Assertions.assertThrows(SubmissionCodeServerException.class, () -> {
-			kpiService.generateKPI(fromDate, toDate);
-		});
-	}
+        when(this.submissionCodeRepositoryMock.countSubmissionCodeUsedByDate(
+                FormatDatesKPI.normaliseDateFrom(fromDate, this.targetZoneId),
+                FormatDatesKPI.normaliseDateTo(fromDate, this.targetZoneId), "1")).thenReturn(0L);
+        when(this.submissionCodeRepositoryMock.countSubmissionCodeUsedByDate(
+                FormatDatesKPI.normaliseDateFrom(fromDate, this.targetZoneId),
+                FormatDatesKPI.normaliseDateTo(fromDate, this.targetZoneId), "2")).thenReturn(2L);
+        when(this.submissionCodeRepositoryMock
+                .countSubmissionCodeExpiredDate(FormatDatesKPI.normaliseDateTo(fromDate, this.targetZoneId), "1"))
+                        .thenReturn(0L);
+        when(this.submissionCodeRepositoryMock
+                .countSubmissionCodeExpiredDate(FormatDatesKPI.normaliseDateTo(toDate, this.targetZoneId), "2"))
+                        .thenReturn(0L);
+        List<SubmissionCodeServerKpi> result = new ArrayList<>();
+        try {
+            result = this.kpiService.generateKPI(fromDate, toDate);
+        } catch (SubmissionCodeServerException s) {
+            fail(SHOULD_NOT_FAIL_MESSAGE);
+        }
+        assertTrue(result.get(0).getNbShortCodesUsed() != 0);
+        assertTrue(result.size() == 1);
+    }
 
-	/**
-	 * Check if the service KPI create 7 KPI for a week.
-	 */
-	@Test
-	public void getKPIForWeek() {
-		LocalDate fromDate = OffsetDateTime.now().toLocalDate();
-		LocalDate toDate = OffsetDateTime.now().toLocalDate().plusDays(6L);
-		int countLongUsed = 1;
-		int countShortUsed = 3;
+    @Test
+    public void getCodeShortExpiredForDay() {
+        LocalDate fromDate = OffsetDateTime.now().toLocalDate();
+        LocalDate toDate = OffsetDateTime.now().toLocalDate();
 
-		int i = 1;
-		for (LocalDate loopDate = fromDate; loopDate.isBefore(toDate)
-				|| loopDate.isEqual(toDate); loopDate = loopDate.plusDays(1L)) {
-			when(submissionCodeRepositoryMock.countSubmissionCodeUsedByDate(
-					FormatDatesKPI.normaliseDateFrom(loopDate, targetZoneId),
-					FormatDatesKPI.normaliseDateTo(loopDate, targetZoneId), "1"))
-							.thenReturn(Long.valueOf(countLongUsed * i));
-			when(submissionCodeRepositoryMock.countSubmissionCodeUsedByDate(
-					FormatDatesKPI.normaliseDateFrom(loopDate, targetZoneId),
-					FormatDatesKPI.normaliseDateTo(loopDate, targetZoneId), "2"))
-							.thenReturn(Long.valueOf(countShortUsed * i));
-			when(submissionCodeRepositoryMock
-					.countSubmissionCodeExpiredDate(FormatDatesKPI.normaliseDateTo(loopDate, targetZoneId), "1"))
-							.thenReturn(Long.valueOf(i * (i + 1)));
-			when(submissionCodeRepositoryMock
-					.countSubmissionCodeExpiredDate(FormatDatesKPI.normaliseDateTo(loopDate, targetZoneId), "2"))
-							.thenReturn(Long.valueOf(i * (i + 2)));
-			i = i + 1;
-		}
-		List<SubmissionCodeServerKpi> result = new ArrayList<>();
-		try {
-			result = kpiService.generateKPI(fromDate, toDate);
-		} catch (SubmissionCodeServerException s) {
-			Assert.fail();
-		}
-		Assert.assertTrue(result.size() == 7);
+        when(this.submissionCodeRepositoryMock.countSubmissionCodeUsedByDate(
+                FormatDatesKPI.normaliseDateFrom(fromDate, this.targetZoneId),
+                FormatDatesKPI.normaliseDateTo(fromDate, this.targetZoneId), "1")).thenReturn(0L);
+        when(this.submissionCodeRepositoryMock.countSubmissionCodeUsedByDate(
+                FormatDatesKPI.normaliseDateFrom(fromDate, this.targetZoneId),
+                FormatDatesKPI.normaliseDateTo(fromDate, this.targetZoneId), "2")).thenReturn(0L);
+        when(this.submissionCodeRepositoryMock
+                .countSubmissionCodeExpiredDate(FormatDatesKPI.normaliseDateTo(fromDate, this.targetZoneId), "1"))
+                        .thenReturn(0L);
+        when(this.submissionCodeRepositoryMock
+                .countSubmissionCodeExpiredDate(FormatDatesKPI.normaliseDateTo(toDate, this.targetZoneId), "2"))
+                        .thenReturn(1L);
+        List<SubmissionCodeServerKpi> result = new ArrayList<>();
+        try {
+            result = this.kpiService.generateKPI(fromDate, toDate);
+        } catch (SubmissionCodeServerException s) {
+            fail(SHOULD_NOT_FAIL_MESSAGE);
+        }
+        assertTrue(result.get(0).getNbShortExpiredCodes() != 0);
+        assertTrue(result.size() == 1);
 
-	}
+    }
+
+    @Test
+    public void getCodeLongExpiredForDay() {
+        LocalDate fromDate = OffsetDateTime.now().toLocalDate();
+        LocalDate toDate = OffsetDateTime.now().toLocalDate();
+
+        when(this.submissionCodeRepositoryMock.countSubmissionCodeUsedByDate(
+                FormatDatesKPI.normaliseDateFrom(fromDate, this.targetZoneId),
+                FormatDatesKPI.normaliseDateTo(fromDate, this.targetZoneId), "1")).thenReturn(0L);
+        when(this.submissionCodeRepositoryMock.countSubmissionCodeUsedByDate(
+                FormatDatesKPI.normaliseDateFrom(fromDate, this.targetZoneId),
+                FormatDatesKPI.normaliseDateTo(fromDate, this.targetZoneId), "2")).thenReturn(0L);
+        when(this.submissionCodeRepositoryMock
+                .countSubmissionCodeExpiredDate(FormatDatesKPI.normaliseDateTo(fromDate, this.targetZoneId), "1"))
+                        .thenReturn(1L);
+        when(this.submissionCodeRepositoryMock
+                .countSubmissionCodeExpiredDate(FormatDatesKPI.normaliseDateTo(toDate, this.targetZoneId), "2"))
+                        .thenReturn(0L);
+        List<SubmissionCodeServerKpi> result = new ArrayList<>();
+        try {
+            result = this.kpiService.generateKPI(fromDate, toDate);
+        } catch (SubmissionCodeServerException s) {
+            fail(SHOULD_NOT_FAIL_MESSAGE);
+        }
+        assertTrue(result.get(0).getNbLongExpiredCodes() != 0);
+        assertTrue(result.size() == 1);
+
+    }
+
+    @Test
+    public void validationDate() {
+        LocalDate fromDate = OffsetDateTime.now().toLocalDate();
+        LocalDate toDate = OffsetDateTime.now().toLocalDate().minusDays(1L);
+        assertThrows(SubmissionCodeServerException.class, () -> {
+            this.kpiService.generateKPI(fromDate, toDate);
+        });
+    }
+
+    /**
+     * Check if the service KPI create 7 KPI for a week.
+     */
+    @Test
+    public void getKPIForWeek() {
+        LocalDate fromDate = OffsetDateTime.now().toLocalDate();
+        LocalDate toDate = OffsetDateTime.now().toLocalDate().plusDays(6L);
+        int countLongUsed = 1;
+        int countShortUsed = 3;
+
+        int i = 1;
+        for (LocalDate loopDate = fromDate; loopDate.isBefore(toDate)
+                || loopDate.isEqual(toDate); loopDate = loopDate.plusDays(1L)) {
+            when(this.submissionCodeRepositoryMock.countSubmissionCodeUsedByDate(
+                    FormatDatesKPI.normaliseDateFrom(loopDate, this.targetZoneId),
+                    FormatDatesKPI.normaliseDateTo(loopDate, this.targetZoneId), "1"))
+                            .thenReturn(Long.valueOf(countLongUsed * i));
+            when(this.submissionCodeRepositoryMock.countSubmissionCodeUsedByDate(
+                    FormatDatesKPI.normaliseDateFrom(loopDate, this.targetZoneId),
+                    FormatDatesKPI.normaliseDateTo(loopDate, this.targetZoneId), "2"))
+                            .thenReturn(Long.valueOf(countShortUsed * i));
+            when(this.submissionCodeRepositoryMock
+                    .countSubmissionCodeExpiredDate(FormatDatesKPI.normaliseDateTo(loopDate, this.targetZoneId), "1"))
+                            .thenReturn(Long.valueOf(i * (i + 1)));
+            when(this.submissionCodeRepositoryMock
+                    .countSubmissionCodeExpiredDate(FormatDatesKPI.normaliseDateTo(loopDate, this.targetZoneId), "2"))
+                            .thenReturn(Long.valueOf(i * (i + 2)));
+            i = i + 1;
+        }
+        List<SubmissionCodeServerKpi> result = new ArrayList<>();
+        try {
+            result = this.kpiService.generateKPI(fromDate, toDate);
+        } catch (SubmissionCodeServerException s) {
+            fail(SHOULD_NOT_FAIL_MESSAGE);
+        }
+        assertTrue(result.size() == 7);
+    }
+
+    @Test
+    public void testCountShortCodesGenerated() {
+
+        // Given
+        final long nbGeneratedCodes = 1L;
+        when(this.submissionCodeRepositoryMock.countGeneratedCodes(this.startDateTime, this.endDateTime, CodeTypeEnum.SHORT.getTypeCode())).thenReturn(nbGeneratedCodes);
+
+        // When
+        List<SubmissionCodeServerKpi> submissionCodeServerKpis = null;
+        try {
+            submissionCodeServerKpis = this.kpiService.generateKPI(this.startDate, this.endDate);
+        } catch (SubmissionCodeServerException e) {
+            fail(SHOULD_NOT_FAIL_MESSAGE);
+        }
+
+        // Then
+        assertTrue(submissionCodeServerKpis.size() == 2);
+        assertEquals(nbGeneratedCodes, submissionCodeServerKpis.get(0).getNbShortCodesGenerated());
+    }
 
 }
