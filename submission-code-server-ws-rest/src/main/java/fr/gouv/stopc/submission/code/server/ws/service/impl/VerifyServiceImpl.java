@@ -54,7 +54,7 @@ public class VerifyServiceImpl implements IVerifyService {
         ZoneOffset zoneOffset = codeDto.getDateAvailable().getOffset();
         OffsetDateTime dateNow = LocalDateTime.now().atOffset(zoneOffset);
 
-        if(validateDate(code, type, dateNow,codeDto.getDateAvailable(),codeDto.getDateEndValidity())){
+        if(!validateDate(code, type, dateNow,codeDto.getDateAvailable(),codeDto.getDateEndValidity())){
             log.warn("Code {} ({}) rejected because outside acceptable validity range.", code, type);
             return false;
         }
