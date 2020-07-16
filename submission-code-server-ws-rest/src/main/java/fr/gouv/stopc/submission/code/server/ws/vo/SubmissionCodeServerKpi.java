@@ -1,9 +1,9 @@
 package fr.gouv.stopc.submission.code.server.ws.vo;
 
+import java.time.LocalDate;
+
 import lombok.Builder;
 import lombok.Data;
-
-import java.time.LocalDate;
 
 /**
  * Aggregation of Kpi reflecting the usage of codes
@@ -39,5 +39,10 @@ public class SubmissionCodeServerKpi {
 	 * Number of short codes expired
 	 */
 	private Long nbShortExpiredCodes;
+
+	/**
+	 * Number of short codes generated
+	 */
+	private Long nbShortCodesGenerated;
 
 }

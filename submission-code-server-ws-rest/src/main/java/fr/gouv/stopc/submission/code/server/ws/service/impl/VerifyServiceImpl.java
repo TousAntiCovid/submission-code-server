@@ -46,7 +46,7 @@ public class VerifyServiceImpl implements IVerifyService {
 
         SubmissionCodeDto codeDto = codeDtoOptional.get();
 
-        if (codeDto.getUsed().equals(Boolean.TRUE) || Objects.nonNull(codeDto.getDateUse())) {
+        if (codeDto.getUsed().equals(Boolean.TRUE) || Objects.nonNull(codeDto.getDateUse())){
             log.warn("Code {} ({}) has already been used.", code, type);
             return false;
         }
@@ -54,7 +54,7 @@ public class VerifyServiceImpl implements IVerifyService {
         ZoneOffset zoneOffset = codeDto.getDateAvailable().getOffset();
         OffsetDateTime dateNow = LocalDateTime.now().atOffset(zoneOffset);
 
-        if (!validateDate(code, type, dateNow,codeDto.getDateAvailable(),codeDto.getDateEndValidity())) {
+        if(!validateDate(code, type, dateNow,codeDto.getDateAvailable(),codeDto.getDateEndValidity())){
             log.warn("Code {} ({}) rejected because outside acceptable validity range.", code, type);
             return false;
         }
@@ -63,7 +63,7 @@ public class VerifyServiceImpl implements IVerifyService {
         codeDto.setDateUse(dateNow);
         final boolean isUpdated = submissionCodeService.updateCodeUsed(codeDto);
 
-        if (isUpdated) {
+        if(isUpdated) {
             log.info("Code {} ({}) has been updated successfully.", code, type);
         } else {
             log.error("Code {} ({}) could not be updated.", code, type);
@@ -79,19 +79,19 @@ public class VerifyServiceImpl implements IVerifyService {
      * @param dateEndValidity
      * @return
      */
-    private boolean validateDate (String code,
-                                  String type,
-                                  OffsetDateTime dateNow,
-                                  OffsetDateTime dateAvailable,
-                                  OffsetDateTime dateEndValidity) {
-        if (Objects.isNull(dateAvailable) || Objects.isNull(dateEndValidity)) {
+    private boolean validateDate(String code,
+                                 String type,
+                                 OffsetDateTime dateNow,
+                                 OffsetDateTime dateAvailable,
+                                 OffsetDateTime dateEndValidity) {
+        if(Objects.isNull(dateAvailable) || Objects.isNull(dateEndValidity)){
             log.info("Code {} ({}) does not have a complete validity period (start date or end date missing)",
                     code,
                     type);
             return false;
         }
 
-        if (dateNow.isBefore(dateAvailable)) {
+        if  (dateNow.isBefore(dateAvailable)) {
             log.info("Code {} ({}) being used before validity period start {}.",
                     code,
                     type,
