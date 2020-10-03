@@ -26,7 +26,6 @@ public class SFTPServiceImpl implements ISFTPService {
 
 
     private static final String ALGORITHM_SHA256 = "SHA-256";
-    private static final String ALGORITHM_MD5 = "MD5";
     public static final String DATEFORMATFILE = "yyyyMMddHHmmss";
 
     @Value("${submission.code.server.sftp.host}")
@@ -65,9 +64,6 @@ public class SFTPServiceImpl implements ISFTPService {
 
     @Value("${digest.filename.formatter.sha256}")
     private String digestFileNameFormatSHA256;
-
-    @Value("${digest.filename.formatter.md5}")
-    private String digestFileNameFormatMD5;
 
     @Value("${submission.code.server.sftp.enablestricthost}")
     private String strictHostCheck;
@@ -117,7 +113,6 @@ public class SFTPServiceImpl implements ISFTPService {
         log.info("SFTP: files have been pushed");
 
         this.createDigestThenTransferToSFTP(file, channelSftp,ALGORITHM_SHA256,digestFileNameFormatSHA256, dateFile);
-        this.createDigestThenTransferToSFTP(file,channelSftp,ALGORITHM_MD5,digestFileNameFormatMD5, dateFile);
 
         log.info("SFTP: connection is about to be closed");
         channelSftp.exit();
@@ -192,10 +187,10 @@ public class SFTPServiceImpl implements ISFTPService {
     }
 
     /**
-     * Create md5 from file already uploaded on the SFTP Server and transfers md5 to SFTP server.
-     * @param file the file from the MD5 should be generated.
+     * Create sha256 from file already uploaded on the SFTP Server and transfers sha256 to SFTP server.
+     * @param file the file from the sha256 should be generated.
      * @param channelSftp already opened channel. Should be an open connection.
-     * @throws SubmissionCodeServerException if an error occurs at MD5 instantiation or if the MD5 file cannot be pushed to SFTP server
+     * @throws SubmissionCodeServerException if an error occurs at sha256 instantiation or if the sha256 file cannot be pushed to SFTP server
      */
     private void createDigestThenTransferToSFTP(final ByteArrayOutputStream file, final ChannelSftp channelSftp, String algorithm, String digestFileNameFormat, String dateFile ) throws SubmissionCodeServerException {
         log.info("Transferring digest file to SFTP");
