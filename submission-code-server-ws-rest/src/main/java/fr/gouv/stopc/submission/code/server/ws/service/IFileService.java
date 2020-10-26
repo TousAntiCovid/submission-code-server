@@ -1,18 +1,18 @@
 package fr.gouv.stopc.submission.code.server.ws.service;
 
-import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
-import fr.gouv.stopc.submission.code.server.database.entity.Lot;
-import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeServerException;
-import fr.gouv.stopc.submission.code.server.ws.dto.CodeDetailedDto;
-import org.springframework.scheduling.annotation.Async;
-
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
+
+import org.springframework.scheduling.annotation.Async;
+
+import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
+import fr.gouv.stopc.submission.code.server.database.entity.Lot;
+import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeServerException;
+import fr.gouv.stopc.submission.code.server.ws.dto.CodeDetailedDto;
 
 public interface IFileService {
 
