@@ -1,23 +1,11 @@
 package fr.gouv.stopc.submission.code.server.ws.service.impl;
 
-import fr.gouv.stopc.submission.code.server.commun.enums.CodeTypeEnum;
-import fr.gouv.stopc.submission.code.server.commun.service.impl.LongCodeServiceImpl;
-import fr.gouv.stopc.submission.code.server.commun.service.impl.ShortCodeServiceImpl;
-import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
-import fr.gouv.stopc.submission.code.server.database.entity.Lot;
-import fr.gouv.stopc.submission.code.server.database.service.impl.SubmissionCodeServiceImpl;
-import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeServerException;
-import fr.gouv.stopc.submission.code.server.ws.dto.CodeDetailedDto;
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.*;
-import org.modelmapper.internal.util.Assert;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.util.ReflectionTestUtils;
+import static org.apache.tomcat.util.http.fileupload.FileUtils.deleteDirectory;
+import static org.mockito.Mockito.when;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -25,13 +13,31 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static org.apache.tomcat.util.http.fileupload.FileUtils.deleteDirectory;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
+import static org.mockito.ArgumentMatchers.any;
+import org.modelmapper.internal.util.Assert;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.util.ReflectionTestUtils;
+
+import fr.gouv.stopc.submission.code.server.commun.enums.CodeTypeEnum;
+import fr.gouv.stopc.submission.code.server.commun.service.impl.LongCodeServiceImpl;
+import fr.gouv.stopc.submission.code.server.commun.service.impl.ShortCodeServiceImpl;
+import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
+import fr.gouv.stopc.submission.code.server.database.entity.Lot;
+import fr.gouv.stopc.submission.code.server.database.service.ISequenceFichierService;
+import fr.gouv.stopc.submission.code.server.database.service.impl.SubmissionCodeServiceImpl;
+import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeServerException;
+import fr.gouv.stopc.submission.code.server.ws.dto.CodeDetailedDto;
 
 
 @TestPropertySource("classpath:application.properties")
 class FileServiceTest {
-
-    private static final String TEST_FILE_ZIP = "testFile.tgz";
 
     @Mock
     private GenerateServiceImpl generateService;
@@ -41,6 +47,9 @@ class FileServiceTest {
 
     @Mock
     private SubmissionCodeServiceImpl submissionCodeService;
+
+    @Mock
+    private ISequenceFichierService sequenceFichierService;
 
     @Spy
     @InjectMocks
@@ -67,6 +76,7 @@ class FileServiceTest {
         ReflectionTestUtils.setField(this.generateService, "shortCodeService", new ShortCodeServiceImpl());
         ReflectionTestUtils.setField(this.generateService, "longCodeService", new LongCodeServiceImpl());
         System.setProperty("java.io.tmpdir", "");
+        when(this.sequenceFichierService.getSequence(any())).thenReturn(Optional.empty());
     }
 
     @Test
