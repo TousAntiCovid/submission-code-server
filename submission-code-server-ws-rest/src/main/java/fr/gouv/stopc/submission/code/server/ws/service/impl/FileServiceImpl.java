@@ -8,6 +8,8 @@ import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 import fr.gouv.stopc.submission.code.server.commun.enums.CodeTypeEnum;
 import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
 import fr.gouv.stopc.submission.code.server.database.entity.Lot;
+import fr.gouv.stopc.submission.code.server.database.entity.SequenceFichier;
+import fr.gouv.stopc.submission.code.server.database.service.ISequenceFichierService;
 import fr.gouv.stopc.submission.code.server.database.service.ISubmissionCodeService;
 import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeServerException;
 import fr.gouv.stopc.submission.code.server.ws.dto.CodeDetailedDto;
@@ -31,6 +33,7 @@ import java.io.*;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.DateTimeException;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -50,6 +53,7 @@ public class FileServiceImpl implements IFileService {
     private ISubmissionCodeService submissionCodeService;
     private IGenerateService generateService;
     private ISFTPService sftpService;
+    private ISequenceFichierService sequenceFichierService;
 
     @Value("${stop.covid.qr.code.url}")
     private String qrCodeBaseUrlToBeFormatted;
@@ -79,10 +83,12 @@ public class FileServiceImpl implements IFileService {
 
 
     @Inject
-    public FileServiceImpl(ISubmissionCodeService submissionCodeService, IGenerateService generateService, ISFTPService sftpService) {
+    public FileServiceImpl(ISubmissionCodeService submissionCodeService, IGenerateService generateService, ISFTPService sftpService,
+    		ISequenceFichierService sequenceFichierService) {
         this.submissionCodeService = submissionCodeService;
         this.generateService=generateService;
         this.sftpService=sftpService;
+        this.sequenceFichierService = sequenceFichierService;
     }
 
     @Async
@@ -95,7 +101,7 @@ public class FileServiceImpl implements IFileService {
 
         final Optional<ByteArrayOutputStream> byteArrayOutputStream = this.zipExport(numberCodeDay, lotObject, dateFrom, dateTo);
 
-        log.info("It took {} seconds to generate {} codes", ChronoUnit.SECONDS.between(start, OffsetDateTime.now()), ChronoUnit.DAYS.between(OffsetDateTime.parse(dateFrom), OffsetDateTime.parse(dateTo)) * numberCodeDay);
+        log.info("It took {} seconds to generate {} codes", ChronoUnit.SECONDS.between(start, OffsetDateTime.now()), (ChronoUnit.DAYS.between(OffsetDateTime.parse(dateFrom), OffsetDateTime.parse(dateTo)) + 1) * numberCodeDay);
 
         return byteArrayOutputStream;
     }
@@ -238,10 +244,18 @@ public class FileServiceImpl implements IFileService {
             List<SubmissionCodeDto> listForDay= submissionCodeDtos
                     .stream().filter(tmp-> dateTime.isEqual(tmp.getDateAvailable()))
                     .collect(Collectors.toList());
+            
+            OffsetDateTime date  = dateTime.withOffsetSameInstant(OffsetDateTime.now(ZoneId.of(this.targetZoneId)).getOffset());
+            Optional<SequenceFichier> seqFichier = this.sequenceFichierService.getSequence(date);
+            int sequence = LocalDate.now().getYear() % 100;
+            if(seqFichier.isPresent()) {
+            	sequence = seqFichier.get().getSequence();
+            }
 
             if(CollectionUtils.isNotEmpty(listForDay)) {
                 byte[] fileByte = createCSV(listForDay, dateTime);
-                String filename = this.getCsvFilename(dateTime);
+                String filename = this.getCsvFilename(dateTime, sequence);
+                log.info("About to create the file : {}", filename);
                 dataByFilename.add(filename);
                 OutputStream os = null;
                 try {
@@ -396,9 +410,14 @@ public class FileServiceImpl implements IFileService {
      * @param date date of the file to generate
      * @return  formatted csv file name from date and pattern set in application.properties.
      */
-    private String getCsvFilename(OffsetDateTime date) {
-        date = date.withOffsetSameInstant(OffsetDateTime.now(ZoneId.of(this.targetZoneId)).getOffset());
-        return  String.format(csvFilenameFormat,date.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+    private String getCsvFilename(OffsetDateTime date, int sequence) {
+    	date = date.withOffsetSameInstant(OffsetDateTime.now(ZoneId.of(this.targetZoneId)).getOffset());
+    	if(sequence > 0) {
+    		return String.format(csvFilenameFormat, sequence,
+    				date.format(DateTimeFormatter.ofPattern("yyMMdd")));
+    	}
+    	
+    	return date.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
     }
 
     private SubmissionCodeDto mapToSubmissionCodeDto(CodeDetailedDto codeDetailedDto, Long idLot) {
