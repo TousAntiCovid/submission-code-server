@@ -49,6 +49,9 @@ public interface SubmissionCodeRepository extends PagingAndSortingRepository<Sub
      @Query("SELECT COUNT(*) FROM SubmissionCode s where s.dateUse is NULL and s.type = :type and s.dateEndValidity < :dateExpire")
      long countSubmissionCodeExpiredDate(@Param("dateExpire") OffsetDateTime dateTime, @Param("type") String type);
 
-     @Query("SELECT COUNT(*) FROM SubmissionCode s where s.type = :type and s.dateGeneration >= :startDate and s.dateGeneration < :endDate")
-     long countGeneratedCodes(@Param("startDate") OffsetDateTime startDate, @Param("endDate") OffsetDateTime endDate, @Param("type") String type);
+    @Query("SELECT COUNT(*) FROM SubmissionCode s where s.type = :type and s.dateGeneration >= :startDate and s.dateGeneration < :endDate")
+    long countGeneratedCodes(@Param("startDate") OffsetDateTime startDate, @Param("endDate") OffsetDateTime endDate, @Param("type") String type);
+
+    long deleteCodeByTypeAndDateEndValidityLessThanAndUsedIs(String type, OffsetDateTime validityLessThanDate, Boolean isUsed);
+
 }

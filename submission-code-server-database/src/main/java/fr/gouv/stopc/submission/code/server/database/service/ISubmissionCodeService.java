@@ -6,6 +6,7 @@ import fr.gouv.stopc.submission.code.server.database.entity.Lot;
 import fr.gouv.stopc.submission.code.server.database.entity.SubmissionCode;
 import org.springframework.data.domain.Page;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,4 +39,6 @@ public interface ISubmissionCodeService {
     Page<SubmissionCode> getSubmissionCodesFor(long lotIdentifier, int page, int elementsByPage);
 
     void removeByLot(Lot lot);
+
+    long deleteExpiredCodes(CodeTypeEnum type, OffsetDateTime dateEndValidity);
 }

@@ -9,7 +9,6 @@ import javax.annotation.PostConstruct;
 import java.util.TimeZone;
 
 @ComponentScan(basePackages  = "fr.gouv.stopc")
-@EnableAsync
 @SpringBootApplication
 public class SubmissionCodeServerClientApiWsRestApplication {
 

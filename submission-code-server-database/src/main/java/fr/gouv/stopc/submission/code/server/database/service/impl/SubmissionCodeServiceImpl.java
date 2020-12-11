@@ -6,6 +6,7 @@ import fr.gouv.stopc.submission.code.server.database.entity.Lot;
 import fr.gouv.stopc.submission.code.server.database.entity.SubmissionCode;
 import fr.gouv.stopc.submission.code.server.database.repository.SubmissionCodeRepository;
 import fr.gouv.stopc.submission.code.server.database.service.ISubmissionCodeService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,12 +17,14 @@ import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
+import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @Valid
 public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
@@ -33,7 +36,7 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
     private Integer securityTimeBetweenTwoUsagesOfShortCode;
 
     @Inject
-    public SubmissionCodeServiceImpl(SubmissionCodeRepository submissionCodeRepository){
+    public SubmissionCodeServiceImpl(SubmissionCodeRepository submissionCodeRepository) {
         this.submissionCodeRepository = submissionCodeRepository;
     }
 
@@ -155,4 +158,11 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
         this.submissionCodeRepository.deleteAllByLotkey(lot);
     }
 
+    public long deleteExpiredCodes(CodeTypeEnum type, OffsetDateTime dateEndValidity) {
+
+        if (Objects.isNull(type) || Objects.isNull(dateEndValidity))
+            return 0L;
+
+        return this.submissionCodeRepository.deleteCodeByTypeAndDateEndValidityLessThanAndUsedIs(type.getTypeCode(), dateEndValidity, false);
+    }
 }
