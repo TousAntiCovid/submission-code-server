@@ -1,16 +1,13 @@
 package fr.gouv.stopc.submission.code.server.ws.service.kpiservice;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.Mockito.when;
-
-import java.time.LocalDate;
-import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.List;
-
+import fr.gouv.stopc.submission.code.server.commun.enums.CodeTypeEnum;
+import fr.gouv.stopc.submission.code.server.database.repository.SequenceFichierRepository;
+import fr.gouv.stopc.submission.code.server.database.repository.SubmissionCodeRepository;
+import fr.gouv.stopc.submission.code.server.ws.SubmissionCodeServerClientApiWsRestApplication;
+import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeServerException;
+import fr.gouv.stopc.submission.code.server.ws.service.impl.KpiServiceImpl;
+import fr.gouv.stopc.submission.code.server.ws.utils.FormatDatesKPI;
+import fr.gouv.stopc.submission.code.server.ws.vo.SubmissionCodeServerKpi;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,13 +20,13 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import fr.gouv.stopc.submission.code.server.commun.enums.CodeTypeEnum;
-import fr.gouv.stopc.submission.code.server.database.repository.SubmissionCodeRepository;
-import fr.gouv.stopc.submission.code.server.ws.SubmissionCodeServerClientApiWsRestApplication;
-import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeServerException;
-import fr.gouv.stopc.submission.code.server.ws.service.impl.KpiServiceImpl;
-import fr.gouv.stopc.submission.code.server.ws.utils.FormatDatesKPI;
-import fr.gouv.stopc.submission.code.server.ws.vo.SubmissionCodeServerKpi;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
 
 /**
  * Test class for the Kpi generation service
@@ -52,11 +49,11 @@ public class KpiServiceTest {
     @Value("${stop.covid.qr.code.targetzone}")
     private String targetZoneId;
 
-    /**
-     * Mock of the DAO layer
-     */
     @MockBean
     private SubmissionCodeRepository submissionCodeRepositoryMock;
+
+    @MockBean
+    private SequenceFichierRepository sequenceFichierRepositoryMock;
 
     /**
      * The service to test
