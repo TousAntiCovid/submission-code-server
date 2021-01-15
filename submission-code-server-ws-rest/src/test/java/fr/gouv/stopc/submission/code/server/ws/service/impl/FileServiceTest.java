@@ -1,39 +1,36 @@
 package fr.gouv.stopc.submission.code.server.ws.service.impl;
 
-import static org.apache.tomcat.util.http.fileupload.FileUtils.deleteDirectory;
-import static org.mockito.Mockito.when;
+import fr.gouv.stopc.submission.code.server.commun.enums.CodeTypeEnum;
+import fr.gouv.stopc.submission.code.server.commun.service.impl.LongCodeServiceImpl;
+import fr.gouv.stopc.submission.code.server.commun.service.impl.ShortCodeServiceImpl;
+import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
+import fr.gouv.stopc.submission.code.server.database.entity.Lot;
+import fr.gouv.stopc.submission.code.server.database.entity.SequenceFichier;
+import fr.gouv.stopc.submission.code.server.database.service.ISequenceFichierService;
+import fr.gouv.stopc.submission.code.server.database.service.impl.SubmissionCodeServiceImpl;
+import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeServerException;
+import fr.gouv.stopc.submission.code.server.ws.dto.CodeDetailedDto;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.*;
+import org.modelmapper.internal.util.Assert;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
+import static org.apache.tomcat.util.http.fileupload.FileUtils.deleteDirectory;
 import static org.mockito.ArgumentMatchers.any;
-import org.modelmapper.internal.util.Assert;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.util.ReflectionTestUtils;
-
-import fr.gouv.stopc.submission.code.server.commun.enums.CodeTypeEnum;
-import fr.gouv.stopc.submission.code.server.commun.service.impl.LongCodeServiceImpl;
-import fr.gouv.stopc.submission.code.server.commun.service.impl.ShortCodeServiceImpl;
-import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
-import fr.gouv.stopc.submission.code.server.database.entity.Lot;
-import fr.gouv.stopc.submission.code.server.database.service.ISequenceFichierService;
-import fr.gouv.stopc.submission.code.server.database.service.impl.SubmissionCodeServiceImpl;
-import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeServerException;
-import fr.gouv.stopc.submission.code.server.ws.dto.CodeDetailedDto;
+import static org.mockito.Mockito.when;
 
 
 @TestPropertySource("classpath:application.properties")
@@ -65,7 +62,7 @@ class FileServiceTest {
         ReflectionTestUtils.setField(this.fileExportService, "targetZoneId", "Europe/Paris");
         ReflectionTestUtils.setField(this.fileExportService, "csvSeparator", ',');
         ReflectionTestUtils.setField(this.fileExportService, "csvDelimiter", '"');
-        ReflectionTestUtils.setField(this.fileExportService, "csvFilenameFormat", "%s.csv");
+        ReflectionTestUtils.setField(this.fileExportService, "csvFilenameFormat", "%d%s.csv");
         ReflectionTestUtils.setField(this.fileExportService, "directoryTmpCsv", "tmp");
         ReflectionTestUtils.setField(this.fileExportService, "transferFile", false);
         ReflectionTestUtils.setField(this.generateService, "targetZoneId","Europe/Paris");
@@ -75,7 +72,6 @@ class FileServiceTest {
         ReflectionTestUtils.setField(this.generateService, "submissionCodeService", this.submissionCodeService);
         ReflectionTestUtils.setField(this.generateService, "shortCodeService", new ShortCodeServiceImpl());
         ReflectionTestUtils.setField(this.generateService, "longCodeService", new LongCodeServiceImpl());
-        System.setProperty("java.io.tmpdir", "");
         when(this.sequenceFichierService.getSequence(any())).thenReturn(Optional.empty());
     }
 
@@ -191,6 +187,9 @@ class FileServiceTest {
         submissionCodeDtos.add(submissionCodeDto);
         List<OffsetDateTime> dates = new ArrayList<>();
         dates.add(nowDay);
+
+
+        when(sequenceFichierService.getSequence(nowDay)).thenReturn(Optional.of(new SequenceFichier(1L, nowDay.getYear(), nowDay.getMonthValue(), nowDay.getDayOfMonth(), nowDay.getYear() % 100 + 1)));
         //create csv in directory
         try {
             fileExportService.serializeCodesToCsv(submissionCodeDtos, dates, tmpDirectory);
@@ -198,16 +197,16 @@ class FileServiceTest {
             e.printStackTrace();
         }
         List<String> datesZip= new ArrayList<>();
-        datesZip.add(String.format("%s.csv",nowDay.format(DateTimeFormatter.ofPattern("yyyyMMdd"))));
+        datesZip.add(String.format("%s.csv",nowDay.plus(1, ChronoUnit.YEARS).format(DateTimeFormatter.ofPattern("yyyy")).substring(2)
+                + nowDay.format(DateTimeFormatter.ofPattern("yyMMdd"))));
         ByteArrayOutputStream result= null;
         //call package zip
         try {
            result = fileExportService.packageCsvDataToZipFile(datesZip, tmpDirectory);
-        } catch (SubmissionCodeServerException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+        } catch (SubmissionCodeServerException | IOException e) {
             e.printStackTrace();
         }
+
         Assert.notNull(result);
         //remove resources
         try {
