@@ -1,5 +1,6 @@
 package fr.gouv.stopc.submission.code.server.commun.service.impl;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -12,6 +13,7 @@ class CodeShortCodeServiceImplTest {
 
 
     @Test
+    @Disabled( "for benchmark only")
     void generateCodeShortCodeTest() {
         Long size = new Long("300000");
         final long start = System.currentTimeMillis();
