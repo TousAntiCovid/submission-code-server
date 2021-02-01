@@ -1,21 +1,8 @@
 package fr.gouv.stopc.submission.code.server.ws.service.impl;
 
-import fr.gouv.stopc.submission.code.server.commun.enums.CodeTypeEnum;
-import fr.gouv.stopc.submission.code.server.commun.service.impl.LongCodeServiceImpl;
-import fr.gouv.stopc.submission.code.server.commun.service.impl.ShortCodeServiceImpl;
-import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
-import fr.gouv.stopc.submission.code.server.database.entity.Lot;
-import fr.gouv.stopc.submission.code.server.database.entity.SequenceFichier;
-import fr.gouv.stopc.submission.code.server.database.service.ISequenceFichierService;
-import fr.gouv.stopc.submission.code.server.database.service.impl.SubmissionCodeServiceImpl;
-import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeServerException;
-import fr.gouv.stopc.submission.code.server.ws.dto.CodeDetailedDto;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.*;
-import org.modelmapper.internal.util.Assert;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.util.ReflectionTestUtils;
+import static org.apache.tomcat.util.http.fileupload.FileUtils.deleteDirectory;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -27,15 +14,43 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.TimeZone;
 
-import static org.apache.tomcat.util.http.fileupload.FileUtils.deleteDirectory;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
+import org.modelmapper.internal.util.Assert;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
+import fr.gouv.stopc.submission.code.server.commun.enums.CodeTypeEnum;
+import fr.gouv.stopc.submission.code.server.commun.service.impl.LongCodeServiceImpl;
+import fr.gouv.stopc.submission.code.server.commun.service.impl.ShortCodeServiceImpl;
+import fr.gouv.stopc.submission.code.server.database.dto.SubmissionCodeDto;
+import fr.gouv.stopc.submission.code.server.database.entity.Lot;
+import fr.gouv.stopc.submission.code.server.database.entity.SequenceFichier;
+import fr.gouv.stopc.submission.code.server.database.service.ISequenceFichierService;
+import fr.gouv.stopc.submission.code.server.database.service.impl.SubmissionCodeServiceImpl;
+import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeServerException;
+import fr.gouv.stopc.submission.code.server.ws.dto.CodeDetailedDto;
 
+@ExtendWith(SpringExtension.class)
 @TestPropertySource("classpath:application.properties")
 class FileServiceTest {
 
+    /**
+     * Zone ID to use
+     */
+    @Value("${stop.covid.qr.code.targetzone}")
+    private String targetZoneId;
+	
     @Mock
     private GenerateServiceImpl generateService;
 
@@ -57,15 +72,17 @@ class FileServiceTest {
     public void init(){
 
         MockitoAnnotations.initMocks(this);
+        
+        TimeZone.setDefault(TimeZone.getTimeZone(this.targetZoneId));
 
         ReflectionTestUtils.setField(this.fileExportService, "qrCodeBaseUrlToBeFormatted", "my%smy%s");
-        ReflectionTestUtils.setField(this.fileExportService, "targetZoneId", "Europe/Paris");
+        ReflectionTestUtils.setField(this.fileExportService, "targetZoneId", this.targetZoneId);
         ReflectionTestUtils.setField(this.fileExportService, "csvSeparator", ',');
         ReflectionTestUtils.setField(this.fileExportService, "csvDelimiter", '"');
         ReflectionTestUtils.setField(this.fileExportService, "csvFilenameFormat", "%d%s.csv");
         ReflectionTestUtils.setField(this.fileExportService, "directoryTmpCsv", "tmp");
         ReflectionTestUtils.setField(this.fileExportService, "transferFile", false);
-        ReflectionTestUtils.setField(this.generateService, "targetZoneId","Europe/Paris");
+        ReflectionTestUtils.setField(this.generateService, "targetZoneId",this.targetZoneId);
         ReflectionTestUtils.setField(this.generateService, "numberOfTryInCaseOfError",1);
         ReflectionTestUtils.setField(this.generateService, "timeValidityLongCode",2);
         ReflectionTestUtils.setField(this.generateService, "timeValidityShortCode",15);
