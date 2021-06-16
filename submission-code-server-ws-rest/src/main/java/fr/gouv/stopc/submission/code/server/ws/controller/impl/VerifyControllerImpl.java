@@ -1,6 +1,5 @@
 package fr.gouv.stopc.submission.code.server.ws.controller.impl;
 
-
 import fr.gouv.stopc.submission.code.server.ws.controller.IVerifyController;
 import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeServerException;
 import fr.gouv.stopc.submission.code.server.ws.dto.VerifyDto;
@@ -14,7 +13,6 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import javax.inject.Inject;
 import javax.validation.Valid;
 
-
 @Service
 @Slf4j
 public class VerifyControllerImpl implements IVerifyController {
@@ -27,7 +25,8 @@ public class VerifyControllerImpl implements IVerifyController {
     }
 
     @Override
-    public ResponseEntity verifySubmissionCode(@ModelAttribute @Valid VerifyRequestVo verifyRequestVo) throws SubmissionCodeServerException {
+    public ResponseEntity verifySubmissionCode(@ModelAttribute @Valid VerifyRequestVo verifyRequestVo)
+            throws SubmissionCodeServerException {
         log.info("Receiving code : {} and type : {}", verifyRequestVo.getCode(), verifyRequestVo.getType());
         String type = verifyRequestVo.getType();
         String code = verifyRequestVo.getCode();

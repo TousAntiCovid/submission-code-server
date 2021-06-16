@@ -6,15 +6,15 @@ public interface ILongCodeService {
 
     /**
      * generate and stringify a long code
-     * @return  A randomly generated long code
+     * 
+     * @return A randomly generated long code
      */
-     String generateCode();
+    String generateCode();
 
     /**
-     *
      * @param size number of code to be generated
      * @return
      */
-     List<String> generateCodes(long size);
+    List<String> generateCodes(long size);
 
 }

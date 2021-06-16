@@ -19,58 +19,59 @@ import java.util.UUID;
 
 @Service
 @Slf4j
-public class SubmissionCodeServerExceptionHandler extends ResponseEntityExceptionHandler implements ISubmissionCodeServerExceptionHandler {
-
+public class SubmissionCodeServerExceptionHandler extends ResponseEntityExceptionHandler
+        implements ISubmissionCodeServerExceptionHandler {
 
     @Override
     public ResponseEntity<Object> handleMethodArgumentNotValid(
             MethodArgumentNotValidException ex,
-            HttpHeaders headers, HttpStatus status, WebRequest request)
-    {
+            HttpHeaders headers, HttpStatus status, WebRequest request) {
         return this.handleSubmissionCodeServer(
                 new SubmissionCodeServerException(
                         SubmissionCodeServerException.ExceptionEnum.VALIDATION_FIELD_ERROR, ex
                 ),
-                request);
+                request
+        );
     }
 
     @Override
     public ResponseEntity<Object> handleBindException(
             BindException ex,
-            HttpHeaders headers, HttpStatus status, WebRequest request)
-    {
+            HttpHeaders headers, HttpStatus status, WebRequest request) {
         return this.handleSubmissionCodeServer(
                 new SubmissionCodeServerException(
                         SubmissionCodeServerException.ExceptionEnum.VALIDATION_FIELD_ERROR, ex
                 ),
-                request);
+                request
+        );
     }
 
     @Override
     public ResponseEntity<Object> handleSubmissionCodeServer(
             SubmissionCodeServerException submissionCodeServerException,
-            WebRequest request
-    )
-    {
+            WebRequest request) {
         log.error("handleSubmissionCodeServer", submissionCodeServerException);
         switch (submissionCodeServerException.getServerExceptionEnum()) {
             case INVALID_CODE_TYPE_ERROR:
             case VALIDATION_FIELD_ERROR:
                 return super.handleExceptionInternal(
                         submissionCodeServerException, submissionCodeServerException.body(),
-                        new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
+                        new HttpHeaders(), HttpStatus.BAD_REQUEST, request
+                );
 
             case DB_INVALID_PARAMETERS_ERROR:
             case DB_NO_RECORD_FOR_LOT_IDENTIFIER_ERROR:
                 return super.handleExceptionInternal(
                         submissionCodeServerException, submissionCodeServerException.body(),
-                        new HttpHeaders(), HttpStatus.NOT_FOUND, request);
+                        new HttpHeaders(), HttpStatus.NOT_FOUND, request
+                );
 
             case CODE_GENERATION_FAILED_ERROR:
             case NUMBER_OF_TRIES_REACHED_ERROR:
                 return super.handleExceptionInternal(
                         submissionCodeServerException, submissionCodeServerException.body(),
-                        new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, request);
+                        new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, request
+                );
 
             default:
                 return this.unHandledException(submissionCodeServerException, request);
@@ -80,9 +81,7 @@ public class SubmissionCodeServerExceptionHandler extends ResponseEntityExceptio
 
     ResponseEntity<Object> unHandledException(
             SubmissionCodeServerException submissionCodeServerException,
-            WebRequest request
-    )
-    {
+            WebRequest request) {
         final UUID uuid = UUID.randomUUID();
         final OffsetDateTime now = OffsetDateTime.now();
 
@@ -92,7 +91,8 @@ public class SubmissionCodeServerExceptionHandler extends ResponseEntityExceptio
 
         return super.handleExceptionInternal(
                 submissionCodeServerException, submissionCodeServerException.body(loggedCodeError),
-                new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, request);
+                new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, request
+        );
     }
 
     @Override

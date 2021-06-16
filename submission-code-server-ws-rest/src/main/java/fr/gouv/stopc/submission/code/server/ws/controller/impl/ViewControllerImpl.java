@@ -27,24 +27,20 @@ public class ViewControllerImpl implements IViewController {
 
     @Override
     public ResponseEntity<ViewDto.LotInformation> getLotInformation(@PathVariable long lotIdentifier)
-            throws SubmissionCodeServerException
-    {
+            throws SubmissionCodeServerException {
         return ResponseEntity.ok(this.viewsService.getLotInformation(lotIdentifier));
     }
 
     @Override
     public ResponseEntity<ViewDto.CodeValuesForPage> getCodeValuesForPage(
-            long lotIdentifier, int page, int elementByPage
-    ) throws SubmissionCodeServerException
-    {
+            long lotIdentifier, int page, int elementByPage) throws SubmissionCodeServerException {
         return ResponseEntity.ok(this.viewsService.getViewLotCodeDetailListFor(page, elementByPage, lotIdentifier));
     }
 
     @Override
-    public ResponseEntity<ViewDto.CodeGenerationRequest> postCodeGenerationRequest (
-            @Valid @RequestBody ViewVo.CodeGenerationRequestBody codeGenerationRequestBody
-    ) throws SubmissionCodeServerException
-    {
+    public ResponseEntity<ViewDto.CodeGenerationRequest> postCodeGenerationRequest(
+            @Valid @RequestBody ViewVo.CodeGenerationRequestBody codeGenerationRequestBody)
+            throws SubmissionCodeServerException {
         final ViewDto.CodeGenerationRequest codeGenerationRequest = this.viewsService
                 .launchGenerationWith(codeGenerationRequestBody);
 

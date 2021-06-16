@@ -31,17 +31,18 @@ public class GenerateServiceGetValidityDateLongCodeMethodTest {
     @Spy
     @InjectMocks
     private GenerateServiceImpl generateService;
+
     private static final String targetZoneId = "Europe/Paris";
 
     @BeforeEach
-    public void init(){
+    public void init() {
 
         MockitoAnnotations.initMocks(this);
 
         ReflectionTestUtils.setField(this.generateService, "targetZoneId", this.targetZoneId);
         ReflectionTestUtils.setField(this.generateService, "numberOfTryInCaseOfError", 0);
 
-        //SET 24 hours of lock security
+        // SET 24 hours of lock security
         ReflectionTestUtils.setField(this.submissionCodeService, "securityTimeBetweenTwoUsagesOfShortCode", 24);
         ReflectionTestUtils.setField(this.generateService, "longCodeService", new LongCodeServiceImpl());
         ReflectionTestUtils.setField(this.generateService, "shortCodeService", new ShortCodeServiceImpl());
@@ -55,22 +56,20 @@ public class GenerateServiceGetValidityDateLongCodeMethodTest {
 
         OffsetDateTime testedValidFrom = OffsetDateTime.now(ZoneId.of(this.targetZoneId));
 
+        testedValidFrom = testedValidFrom.withMonth(01).withDayOfMonth(01).withHour(1).withMinute(12)
+                .truncatedTo(ChronoUnit.MINUTES);
 
-        testedValidFrom = testedValidFrom.withMonth(01).withDayOfMonth(01).withHour(1).withMinute(12).truncatedTo(ChronoUnit.MINUTES);
-
-        final SubmissionCodeDto submissionCodeDto = this.generateService.preGenerateSubmissionCodeDtoForCodeTypeAndDateValidity(CodeTypeEnum.LONG, testedValidFrom).build();
+        final SubmissionCodeDto submissionCodeDto = this.generateService
+                .preGenerateSubmissionCodeDtoForCodeTypeAndDateValidity(CodeTypeEnum.LONG, testedValidFrom).build();
 
         assertNotNull(submissionCodeDto);
-
-
-
 
         final OffsetDateTime validUntil = submissionCodeDto.getDateEndValidity()
                 .withOffsetSameInstant(
                         OffsetDateTime.now(ZoneId.of(this.targetZoneId)).getOffset()
                 );
 
-        final OffsetDateTime validFrom= submissionCodeDto.getDateAvailable()
+        final OffsetDateTime validFrom = submissionCodeDto.getDateAvailable()
                 .withOffsetSameInstant(
                         OffsetDateTime.now(ZoneId.of(this.targetZoneId)).getOffset()
                 );
@@ -84,15 +83,12 @@ public class GenerateServiceGetValidityDateLongCodeMethodTest {
         // asserting truncate to minutes
         assertEquals(00, validUntil.getSecond());
 
-
         final long betweenSec = SECONDS.between(validFrom, validUntil);
-        final long betweenDays =  betweenSec / 60 / 60 / 24;
+        final long betweenDays = betweenSec / 60 / 60 / 24;
 
         final int deltaMinutes = testedValidFrom.getHour() * 60 + testedValidFrom.getMinute();
 
-        assertEquals((((validityDays + 1 )* 24 * 60) - deltaMinutes- 1 ) * 60 , betweenSec);
-
-
+        assertEquals((((validityDays + 1) * 24 * 60) - deltaMinutes - 1) * 60, betweenSec);
 
     }
 

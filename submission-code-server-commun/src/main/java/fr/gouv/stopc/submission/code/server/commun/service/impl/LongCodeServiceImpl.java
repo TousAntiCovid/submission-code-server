@@ -13,7 +13,6 @@ import java.util.stream.Stream;
 @Slf4j
 public class LongCodeServiceImpl implements ILongCodeService {
 
-
     public String generateCode() {
         return (UUID.randomUUID()).toString();
     }

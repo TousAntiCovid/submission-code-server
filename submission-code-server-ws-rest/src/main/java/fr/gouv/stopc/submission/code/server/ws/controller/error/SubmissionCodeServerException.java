@@ -6,11 +6,9 @@ import org.modelmapper.ModelMapper;
 
 import java.time.LocalDateTime;
 
-
 @Getter
 @Setter
 public class SubmissionCodeServerException extends Exception {
-
 
     private ExceptionEnum serverExceptionEnum;
 
@@ -19,6 +17,7 @@ public class SubmissionCodeServerException extends Exception {
     private final String debugMessage;
 
     public enum ExceptionEnum {
+
         NUMBER_OF_TRIES_REACHED_ERROR("Number of try generating code has been reached."),
         DB_NO_RECORD_FOR_LOT_IDENTIFIER_ERROR("Lot identifier has no record."),
         DB_INVALID_PARAMETERS_ERROR("The given parameter does not allow to give back any further information."),
@@ -50,7 +49,7 @@ public class SubmissionCodeServerException extends Exception {
     public SubmissionCodeServerException() {
         this.timestamp = LocalDateTime.now();
         this.debugMessage = null;
-        this.serverExceptionEnum=null;
+        this.serverExceptionEnum = null;
     }
 
     @Override
@@ -62,14 +61,13 @@ public class SubmissionCodeServerException extends Exception {
         this(serverExceptionEnum, null);
     }
 
-
     public SubmissionCodeServerException(ExceptionEnum serverExceptionEnum, Throwable ex) {
         super(serverExceptionEnum.message, ex);
         this.serverExceptionEnum = serverExceptionEnum;
 
-        this.debugMessage = ex!=null ? ex.getLocalizedMessage() : null;
-       
-        this.timestamp= LocalDateTime.now();
+        this.debugMessage = ex != null ? ex.getLocalizedMessage() : null;
+
+        this.timestamp = LocalDateTime.now();
     }
 
     public SimpleErrorBody body() {
@@ -88,13 +86,16 @@ public class SubmissionCodeServerException extends Exception {
     @Getter
     @Setter
     public static class SimpleErrorBody {
+
         private LocalDateTime timestamp;
+
         private ExceptionEnum codeException;
     }
 
     @Getter
     @Setter
-    public static class DetailedErrorBody extends SimpleErrorBody{
+    public static class DetailedErrorBody extends SimpleErrorBody {
+
         private String detail;
     }
 

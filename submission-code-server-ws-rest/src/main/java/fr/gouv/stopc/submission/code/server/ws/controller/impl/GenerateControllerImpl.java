@@ -10,26 +10,24 @@ import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 
-
 @Slf4j
 @Service
 public class GenerateControllerImpl implements IGenerateController {
 
-	private final IGenerateService generateService;
+    private final IGenerateService generateService;
 
-	@Inject
-	public GenerateControllerImpl(IGenerateService generateService){
-		this.generateService = generateService;
-	}
+    @Inject
+    public GenerateControllerImpl(IGenerateService generateService) {
+        this.generateService = generateService;
+    }
 
-	@Override
-	public ResponseEntity<CodeSimpleDto> generateShortCode() throws SubmissionCodeServerException {
-			log.info("Trying to generate code with sequential method");
+    @Override
+    public ResponseEntity<CodeSimpleDto> generateShortCode() throws SubmissionCodeServerException {
+        log.info("Trying to generate code with sequential method");
 
-			return ResponseEntity.ok(
-					this.generateService.generateShortCode()
-			);
-	}
-
+        return ResponseEntity.ok(
+                this.generateService.generateShortCode()
+        );
+    }
 
 }

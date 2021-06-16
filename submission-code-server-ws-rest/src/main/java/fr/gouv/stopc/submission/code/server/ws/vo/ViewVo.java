@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+
 import java.time.OffsetDateTime;
 
 public class ViewVo {
@@ -17,7 +18,11 @@ public class ViewVo {
         super();
     }
 
-    @AllArgsConstructor @NoArgsConstructor @Data @Builder @Valid
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Data
+    @Builder
+    @Valid
     public static class CodeGenerationRequestBody {
 
         @NotNull

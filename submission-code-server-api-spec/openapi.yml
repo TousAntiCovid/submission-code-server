@@ -1,6 +1,7 @@
 openapi: 3.0.0
 info:
-  description: Submission Code Server Client API Spec. This server generates one-time codes
+  description:
+    Submission Code Server Client API Spec. This server generates one-time codes
     to be used in the StopCovid app.
   version: 0.0.1
   title: Submission Code Server Client API Spec
@@ -45,7 +46,8 @@ paths:
       tags:
         - Generate Code
       summary: Generate 6-alphanum code
-      description: Generate a new submission code. Codes are usable once and are valid
+      description:
+        Generate a new submission code. Codes are usable once and are valid
         after a specific date and until a validity date.
       operationId: generate
       responses:
@@ -68,7 +70,8 @@ components:
       properties:
         code:
           type: string
-          description: The submission code to display. Should be encoded as a QR code by
+          description:
+            The submission code to display. Should be encoded as a QR code by
             the client (combined with type info).
           example: AS3F5Z
           pattern: "[a-zA-Z0-9]{6}"

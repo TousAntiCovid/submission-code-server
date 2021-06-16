@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.ws.rs.Produces;
 
 /**
- * VPN Control is made to access to this end-point.
- * JWT or ApiKey is checked in API Gateway.
+ * VPN Control is made to access to this end-point. JWT or ApiKey is checked in
+ * API Gateway.
  */
 @RestController
 @RequestMapping(value = "${controller.path.prefix}")
@@ -20,7 +20,9 @@ import javax.ws.rs.Produces;
 public interface IGenerateController {
 
     /**
-     * Generate a new submission code. Codes are one-time use and have a validity date
+     * Generate a new submission code. Codes are one-time use and have a validity
+     * date
+     * 
      * @return
      */
     @GetMapping(value = "/generate/short")

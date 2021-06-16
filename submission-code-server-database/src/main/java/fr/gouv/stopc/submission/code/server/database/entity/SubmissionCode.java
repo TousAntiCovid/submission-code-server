@@ -5,12 +5,12 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
-import java.time.OffsetDateTime;
 
+import java.time.OffsetDateTime;
 
 @Data
 @Entity
-@Table(name ="submission_code")
+@Table(name = "submission_code")
 public class SubmissionCode {
 
     @Id

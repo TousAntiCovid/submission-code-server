@@ -11,7 +11,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
-
 /**
  * Requests parameters of "/verify" endpoint
  */
@@ -21,14 +20,14 @@ import javax.validation.constraints.Pattern;
 @Builder
 @Valid
 public class VerifyRequestVo {
+
     /**
      * The code value to verify
      */
-   @NotNull
-   @Pattern(regexp = CodeTypeEnum.Pattern.SHORT + "|" + CodeTypeEnum.Pattern.LONG,
-           message = "Short code pattern or long code pattern should be respected here"
-   )
-   private String code;
+    @NotNull
+    @Pattern(regexp = CodeTypeEnum.Pattern.SHORT + "|"
+            + CodeTypeEnum.Pattern.LONG, message = "Short code pattern or long code pattern should be respected here")
+    private String code;
 
     /**
      * The type of the provided code

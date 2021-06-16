@@ -6,8 +6,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class SubmissionCodeServerClientApiDatabaseApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(SubmissionCodeServerClientApiDatabaseApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(SubmissionCodeServerClientApiDatabaseApplication.class, args);
+    }
 
 }
