@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+
 import java.time.OffsetDateTime;
 import java.util.Objects;
 
@@ -40,8 +41,10 @@ public class SubmissionCodeCsvDto {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof SubmissionCodeCsvDto)) return false;
+        if (this == o)
+            return true;
+        if (!(o instanceof SubmissionCodeCsvDto))
+            return false;
         SubmissionCodeCsvDto that = (SubmissionCodeCsvDto) o;
         return Objects.equals(getQrcode(), that.getQrcode()) &&
                 Objects.equals(getCode(), that.getCode()) &&

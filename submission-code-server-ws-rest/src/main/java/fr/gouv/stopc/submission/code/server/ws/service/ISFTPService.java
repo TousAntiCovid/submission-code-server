@@ -5,5 +5,6 @@ import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeSe
 import java.io.ByteArrayOutputStream;
 
 public interface ISFTPService {
-     void transferFileSFTP(ByteArrayOutputStream file) throws SubmissionCodeServerException;
+
+    void transferFileSFTP(ByteArrayOutputStream file) throws SubmissionCodeServerException;
 }

@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -28,23 +29,22 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
 
     private SubmissionCodeRepository submissionCodeRepository;
 
-
     @Value("${generation.code.security.shortcode.hours}")
     private Integer securityTimeBetweenTwoUsagesOfShortCode;
 
     @Inject
-    public SubmissionCodeServiceImpl(SubmissionCodeRepository submissionCodeRepository){
+    public SubmissionCodeServiceImpl(SubmissionCodeRepository submissionCodeRepository) {
         this.submissionCodeRepository = submissionCodeRepository;
     }
 
     @Override
     public Optional<SubmissionCodeDto> getCodeValidity(String code, CodeTypeEnum type) {
-        if(Strings.isBlank(code)){
+        if (Strings.isBlank(code)) {
             return Optional.empty();
         }
         String typeCode = type.getTypeCode();
-        SubmissionCode submissionCode = submissionCodeRepository.findByCodeAndType(code,typeCode);
-        if(Objects.isNull(submissionCode)){
+        SubmissionCode submissionCode = submissionCodeRepository.findByCodeAndType(code, typeCode);
+        if (Objects.isNull(submissionCode)) {
             return Optional.empty();
         }
         ModelMapper modelMapper = new ModelMapper();
@@ -59,7 +59,7 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
 
     @Override
     public Iterable<SubmissionCode> saveAllCodes(List<SubmissionCodeDto> submissionCodeDtos, Lot lot) {
-        if(submissionCodeDtos.isEmpty()) {
+        if (submissionCodeDtos.isEmpty()) {
             return Collections.emptyList();
         }
         ModelMapper modelMapper = new ModelMapper();
@@ -93,7 +93,6 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
         SubmissionCode submissionCodeToSave = modelMapper.map(submissionCodeDto, SubmissionCode.class);
         submissionCodeToSave.setLotkey(lot);
 
-
         try {
             // try to save data
             return Optional.of(submissionCodeRepository.save(submissionCodeToSave));
@@ -101,9 +100,8 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
         } catch (DataIntegrityViolationException divExcetion) {
 
             // if Unique code exists for short code try to update
-            if(securityTimeBetweenTwoUsagesOfShortCode != null
-                    && CodeTypeEnum.SHORT.isTypeOrTypeCodeOf(submissionCodeToSave.getType()))
-            {
+            if (securityTimeBetweenTwoUsagesOfShortCode != null
+                    && CodeTypeEnum.SHORT.isTypeOrTypeCodeOf(submissionCodeToSave.getType())) {
                 SubmissionCode sc = this.submissionCodeRepository.findByCodeAndTypeAndAndDateEndValidityLessThan(
                         submissionCodeToSave.getCode(),
                         submissionCodeToSave.getType(),
@@ -112,7 +110,7 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
                                         securityTimeBetweenTwoUsagesOfShortCode
                                 )
                 );
-                if(sc != null) {
+                if (sc != null) {
                     // replace actual line by new code
                     submissionCodeToSave.setId(sc.getId());
                     return Optional.of(this.submissionCodeRepository.save(submissionCodeToSave));
@@ -122,7 +120,6 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
             throw divExcetion;
         }
 
-
     }
 
     @Override
@@ -130,7 +127,7 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
         String code = submissionCodeDto.getCode();
         String type = submissionCodeDto.getType();
         SubmissionCode submissionCode = submissionCodeRepository.findByCodeAndType(code, type);
-        if (Objects.isNull(submissionCode)){
+        if (Objects.isNull(submissionCode)) {
             return false;
         }
         submissionCode.setDateUse(submissionCodeDto.getDateUse());

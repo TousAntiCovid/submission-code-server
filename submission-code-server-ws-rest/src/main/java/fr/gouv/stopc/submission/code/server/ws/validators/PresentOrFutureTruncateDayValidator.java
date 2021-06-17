@@ -5,12 +5,14 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
+
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 
 @Slf4j
-public class PresentOrFutureTruncateDayValidator implements ConstraintValidator<PresentOrFutureTruncateDay, OffsetDateTime> {
+public class PresentOrFutureTruncateDayValidator
+        implements ConstraintValidator<PresentOrFutureTruncateDay, OffsetDateTime> {
 
     /**
      * @param date date to test

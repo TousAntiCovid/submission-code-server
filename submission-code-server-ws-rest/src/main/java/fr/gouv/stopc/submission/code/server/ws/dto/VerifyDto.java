@@ -12,9 +12,8 @@ import lombok.NoArgsConstructor;
 public class VerifyDto {
 
     /**
-     * True if the code is valid, false if invalid or expired, or if type does not match.
-     *
-     * A valid code is destroyed if validated successfully.
+     * True if the code is valid, false if invalid or expired, or if type does not
+     * match. A valid code is destroyed if validated successfully.
      */
     boolean valid;
 }

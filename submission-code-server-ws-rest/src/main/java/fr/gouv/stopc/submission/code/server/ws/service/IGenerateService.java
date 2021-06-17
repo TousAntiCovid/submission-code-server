@@ -17,20 +17,22 @@ public interface IGenerateService {
 
     /**
      * Method used to sequentially generate codes of codeType in parameter
-     * @param size the desired number of code to be generated
-     * @param cte the code type desired
+     * 
+     * @param size      the desired number of code to be generated
+     * @param cte       the code type desired
      * @param validFrom date from the code should be valid.
      * @return list of unique persisted codes
      */
     List<CodeDetailedDto> generateCodeGeneric(final long size,
-                                              final CodeTypeEnum cte,
-                                              final OffsetDateTime validFrom,
-                                              final Lot lotObject
-    ) throws SubmissionCodeServerException;
+            final CodeTypeEnum cte,
+            final OffsetDateTime validFrom,
+            final Lot lotObject) throws SubmissionCodeServerException;
 
     /**
      * Method return List of OffsetDateTime increment by day and truncate to day
-     * @param size give size of the list to be returned included validFromFirstValue
+     * 
+     * @param size                give size of the list to be returned included
+     *                            validFromFirstValue
      * @param validFromFirstValue seed time from the list should be generated from.
      * @return List of OffsetDateTime increment by day and truncate to day.
      */
@@ -40,9 +42,8 @@ public interface IGenerateService {
             final OffsetDateTime validFrom,
             final long dailyAmount,
             final Lot lot,
-            final OffsetDateTime validGenDate
-    ) throws SubmissionCodeServerException;
+            final OffsetDateTime validGenDate) throws SubmissionCodeServerException;
 
     List<CodeDetailedDto> submissionCodeListToCodeDetailDtoList(Iterable<SubmissionCode> submissionCodes);
 
-    }
+}

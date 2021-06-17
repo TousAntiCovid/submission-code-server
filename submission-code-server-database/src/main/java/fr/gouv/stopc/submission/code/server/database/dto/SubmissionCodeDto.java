@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+
 import java.time.OffsetDateTime;
 
 @AllArgsConstructor
@@ -18,7 +19,7 @@ import java.time.OffsetDateTime;
 public class SubmissionCodeDto {
 
     /*
-        Empty for short codes, required for long codes
+     * Empty for short codes, required for long codes
      */
     private long lot;
 

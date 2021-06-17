@@ -32,7 +32,6 @@ import static org.mockito.Mockito.when;
  * Test class for the Kpi generation service
  * 
  * @author plant-stopcovid
- *
  */
 @ExtendWith(SpringExtension.class)
 @EnableAutoConfiguration(exclude = { DataSourceAutoConfiguration.class })
@@ -75,7 +74,7 @@ public class KpiServiceTest {
         this.endDate = this.startDate.plusDays(1);
 
         this.startDateTime = FormatDatesKPI.normaliseDateFrom(this.startDate, this.targetZoneId);
-        this.endDateTime = FormatDatesKPI.normaliseDateTo(this.startDate,this.targetZoneId);
+        this.endDateTime = FormatDatesKPI.normaliseDateTo(this.startDate, this.targetZoneId);
     }
 
     @Test
@@ -83,18 +82,30 @@ public class KpiServiceTest {
         LocalDate fromDate = OffsetDateTime.now().toLocalDate();
         LocalDate toDate = OffsetDateTime.now().toLocalDate();
 
-        when(this.submissionCodeRepositoryMock.countSubmissionCodeUsedByDate(
-                FormatDatesKPI.normaliseDateFrom(fromDate, this.targetZoneId),
-                FormatDatesKPI.normaliseDateTo(fromDate, this.targetZoneId), "1")).thenReturn(2L);
-        when(this.submissionCodeRepositoryMock.countSubmissionCodeUsedByDate(
-                FormatDatesKPI.normaliseDateFrom(fromDate, this.targetZoneId),
-                FormatDatesKPI.normaliseDateTo(fromDate, this.targetZoneId), "2")).thenReturn(0L);
-        when(this.submissionCodeRepositoryMock
-                .countSubmissionCodeExpiredDate(FormatDatesKPI.normaliseDateTo(fromDate, this.targetZoneId), "1"))
-                        .thenReturn(0L);
-        when(this.submissionCodeRepositoryMock
-                .countSubmissionCodeExpiredDate(FormatDatesKPI.normaliseDateTo(toDate, this.targetZoneId), "2"))
-                        .thenReturn(0L);
+        when(
+                this.submissionCodeRepositoryMock.countSubmissionCodeUsedByDate(
+                        FormatDatesKPI.normaliseDateFrom(fromDate, this.targetZoneId),
+                        FormatDatesKPI.normaliseDateTo(fromDate, this.targetZoneId), "1"
+                )
+        ).thenReturn(2L);
+        when(
+                this.submissionCodeRepositoryMock.countSubmissionCodeUsedByDate(
+                        FormatDatesKPI.normaliseDateFrom(fromDate, this.targetZoneId),
+                        FormatDatesKPI.normaliseDateTo(fromDate, this.targetZoneId), "2"
+                )
+        ).thenReturn(0L);
+        when(
+                this.submissionCodeRepositoryMock
+                        .countSubmissionCodeExpiredDate(
+                                FormatDatesKPI.normaliseDateTo(fromDate, this.targetZoneId), "1"
+                        )
+        )
+                .thenReturn(0L);
+        when(
+                this.submissionCodeRepositoryMock
+                        .countSubmissionCodeExpiredDate(FormatDatesKPI.normaliseDateTo(toDate, this.targetZoneId), "2")
+        )
+                .thenReturn(0L);
         List<SubmissionCodeServerKpi> result = new ArrayList<>();
         try {
             result = this.kpiService.generateKPI(fromDate, toDate);
@@ -110,18 +121,30 @@ public class KpiServiceTest {
         LocalDate fromDate = OffsetDateTime.now().toLocalDate();
         LocalDate toDate = OffsetDateTime.now().toLocalDate();
 
-        when(this.submissionCodeRepositoryMock.countSubmissionCodeUsedByDate(
-                FormatDatesKPI.normaliseDateFrom(fromDate, this.targetZoneId),
-                FormatDatesKPI.normaliseDateTo(fromDate, this.targetZoneId), "1")).thenReturn(0L);
-        when(this.submissionCodeRepositoryMock.countSubmissionCodeUsedByDate(
-                FormatDatesKPI.normaliseDateFrom(fromDate, this.targetZoneId),
-                FormatDatesKPI.normaliseDateTo(fromDate, this.targetZoneId), "2")).thenReturn(2L);
-        when(this.submissionCodeRepositoryMock
-                .countSubmissionCodeExpiredDate(FormatDatesKPI.normaliseDateTo(fromDate, this.targetZoneId), "1"))
-                        .thenReturn(0L);
-        when(this.submissionCodeRepositoryMock
-                .countSubmissionCodeExpiredDate(FormatDatesKPI.normaliseDateTo(toDate, this.targetZoneId), "2"))
-                        .thenReturn(0L);
+        when(
+                this.submissionCodeRepositoryMock.countSubmissionCodeUsedByDate(
+                        FormatDatesKPI.normaliseDateFrom(fromDate, this.targetZoneId),
+                        FormatDatesKPI.normaliseDateTo(fromDate, this.targetZoneId), "1"
+                )
+        ).thenReturn(0L);
+        when(
+                this.submissionCodeRepositoryMock.countSubmissionCodeUsedByDate(
+                        FormatDatesKPI.normaliseDateFrom(fromDate, this.targetZoneId),
+                        FormatDatesKPI.normaliseDateTo(fromDate, this.targetZoneId), "2"
+                )
+        ).thenReturn(2L);
+        when(
+                this.submissionCodeRepositoryMock
+                        .countSubmissionCodeExpiredDate(
+                                FormatDatesKPI.normaliseDateTo(fromDate, this.targetZoneId), "1"
+                        )
+        )
+                .thenReturn(0L);
+        when(
+                this.submissionCodeRepositoryMock
+                        .countSubmissionCodeExpiredDate(FormatDatesKPI.normaliseDateTo(toDate, this.targetZoneId), "2")
+        )
+                .thenReturn(0L);
         List<SubmissionCodeServerKpi> result = new ArrayList<>();
         try {
             result = this.kpiService.generateKPI(fromDate, toDate);
@@ -137,18 +160,30 @@ public class KpiServiceTest {
         LocalDate fromDate = OffsetDateTime.now().toLocalDate();
         LocalDate toDate = OffsetDateTime.now().toLocalDate();
 
-        when(this.submissionCodeRepositoryMock.countSubmissionCodeUsedByDate(
-                FormatDatesKPI.normaliseDateFrom(fromDate, this.targetZoneId),
-                FormatDatesKPI.normaliseDateTo(fromDate, this.targetZoneId), "1")).thenReturn(0L);
-        when(this.submissionCodeRepositoryMock.countSubmissionCodeUsedByDate(
-                FormatDatesKPI.normaliseDateFrom(fromDate, this.targetZoneId),
-                FormatDatesKPI.normaliseDateTo(fromDate, this.targetZoneId), "2")).thenReturn(0L);
-        when(this.submissionCodeRepositoryMock
-                .countSubmissionCodeExpiredDate(FormatDatesKPI.normaliseDateTo(fromDate, this.targetZoneId), "1"))
-                        .thenReturn(0L);
-        when(this.submissionCodeRepositoryMock
-                .countSubmissionCodeExpiredDate(FormatDatesKPI.normaliseDateTo(toDate, this.targetZoneId), "2"))
-                        .thenReturn(1L);
+        when(
+                this.submissionCodeRepositoryMock.countSubmissionCodeUsedByDate(
+                        FormatDatesKPI.normaliseDateFrom(fromDate, this.targetZoneId),
+                        FormatDatesKPI.normaliseDateTo(fromDate, this.targetZoneId), "1"
+                )
+        ).thenReturn(0L);
+        when(
+                this.submissionCodeRepositoryMock.countSubmissionCodeUsedByDate(
+                        FormatDatesKPI.normaliseDateFrom(fromDate, this.targetZoneId),
+                        FormatDatesKPI.normaliseDateTo(fromDate, this.targetZoneId), "2"
+                )
+        ).thenReturn(0L);
+        when(
+                this.submissionCodeRepositoryMock
+                        .countSubmissionCodeExpiredDate(
+                                FormatDatesKPI.normaliseDateTo(fromDate, this.targetZoneId), "1"
+                        )
+        )
+                .thenReturn(0L);
+        when(
+                this.submissionCodeRepositoryMock
+                        .countSubmissionCodeExpiredDate(FormatDatesKPI.normaliseDateTo(toDate, this.targetZoneId), "2")
+        )
+                .thenReturn(1L);
         List<SubmissionCodeServerKpi> result = new ArrayList<>();
         try {
             result = this.kpiService.generateKPI(fromDate, toDate);
@@ -165,18 +200,30 @@ public class KpiServiceTest {
         LocalDate fromDate = OffsetDateTime.now().toLocalDate();
         LocalDate toDate = OffsetDateTime.now().toLocalDate();
 
-        when(this.submissionCodeRepositoryMock.countSubmissionCodeUsedByDate(
-                FormatDatesKPI.normaliseDateFrom(fromDate, this.targetZoneId),
-                FormatDatesKPI.normaliseDateTo(fromDate, this.targetZoneId), "1")).thenReturn(0L);
-        when(this.submissionCodeRepositoryMock.countSubmissionCodeUsedByDate(
-                FormatDatesKPI.normaliseDateFrom(fromDate, this.targetZoneId),
-                FormatDatesKPI.normaliseDateTo(fromDate, this.targetZoneId), "2")).thenReturn(0L);
-        when(this.submissionCodeRepositoryMock
-                .countSubmissionCodeExpiredDate(FormatDatesKPI.normaliseDateTo(fromDate, this.targetZoneId), "1"))
-                        .thenReturn(1L);
-        when(this.submissionCodeRepositoryMock
-                .countSubmissionCodeExpiredDate(FormatDatesKPI.normaliseDateTo(toDate, this.targetZoneId), "2"))
-                        .thenReturn(0L);
+        when(
+                this.submissionCodeRepositoryMock.countSubmissionCodeUsedByDate(
+                        FormatDatesKPI.normaliseDateFrom(fromDate, this.targetZoneId),
+                        FormatDatesKPI.normaliseDateTo(fromDate, this.targetZoneId), "1"
+                )
+        ).thenReturn(0L);
+        when(
+                this.submissionCodeRepositoryMock.countSubmissionCodeUsedByDate(
+                        FormatDatesKPI.normaliseDateFrom(fromDate, this.targetZoneId),
+                        FormatDatesKPI.normaliseDateTo(fromDate, this.targetZoneId), "2"
+                )
+        ).thenReturn(0L);
+        when(
+                this.submissionCodeRepositoryMock
+                        .countSubmissionCodeExpiredDate(
+                                FormatDatesKPI.normaliseDateTo(fromDate, this.targetZoneId), "1"
+                        )
+        )
+                .thenReturn(1L);
+        when(
+                this.submissionCodeRepositoryMock
+                        .countSubmissionCodeExpiredDate(FormatDatesKPI.normaliseDateTo(toDate, this.targetZoneId), "2")
+        )
+                .thenReturn(0L);
         List<SubmissionCodeServerKpi> result = new ArrayList<>();
         try {
             result = this.kpiService.generateKPI(fromDate, toDate);
@@ -210,20 +257,34 @@ public class KpiServiceTest {
         int i = 1;
         for (LocalDate loopDate = fromDate; loopDate.isBefore(toDate)
                 || loopDate.isEqual(toDate); loopDate = loopDate.plusDays(1L)) {
-            when(this.submissionCodeRepositoryMock.countSubmissionCodeUsedByDate(
-                    FormatDatesKPI.normaliseDateFrom(loopDate, this.targetZoneId),
-                    FormatDatesKPI.normaliseDateTo(loopDate, this.targetZoneId), "1"))
-                            .thenReturn(Long.valueOf(countLongUsed * i));
-            when(this.submissionCodeRepositoryMock.countSubmissionCodeUsedByDate(
-                    FormatDatesKPI.normaliseDateFrom(loopDate, this.targetZoneId),
-                    FormatDatesKPI.normaliseDateTo(loopDate, this.targetZoneId), "2"))
-                            .thenReturn(Long.valueOf(countShortUsed * i));
-            when(this.submissionCodeRepositoryMock
-                    .countSubmissionCodeExpiredDate(FormatDatesKPI.normaliseDateTo(loopDate, this.targetZoneId), "1"))
-                            .thenReturn(Long.valueOf(i * (i + 1)));
-            when(this.submissionCodeRepositoryMock
-                    .countSubmissionCodeExpiredDate(FormatDatesKPI.normaliseDateTo(loopDate, this.targetZoneId), "2"))
-                            .thenReturn(Long.valueOf(i * (i + 2)));
+            when(
+                    this.submissionCodeRepositoryMock.countSubmissionCodeUsedByDate(
+                            FormatDatesKPI.normaliseDateFrom(loopDate, this.targetZoneId),
+                            FormatDatesKPI.normaliseDateTo(loopDate, this.targetZoneId), "1"
+                    )
+            )
+                    .thenReturn(Long.valueOf(countLongUsed * i));
+            when(
+                    this.submissionCodeRepositoryMock.countSubmissionCodeUsedByDate(
+                            FormatDatesKPI.normaliseDateFrom(loopDate, this.targetZoneId),
+                            FormatDatesKPI.normaliseDateTo(loopDate, this.targetZoneId), "2"
+                    )
+            )
+                    .thenReturn(Long.valueOf(countShortUsed * i));
+            when(
+                    this.submissionCodeRepositoryMock
+                            .countSubmissionCodeExpiredDate(
+                                    FormatDatesKPI.normaliseDateTo(loopDate, this.targetZoneId), "1"
+                            )
+            )
+                    .thenReturn(Long.valueOf(i * (i + 1)));
+            when(
+                    this.submissionCodeRepositoryMock
+                            .countSubmissionCodeExpiredDate(
+                                    FormatDatesKPI.normaliseDateTo(loopDate, this.targetZoneId), "2"
+                            )
+            )
+                    .thenReturn(Long.valueOf(i * (i + 2)));
             i = i + 1;
         }
         List<SubmissionCodeServerKpi> result = new ArrayList<>();
@@ -240,7 +301,10 @@ public class KpiServiceTest {
 
         // Given
         final long nbGeneratedCodes = 1L;
-        when(this.submissionCodeRepositoryMock.countGeneratedCodes(this.startDateTime, this.endDateTime, CodeTypeEnum.SHORT.getTypeCode())).thenReturn(nbGeneratedCodes);
+        when(
+                this.submissionCodeRepositoryMock
+                        .countGeneratedCodes(this.startDateTime, this.endDateTime, CodeTypeEnum.SHORT.getTypeCode())
+        ).thenReturn(nbGeneratedCodes);
 
         // When
         List<SubmissionCodeServerKpi> submissionCodeServerKpis = null;

@@ -13,13 +13,21 @@ public class ViewDto {
         super();
     }
 
-    @AllArgsConstructor @NoArgsConstructor @Data @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Data
+    @Builder
     public static class CodeGenerationRequest {
+
         private Boolean isSubmitted;
+
         private String message;
     }
 
-    @AllArgsConstructor @NoArgsConstructor @Data @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Data
+    @Builder
     public static class CodeValuesForPage {
 
         /**
@@ -42,21 +50,27 @@ public class ViewDto {
          */
         long lot;
 
-
         List<CodeDetail> codes;
     }
 
-
-    @AllArgsConstructor @NoArgsConstructor @Data @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Data
+    @Builder
     public static class LotInformation {
+
         long lotIdentifier;
+
         long numberOfCodes;
     }
 
-    @AllArgsConstructor @NoArgsConstructor @Data @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Data
+    @Builder
     public static class CodeDetail {
+
         String code;
     }
-
 
 }

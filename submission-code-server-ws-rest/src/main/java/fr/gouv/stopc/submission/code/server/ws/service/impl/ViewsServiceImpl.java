@@ -1,6 +1,5 @@
 package fr.gouv.stopc.submission.code.server.ws.service.impl;
 
-
 import fr.gouv.stopc.submission.code.server.database.entity.Lot;
 import fr.gouv.stopc.submission.code.server.database.entity.SubmissionCode;
 import fr.gouv.stopc.submission.code.server.database.service.ISubmissionCodeService;
@@ -15,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
+
 import java.time.OffsetDateTime;
 import java.util.stream.Collectors;
 
@@ -23,16 +23,18 @@ import java.util.stream.Collectors;
 public class ViewsServiceImpl implements IViewService {
 
     private final ISubmissionCodeService submissionCodeService;
+
     private final IFileService fileExportService;
 
     /**
      * Default constructor
-     * @param submissionCodeService Spring-injection of the shortCodeService giving access to persistence in db.
+     * 
+     * @param submissionCodeService Spring-injection of the shortCodeService giving
+     *                              access to persistence in db.
      */
     @Inject
     public ViewsServiceImpl(ISubmissionCodeService submissionCodeService,
-                            IFileService fileExportService)
-    {
+            IFileService fileExportService) {
         this.submissionCodeService = submissionCodeService;
         this.fileExportService = fileExportService;
     }
@@ -41,7 +43,7 @@ public class ViewsServiceImpl implements IViewService {
         final Long numOfCodes = this.submissionCodeService
                 .getNumberOfCodesForLotIdentifier(lotIdentifier);
 
-        if(numOfCodes == null) {
+        if (numOfCodes == null) {
             throw new SubmissionCodeServerException(
                     SubmissionCodeServerException.ExceptionEnum.DB_NO_RECORD_FOR_LOT_IDENTIFIER_ERROR
             );
@@ -56,20 +58,17 @@ public class ViewsServiceImpl implements IViewService {
     public ViewDto.CodeValuesForPage getViewLotCodeDetailListFor(
             int page,
             int elementByPage,
-            long lotIdentifier
-    )
-            throws SubmissionCodeServerException
-    {
+            long lotIdentifier)
+            throws SubmissionCodeServerException {
         final Page<SubmissionCode> submissionCodesPage = this.submissionCodeService.getSubmissionCodesFor(
                 lotIdentifier,
                 page - 1,
                 elementByPage
         );
 
-        if(submissionCodesPage == null ||
+        if (submissionCodesPage == null ||
                 submissionCodesPage.getTotalElements() < 1 ||
-                submissionCodesPage.getTotalPages() < 1)
-        {
+                submissionCodesPage.getTotalPages() < 1) {
             throw new SubmissionCodeServerException(
                     SubmissionCodeServerException.ExceptionEnum.DB_INVALID_PARAMETERS_ERROR
             );
@@ -82,9 +81,10 @@ public class ViewsServiceImpl implements IViewService {
                 .lot(lotIdentifier)
                 .codes(
                         submissionCodesPage.toList().stream()
-                                .map(sc -> ViewDto.CodeDetail.builder()
-                                        .code(sc.getCode())
-                                        .build()
+                                .map(
+                                        sc -> ViewDto.CodeDetail.builder()
+                                                .code(sc.getCode())
+                                                .build()
                                 )
                                 .collect(Collectors.toList())
                 )
@@ -92,13 +92,14 @@ public class ViewsServiceImpl implements IViewService {
     }
 
     public ViewDto.CodeGenerationRequest launchGenerationWith(
-            ViewVo.CodeGenerationRequestBody codeGenerationRequestBody
-    ) throws SubmissionCodeServerException
-    {
+            ViewVo.CodeGenerationRequestBody codeGenerationRequestBody) throws SubmissionCodeServerException {
 
-        @NotNull final long codePerDay = codeGenerationRequestBody.getDailyAmount();
-        @NotNull final OffsetDateTime from = codeGenerationRequestBody.getFrom();
-        @NotNull OffsetDateTime to = codeGenerationRequestBody.getTo();
+        @NotNull
+        final long codePerDay = codeGenerationRequestBody.getDailyAmount();
+        @NotNull
+        final OffsetDateTime from = codeGenerationRequestBody.getFrom();
+        @NotNull
+        OffsetDateTime to = codeGenerationRequestBody.getTo();
 
         this.fileExportService.zipExportAsync(
                 codePerDay,

@@ -8,10 +8,12 @@ import fr.gouv.stopc.submission.code.server.ws.controller.error.SubmissionCodeSe
 public interface IVerifyService {
 
     /**
-     * Method should be used to know if the code in parameter has been used or if it is still valid.
+     * Method should be used to know if the code in parameter has been used or if it
+     * is still valid.
+     * 
      * @param code The code value to verify
      * @param type The type of the provided code (see CodeTypeEnum)
      * @return return the validity of the code.
      */
-     boolean verifyCode(String code, String type) throws SubmissionCodeServerException;
+    boolean verifyCode(String code, String type) throws SubmissionCodeServerException;
 }

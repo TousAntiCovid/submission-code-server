@@ -6,8 +6,9 @@ import javax.persistence.*;
 
 @Data
 @Entity
-@Table(name ="lot_keys")
+@Table(name = "lot_keys")
 public class Lot {
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;

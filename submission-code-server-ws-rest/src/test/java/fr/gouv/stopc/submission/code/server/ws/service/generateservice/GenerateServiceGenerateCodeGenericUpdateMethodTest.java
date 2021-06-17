@@ -36,21 +36,18 @@ class GenerateServiceGenerateCodeGenericUpdateMethodTest {
     @InjectMocks
     private GenerateServiceImpl generateService;
 
-
-
     @BeforeEach
-    public void init(){
+    public void init() {
 
         MockitoAnnotations.initMocks(this);
 
         ReflectionTestUtils.setField(this.generateService, "targetZoneId", "Europe/Paris");
         ReflectionTestUtils.setField(this.generateService, "numberOfTryInCaseOfError", 0);
 
-        //SET 24 hours of lock security
+        // SET 24 hours of lock security
         ReflectionTestUtils.setField(this.submissionCodeService, "securityTimeBetweenTwoUsagesOfShortCode", 24);
         ReflectionTestUtils.setField(this.generateService, "submissionCodeService", this.submissionCodeService);
     }
-
 
     /**
      * Simulate a same code insertion when validity date is not compliant with
@@ -73,9 +70,11 @@ class GenerateServiceGenerateCodeGenericUpdateMethodTest {
                 .thenThrow(DataIntegrityViolationException.class)
                 .thenReturn(null);
 
-        Mockito.when(this.submissionCodeRepository.findByCodeAndTypeAndAndDateEndValidityLessThan(
-                "5d98e3", cte.getTypeCode(), validFrom.minusHours(24)
-        )).thenReturn(null);
+        Mockito.when(
+                this.submissionCodeRepository.findByCodeAndTypeAndAndDateEndValidityLessThan(
+                        "5d98e3", cte.getTypeCode(), validFrom.minusHours(24)
+                )
+        ).thenReturn(null);
 
         assertThrows(
                 SubmissionCodeServerException.class,
@@ -86,7 +85,6 @@ class GenerateServiceGenerateCodeGenericUpdateMethodTest {
         );
 
     }
-
 
     /**
      * Number of tries reach
@@ -109,27 +107,22 @@ class GenerateServiceGenerateCodeGenericUpdateMethodTest {
                 .thenThrow(DataIntegrityViolationException.class)
                 .thenReturn(submissionCode);
 
-        Mockito.when(this.submissionCodeRepository.findByCodeAndTypeAndAndDateEndValidityLessThan(
-                "5d98e3", cte.getTypeCode(), validFrom.minusHours(24)
-        )).thenReturn(submissionCode);
-
-
-
-
+        Mockito.when(
+                this.submissionCodeRepository.findByCodeAndTypeAndAndDateEndValidityLessThan(
+                        "5d98e3", cte.getTypeCode(), validFrom.minusHours(24)
+                )
+        ).thenReturn(submissionCode);
 
         // try once
         final List<CodeDetailedDto> codeDetailedResponseDtoListFirst = this.generateService.generateCodeGeneric(
                 size, cte, validFrom, null
         );
 
-
         assertEquals(
                 codeDetailedResponseDtoListFirst.size(),
                 size
         );
 
-
     }
-
 
 }

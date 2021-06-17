@@ -11,9 +11,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class CodeShortCodeServiceImplTest {
 
-
     @Test
-    @Disabled( "for benchmark only")
+    @Disabled("for benchmark only")
     void generateCodeShortCodeTest() {
         Long size = new Long("300000");
         final long start = System.currentTimeMillis();
@@ -21,7 +20,12 @@ class CodeShortCodeServiceImplTest {
                 .distinct()
                 .limit(size)
                 .collect(Collectors.toList());
-        System.out.println(String.format("expected %s and get %s in %s millis", size, shortCodeIds.size(), System.currentTimeMillis()-start));
+        System.out.println(
+                String.format(
+                        "expected %s and get %s in %s millis", size, shortCodeIds.size(),
+                        System.currentTimeMillis() - start
+                )
+        );
         assertEquals(size, shortCodeIds.size());
     }
 
@@ -29,11 +33,13 @@ class CodeShortCodeServiceImplTest {
     void getShuffledAlphaNumListTest() {
         final long start = System.currentTimeMillis();
         final List<Character> shuffledAlphaNumList = ShortCodeServiceImpl.getShuffledAlphaNumList();
-        System.out.println(String.format("expected %s and get %s in %s millis", 26+10, shuffledAlphaNumList.size(), System.currentTimeMillis()-start));
-        assertEquals(26+10, shuffledAlphaNumList.size());
+        System.out.println(
+                String.format(
+                        "expected %s and get %s in %s millis", 26 + 10, shuffledAlphaNumList.size(),
+                        System.currentTimeMillis() - start
+                )
+        );
+        assertEquals(26 + 10, shuffledAlphaNumList.size());
     }
-
-
-
 
 }

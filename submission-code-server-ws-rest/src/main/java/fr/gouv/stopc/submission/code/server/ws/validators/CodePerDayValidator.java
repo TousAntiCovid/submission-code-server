@@ -17,12 +17,14 @@ public class CodePerDayValidator implements ConstraintValidator<CodePerDay, Long
     Long minCodePerDay;
 
     /**
-     * Validate codePerDay value. It should be contained between code.per.day.max and code.per.day.min
+     * Validate codePerDay value. It should be contained between code.per.day.max
+     * and code.per.day.min
+     * 
      * @param codePerDay code type to test
      * @return return true if code type to test corresponding to a CodeTypeEnum.
      */
     @Override
     public boolean isValid(Long codePerDay, ConstraintValidatorContext constraintValidatorContext) {
-       return codePerDay != null && minCodePerDay <= codePerDay && codePerDay <= maxCodePerDay;
+        return codePerDay != null && minCodePerDay <= codePerDay && codePerDay <= maxCodePerDay;
     }
 }

@@ -25,7 +25,6 @@ import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-
 class GenerateServiceGenerateCodeGenericMethodTest {
 
     @Mock
@@ -36,14 +35,14 @@ class GenerateServiceGenerateCodeGenericMethodTest {
     private GenerateServiceImpl generateService;
 
     @BeforeEach
-    public void init(){
+    public void init() {
 
         MockitoAnnotations.initMocks(this);
 
         ReflectionTestUtils.setField(this.generateService, "targetZoneId", "Europe/Paris");
         ReflectionTestUtils.setField(this.generateService, "numberOfTryInCaseOfError", 0);
 
-        //SET 24 hours of lock security
+        // SET 24 hours of lock security
         ReflectionTestUtils.setField(this.submissionCodeService, "securityTimeBetweenTwoUsagesOfShortCode", 24);
         ReflectionTestUtils.setField(this.generateService, "longCodeService", new LongCodeServiceImpl());
         ReflectionTestUtils.setField(this.generateService, "shortCodeService", new ShortCodeServiceImpl());
@@ -54,8 +53,7 @@ class GenerateServiceGenerateCodeGenericMethodTest {
      */
     @Test
     void testSizeOfGenerateResponseDtoList()
-            throws SubmissionCodeServerException
-    {
+            throws SubmissionCodeServerException {
         // asserting generateService is available
         final long size = Long.parseLong("10");
         final CodeTypeEnum cte = CodeTypeEnum.LONG;
@@ -68,7 +66,7 @@ class GenerateServiceGenerateCodeGenericMethodTest {
         final List<CodeDetailedDto> codeDetailedResponseDtoList = this.generateService.generateCodeGeneric(
                 size, cte, validFrom, lot
         );
-        //list should not be null
+        // list should not be null
         assertNotNull(codeDetailedResponseDtoList);
         // list should be at size
         assertEquals(size, codeDetailedResponseDtoList.size());
@@ -79,12 +77,10 @@ class GenerateServiceGenerateCodeGenericMethodTest {
      */
     @Test
     void testCodeNotBlank()
-            throws SubmissionCodeServerException
-    {
+            throws SubmissionCodeServerException {
         // asserting generateService is available
         final CodeTypeEnum cte = CodeTypeEnum.LONG;
         final OffsetDateTime validFrom = OffsetDateTime.now();
-
 
         final SubmissionCode submissionCode = new SubmissionCode();
         submissionCode.setCode("TOTO");
@@ -97,13 +93,12 @@ class GenerateServiceGenerateCodeGenericMethodTest {
                         cte, validFrom
                 ).build();
 
-        //list should not be null
+        // list should not be null
         assertNotNull(submissionCodeDto);
 
         // asserting that generated is not blank
         final String code = submissionCodeDto.getCode();
         assertTrue(Strings.isNotBlank(code));
-
 
     }
 
@@ -112,8 +107,7 @@ class GenerateServiceGenerateCodeGenericMethodTest {
      */
     @Test
     void testCodeWithLongCodePattern()
-            throws SubmissionCodeServerException
-    {
+            throws SubmissionCodeServerException {
         // asserting generateService is available
         final CodeTypeEnum cte = CodeTypeEnum.LONG;
         final OffsetDateTime validFrom = OffsetDateTime.now();
@@ -123,7 +117,7 @@ class GenerateServiceGenerateCodeGenericMethodTest {
                         cte, validFrom
                 ).build();
 
-        //list should not be null
+        // list should not be null
         assertNotNull(submissionCodeDto);
 
         Pattern p = Pattern.compile("([a-f0-9]{8}(-[a-f0-9]{4}){4}[a-f0-9]{8})");
@@ -139,8 +133,7 @@ class GenerateServiceGenerateCodeGenericMethodTest {
      */
     @Test
     void testCodeWithShortCodePattern()
-            throws SubmissionCodeServerException
-    {
+            throws SubmissionCodeServerException {
         // asserting generateService is available
         final CodeTypeEnum cte = CodeTypeEnum.SHORT;
         final OffsetDateTime validFrom = OffsetDateTime.now();
@@ -150,8 +143,7 @@ class GenerateServiceGenerateCodeGenericMethodTest {
                         cte, validFrom
                 ).build();
 
-
-        //list should not be null
+        // list should not be null
         assertNotNull(submissionCodeDto);
 
         Pattern p = Pattern.compile("([A-Z0-9]{6})");
@@ -161,7 +153,6 @@ class GenerateServiceGenerateCodeGenericMethodTest {
         Matcher m = p.matcher(code);
         assertTrue(m.matches());
 
-
     }
 
     /**
@@ -169,8 +160,7 @@ class GenerateServiceGenerateCodeGenericMethodTest {
      */
     @Test
     void testCodeType()
-            throws SubmissionCodeServerException
-    {
+            throws SubmissionCodeServerException {
         // asserting generateService is available
         final CodeTypeEnum cte = CodeTypeEnum.LONG;
         final OffsetDateTime validFrom = OffsetDateTime.now();
@@ -180,10 +170,11 @@ class GenerateServiceGenerateCodeGenericMethodTest {
                         cte, validFrom
                 ).build();
 
-        //list should not be null
+        // list should not be null
         assertNotNull(submissionCodeDto);
 
-        // assert the returning code corresponding to the given CodeTypeEnum in parameter
+        // assert the returning code corresponding to the given CodeTypeEnum in
+        // parameter
         assertEquals(CodeTypeEnum.LONG.getTypeCode(), submissionCodeDto.getType());
     }
 
@@ -192,8 +183,7 @@ class GenerateServiceGenerateCodeGenericMethodTest {
      */
     @Test
     void testValidUntilAndValidFromFormat()
-            throws SubmissionCodeServerException
-    {
+            throws SubmissionCodeServerException {
         // asserting generateService is available
         final long size = Long.parseLong("1");
         final CodeTypeEnum cte = CodeTypeEnum.LONG;
@@ -204,24 +194,23 @@ class GenerateServiceGenerateCodeGenericMethodTest {
         submissionCode.setDateEndValidity(OffsetDateTime.now());
         submissionCode.setDateAvailable(OffsetDateTime.now());
 
-
         Mockito.when(this.submissionCodeService.saveCode(Mockito.any(), Mockito.any()))
                 .thenReturn(Optional.of(submissionCode));
-
 
         final List<CodeDetailedDto> codeDetailedResponseDtoList = this.generateService.generateCodeGeneric(
                 size, cte, validFrom, lot
         );
 
-
-        //list should not be null
+        // list should not be null
         assertNotNull(codeDetailedResponseDtoList);
         // list should be at size
         assertEquals(size, codeDetailedResponseDtoList.size());
 
-        Pattern p = Pattern.compile("^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])" +
-                "T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]+)?" +
-                "(Z|[+-](?:2[0-3]|[01][0-9]):[0-5][0-9])?$");
+        Pattern p = Pattern.compile(
+                "^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])" +
+                        "T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]+)?" +
+                        "(Z|[+-](?:2[0-3]|[01][0-9]):[0-5][0-9])?$"
+        );
 
         codeDetailedResponseDtoList.forEach(grDto -> {
 
@@ -241,8 +230,7 @@ class GenerateServiceGenerateCodeGenericMethodTest {
      * Number of tries reach
      */
     @Test
-    void testReachNumberOfTries()
-    {
+    void testReachNumberOfTries() {
         // asserting generateService is available
         final long size = Long.parseLong("10");
         final CodeTypeEnum cte = CodeTypeEnum.LONG;
@@ -252,10 +240,8 @@ class GenerateServiceGenerateCodeGenericMethodTest {
         Mockito.when(submissionCodeService.saveCode(Mockito.any(SubmissionCodeDto.class), Mockito.any(Lot.class)))
                 .thenThrow(DataIntegrityViolationException.class);
 
-
         ReflectionTestUtils.setField(generateService, "targetZoneId", "Europe/Paris");
         ReflectionTestUtils.setField(generateService, "numberOfTryInCaseOfError", 0);
-
 
         assertThrows(
                 SubmissionCodeServerException.class,
@@ -270,8 +256,7 @@ class GenerateServiceGenerateCodeGenericMethodTest {
      * Number of tries reach
      */
     @Test
-    void testReachNumberOfTriesWithoutLotParameter()
-    {
+    void testReachNumberOfTriesWithoutLotParameter() {
         // asserting generateService is available
         final long size = Long.parseLong("10");
         final CodeTypeEnum cte = CodeTypeEnum.LONG;
@@ -280,7 +265,6 @@ class GenerateServiceGenerateCodeGenericMethodTest {
 
         Mockito.when(submissionCodeService.saveCode(Mockito.any(SubmissionCodeDto.class), Mockito.any(Lot.class)))
                 .thenThrow(DataIntegrityViolationException.class);
-
 
         ReflectionTestUtils.setField(this.generateService, "targetZoneId", "Europe/Paris");
         ReflectionTestUtils.setField(this.generateService, "numberOfTryInCaseOfError", 0);

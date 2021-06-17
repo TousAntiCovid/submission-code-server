@@ -21,6 +21,7 @@ import static org.mockito.Mockito.verify;
 
 @Slf4j
 class GenerateServiceGenerateLongCodesMethodTest {
+
     @Mock
     private LongCodeServiceImpl longCodeService;
 
@@ -32,18 +33,20 @@ class GenerateServiceGenerateLongCodesMethodTest {
     private GenerateServiceImpl generateService;
 
     @BeforeEach
-    public void init(){
+    public void init() {
 
         MockitoAnnotations.initMocks(this);
 
         ReflectionTestUtils.setField(this.generateService, "targetZoneId", "Europe/Paris");
         ReflectionTestUtils.setField(this.generateService, "numberOfTryInCaseOfError", 0);
 
-        //SET 24 hours of lock security
+        // SET 24 hours of lock security
         ReflectionTestUtils.setField(this.submissionCodeService, "securityTimeBetweenTwoUsagesOfShortCode", 24);
     }
+
     /**
-     * Calling generateCodeGeneric and assert that it returns the right size and the right elements
+     * Calling generateCodeGeneric and assert that it returns the right size and the
+     * right elements
      */
     @Test
     void testSizeLongCodeGenerateResponseDtoList() throws SubmissionCodeServerException {

@@ -9,11 +9,8 @@ import org.springframework.web.context.request.WebRequest;
 @RestControllerAdvice
 public interface ISubmissionCodeServerExceptionHandler {
 
-
-
     @ExceptionHandler(SubmissionCodeServerException.class)
     ResponseEntity<Object> handleSubmissionCodeServer(
             SubmissionCodeServerException submissionCodeServerException,
-            WebRequest request
-    );
+            WebRequest request);
 }

@@ -6,21 +6,22 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.scheduling.annotation.EnableAsync;
 
 import javax.annotation.PostConstruct;
+
 import java.util.TimeZone;
 
-@ComponentScan(basePackages  = "fr.gouv.stopc")
+@ComponentScan(basePackages = "fr.gouv.stopc")
 @EnableAsync
 @SpringBootApplication
 public class SubmissionCodeServerClientApiWsRestApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(SubmissionCodeServerClientApiWsRestApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(SubmissionCodeServerClientApiWsRestApplication.class, args);
+    }
 
-	@PostConstruct
-	void started() {
-		// set JVM timezone as UTC
-		TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
-	}
+    @PostConstruct
+    void started() {
+        // set JVM timezone as UTC
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+    }
 
 }
