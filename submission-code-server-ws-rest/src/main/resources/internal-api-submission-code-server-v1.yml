@@ -1,0 +1,71 @@
+openapi: 3.0.0
+info:
+  description: Submission Code Server Client internal API Spec.
+  version: 0.0.1
+  title: Submission Code Server Client internal API Spec
+  contact:
+    email: stopcovid@inria.fr
+  license:
+    name: Custom (see repository's LICENSE.md)
+paths:
+  /kpi:
+    get:
+      tags:
+        - KPI
+      summary: Get KPIs
+      description: >-
+        Get KPIs concerning input time range
+
+        NOTE: This API must be protected and used only by a trusted back-end server over a secure private connection.
+      operationId: kpi
+      parameters:
+        - name: fromDate
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: toDate
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Returns the KPI list for date range
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KpisResponse"
+externalDocs:
+  description: Find out more about ROBERT
+  url: https://github.com/ROBERT-proximity-tracing/
+servers:
+  - url: localhost:8080/intenal/api/v1
+components:
+  schemas:
+    KpisResponse:
+      type: array
+      items:
+        $ref: "#/components/schemas/Kpi"
+    Kpi:
+      type: object
+      properties:
+        date:
+          type: string
+        nbShortCodesUsed:
+          type: number
+        nbLongCodesUsed:
+          type: number
+        nbLongExpiredCodes:
+          type: number
+        nbShortExpiredCodes:
+          type: number
+        nbShortCodesGenerated:
+          type: number
+      required:
+        - date
+        - nbShortCodesUsed
+        - nbLongCodesUsed
+        - nbLongExpiredCodes
+        - nbShortExpiredCodes
+        - nbShortCodesGenerated
