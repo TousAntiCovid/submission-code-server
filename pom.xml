@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <project
-        xmlns="http://maven.apache.org/POM/4.0.0"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"
+  xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"
 >
     <modelVersion>4.0.0</modelVersion>
 
@@ -10,29 +10,21 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>2.2.6.RELEASE</version>
-        <relativePath/>
+        <relativePath />
     </parent>
 
     <groupId>fr.gouv.stopc</groupId>
     <artifactId>submission-code-server</artifactId>
+    <name>submission-code-server</name>
+    <packaging>jar</packaging>
     <version>0-SNAPSHOT</version>
-
-    <name>submission-code-server-client-api</name>
-    <packaging>pom</packaging>
-    <description>Projet Principal</description>
-
-    <modules>
-        <module>submission-code-server-commun</module>
-        <module>submission-code-server-database</module>
-        <module>submission-code-server-ws-rest</module>
-    </modules>
+    <description>Submission Server</description>
 
     <properties>
         <java.version>11</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>
-            UTF-8
-        </project.reporting.outputEncoding>
+        <project.reporting.outputEncoding
+    >UTF-8</project.reporting.outputEncoding>
         <maven.jar.plugin.version>3.1.1</maven.jar.plugin.version>
         <javax-rs.version>2.1.1</javax-rs.version>
         <postgresql.version>42.2.12</postgresql.version>
@@ -40,6 +32,18 @@
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
 
         <!--
         https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-to-slf4j
@@ -92,32 +96,56 @@
             <artifactId>junit-jupiter-engine</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>javax.inject</groupId>
+            <artifactId>javax.inject</artifactId>
+            <version>1</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.ws.rs</groupId>
+            <artifactId>javax.ws.rs-api</artifactId>
+            <version>${javax-rs.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.validation</groupId>
+            <artifactId>validation-api</artifactId>
+            <version>${javax.validation.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.modelmapper</groupId>
+            <artifactId>modelmapper</artifactId>
+            <version>2.3.7</version>
+        </dependency>
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.opencsv</groupId>
+            <artifactId>opencsv</artifactId>
+            <version>5.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-compress</artifactId>
+            <version>1.20</version>
+        </dependency>
+        <dependency>
+            <groupId>com.jcraft</groupId>
+            <artifactId>jsch</artifactId>
+            <version>0.1.55</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>${postgresql.version}</version>
+        </dependency>
     </dependencies>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>javax.inject</groupId>
-                <artifactId>javax.inject</artifactId>
-                <version>1</version>
-            </dependency>
-            <dependency>
-                <groupId>javax.ws.rs</groupId>
-                <artifactId>javax.ws.rs-api</artifactId>
-                <version>${javax-rs.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>javax.validation</groupId>
-                <artifactId>validation-api</artifactId>
-                <version>${javax.validation.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.postgresql</groupId>
-                <artifactId>postgresql</artifactId>
-                <version>${postgresql.version}</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
 
     <build>
         <pluginManagement>
@@ -177,7 +205,7 @@
                         <importOrder>
                             <file>.etc/eclipse.importorder</file>
                         </importOrder>
-                        <removeUnusedImports/>
+                        <removeUnusedImports />
                         <eclipse>
                             <file>.etc/eclipse-formatter-java.xml</file>
                         </eclipse>
@@ -222,6 +250,10 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
         </plugins>
     </build>
