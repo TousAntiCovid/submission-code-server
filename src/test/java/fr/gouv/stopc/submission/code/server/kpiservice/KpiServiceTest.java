@@ -1,9 +1,9 @@
 package fr.gouv.stopc.submission.code.server.kpiservice;
 
 import fr.gouv.stopc.submission.code.server.SubmissionCodeServerApplication;
-import fr.gouv.stopc.submission.code.server.business.controller.error.SubmissionCodeServerException;
-import fr.gouv.stopc.submission.code.server.business.service.impl.KpiServiceImpl;
-import fr.gouv.stopc.submission.code.server.business.vo.SubmissionCodeServerKpi;
+import fr.gouv.stopc.submission.code.server.business.controller.exception.SubmissionCodeServerException;
+import fr.gouv.stopc.submission.code.server.business.model.Kpi;
+import fr.gouv.stopc.submission.code.server.business.service.KpiService;
 import fr.gouv.stopc.submission.code.server.data.repository.SequenceFichierRepository;
 import fr.gouv.stopc.submission.code.server.data.repository.SubmissionCodeRepository;
 import fr.gouv.stopc.submission.code.server.domain.enums.CodeTypeEnum;
@@ -58,7 +58,7 @@ public class KpiServiceTest {
      * The service to test
      */
     @Autowired
-    private KpiServiceImpl kpiService;
+    private KpiService kpiService;
 
     private LocalDate startDate;
 
@@ -106,7 +106,7 @@ public class KpiServiceTest {
                         .countSubmissionCodeExpiredDate(FormatDatesKPI.normaliseDateTo(toDate, this.targetZoneId), "2")
         )
                 .thenReturn(0L);
-        List<SubmissionCodeServerKpi> result = new ArrayList<>();
+        List<Kpi> result = new ArrayList<>();
         try {
             result = this.kpiService.generateKPI(fromDate, toDate);
         } catch (SubmissionCodeServerException s) {
@@ -145,7 +145,7 @@ public class KpiServiceTest {
                         .countSubmissionCodeExpiredDate(FormatDatesKPI.normaliseDateTo(toDate, this.targetZoneId), "2")
         )
                 .thenReturn(0L);
-        List<SubmissionCodeServerKpi> result = new ArrayList<>();
+        List<Kpi> result = new ArrayList<>();
         try {
             result = this.kpiService.generateKPI(fromDate, toDate);
         } catch (SubmissionCodeServerException s) {
@@ -184,7 +184,7 @@ public class KpiServiceTest {
                         .countSubmissionCodeExpiredDate(FormatDatesKPI.normaliseDateTo(toDate, this.targetZoneId), "2")
         )
                 .thenReturn(1L);
-        List<SubmissionCodeServerKpi> result = new ArrayList<>();
+        List<Kpi> result = new ArrayList<>();
         try {
             result = this.kpiService.generateKPI(fromDate, toDate);
         } catch (SubmissionCodeServerException s) {
@@ -224,7 +224,7 @@ public class KpiServiceTest {
                         .countSubmissionCodeExpiredDate(FormatDatesKPI.normaliseDateTo(toDate, this.targetZoneId), "2")
         )
                 .thenReturn(0L);
-        List<SubmissionCodeServerKpi> result = new ArrayList<>();
+        List<Kpi> result = new ArrayList<>();
         try {
             result = this.kpiService.generateKPI(fromDate, toDate);
         } catch (SubmissionCodeServerException s) {
@@ -287,7 +287,7 @@ public class KpiServiceTest {
                     .thenReturn(Long.valueOf(i * (i + 2)));
             i = i + 1;
         }
-        List<SubmissionCodeServerKpi> result = new ArrayList<>();
+        List<Kpi> result = new ArrayList<>();
         try {
             result = this.kpiService.generateKPI(fromDate, toDate);
         } catch (SubmissionCodeServerException s) {
@@ -307,7 +307,7 @@ public class KpiServiceTest {
         ).thenReturn(nbGeneratedCodes);
 
         // When
-        List<SubmissionCodeServerKpi> submissionCodeServerKpis = null;
+        List<Kpi> submissionCodeServerKpis = null;
         try {
             submissionCodeServerKpis = this.kpiService.generateKPI(this.startDate, this.endDate);
         } catch (SubmissionCodeServerException e) {

@@ -1,26 +1,23 @@
-package fr.gouv.stopc.submission.code.server.business.controller.impl;
+package fr.gouv.stopc.submission.code.server.business.controller.exception;
 
-import fr.gouv.stopc.submission.code.server.business.controller.ISubmissionCodeServerExceptionHandler;
-import fr.gouv.stopc.submission.code.server.business.controller.error.SubmissionCodeServerException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
-import org.springframework.stereotype.Service;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
-@Service
 @Slf4j
-public class SubmissionCodeServerExceptionHandler extends ResponseEntityExceptionHandler
-        implements ISubmissionCodeServerExceptionHandler {
+@RestControllerAdvice
+public class SubmissionCodeServerExceptionHandler extends ResponseEntityExceptionHandler {
 
     @Override
     public ResponseEntity<Object> handleMethodArgumentNotValid(
@@ -46,7 +43,7 @@ public class SubmissionCodeServerExceptionHandler extends ResponseEntityExceptio
         );
     }
 
-    @Override
+    @ExceptionHandler(SubmissionCodeServerException.class)
     public ResponseEntity<Object> handleSubmissionCodeServer(
             SubmissionCodeServerException submissionCodeServerException,
             WebRequest request) {
