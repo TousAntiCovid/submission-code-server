@@ -1,9 +1,9 @@
 package fr.gouv.stopc.submission.code.server.verifyservice;
 
-import fr.gouv.stopc.submission.code.server.business.controller.error.SubmissionCodeServerException;
+import fr.gouv.stopc.submission.code.server.business.controller.exception.SubmissionCodeServerException;
 import fr.gouv.stopc.submission.code.server.business.dto.SubmissionCodeDto;
-import fr.gouv.stopc.submission.code.server.business.service.impl.SubmissionCodeServiceImpl;
-import fr.gouv.stopc.submission.code.server.business.service.impl.VerifyServiceImpl;
+import fr.gouv.stopc.submission.code.server.business.service.SubmissionCodeService;
+import fr.gouv.stopc.submission.code.server.business.service.VerifyService;
 import fr.gouv.stopc.submission.code.server.domain.enums.CodeTypeEnum;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,11 +25,11 @@ public class VerifyServiceVerifyCodeMethodTest {
     private static final String FALSE_CODE = "FALSE_CODE";
 
     @Mock
-    SubmissionCodeServiceImpl submissionCodeService;
+    SubmissionCodeService submissionCodeService;
 
     @Spy
     @InjectMocks
-    private VerifyServiceImpl verifyService;
+    private VerifyService verifyService;
 
     @BeforeEach
     public void init() {

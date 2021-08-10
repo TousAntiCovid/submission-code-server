@@ -1,6 +1,5 @@
-package fr.gouv.stopc.submission.code.server.business.service.impl;
+package fr.gouv.stopc.submission.code.server.business.service;
 
-import fr.gouv.stopc.submission.code.server.business.service.ISequenceFichierService;
 import fr.gouv.stopc.submission.code.server.data.entity.SequenceFichier;
 import fr.gouv.stopc.submission.code.server.data.repository.SequenceFichierRepository;
 import org.springframework.stereotype.Service;
@@ -12,16 +11,15 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Service
-public class SequenceFichierServiceImpl implements ISequenceFichierService {
+public class SequenceFichierService {
 
     private final SequenceFichierRepository repository;
 
     @Inject
-    public SequenceFichierServiceImpl(SequenceFichierRepository repository) {
+    public SequenceFichierService(SequenceFichierRepository repository) {
         this.repository = repository;
     }
 
-    @Override
     public Optional<SequenceFichier> getSequence(OffsetDateTime date) {
 
         if (Objects.nonNull(date)) {

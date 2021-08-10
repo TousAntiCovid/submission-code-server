@@ -1,12 +1,12 @@
 package fr.gouv.stopc.submission.code.server.generateservice;
 
-import fr.gouv.stopc.submission.code.server.business.controller.error.SubmissionCodeServerException;
+import fr.gouv.stopc.submission.code.server.business.controller.exception.SubmissionCodeServerException;
 import fr.gouv.stopc.submission.code.server.business.dto.CodeDetailedDto;
 import fr.gouv.stopc.submission.code.server.business.dto.SubmissionCodeDto;
-import fr.gouv.stopc.submission.code.server.business.service.impl.GenerateServiceImpl;
-import fr.gouv.stopc.submission.code.server.business.service.impl.LongCodeServiceImpl;
-import fr.gouv.stopc.submission.code.server.business.service.impl.ShortCodeServiceImpl;
-import fr.gouv.stopc.submission.code.server.business.service.impl.SubmissionCodeServiceImpl;
+import fr.gouv.stopc.submission.code.server.business.service.GenerateService;
+import fr.gouv.stopc.submission.code.server.business.service.LongCodeService;
+import fr.gouv.stopc.submission.code.server.business.service.ShortCodeService;
+import fr.gouv.stopc.submission.code.server.business.service.SubmissionCodeService;
 import fr.gouv.stopc.submission.code.server.data.entity.Lot;
 import fr.gouv.stopc.submission.code.server.data.entity.SubmissionCode;
 import fr.gouv.stopc.submission.code.server.domain.enums.CodeTypeEnum;
@@ -28,11 +28,11 @@ import static org.junit.jupiter.api.Assertions.*;
 class GenerateServiceGenerateCodeGenericMethodTest {
 
     @Mock
-    private SubmissionCodeServiceImpl submissionCodeService;
+    private SubmissionCodeService submissionCodeService;
 
     @Spy
     @InjectMocks
-    private GenerateServiceImpl generateService;
+    private GenerateService generateService;
 
     @BeforeEach
     public void init() {
@@ -44,8 +44,8 @@ class GenerateServiceGenerateCodeGenericMethodTest {
 
         // SET 24 hours of lock security
         ReflectionTestUtils.setField(this.submissionCodeService, "securityTimeBetweenTwoUsagesOfShortCode", 24);
-        ReflectionTestUtils.setField(this.generateService, "longCodeService", new LongCodeServiceImpl());
-        ReflectionTestUtils.setField(this.generateService, "shortCodeService", new ShortCodeServiceImpl());
+        ReflectionTestUtils.setField(this.generateService, "longCodeService", new LongCodeService());
+        ReflectionTestUtils.setField(this.generateService, "shortCodeService", new ShortCodeService());
     }
 
     /**

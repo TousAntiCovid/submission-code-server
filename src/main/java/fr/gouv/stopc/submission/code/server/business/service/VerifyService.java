@@ -1,8 +1,6 @@
-package fr.gouv.stopc.submission.code.server.business.service.impl;
+package fr.gouv.stopc.submission.code.server.business.service;
 
 import fr.gouv.stopc.submission.code.server.business.dto.SubmissionCodeDto;
-import fr.gouv.stopc.submission.code.server.business.service.ISubmissionCodeService;
-import fr.gouv.stopc.submission.code.server.business.service.IVerifyService;
 import fr.gouv.stopc.submission.code.server.domain.enums.CodeTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,9 +15,9 @@ import java.util.Optional;
 
 @Service
 @Slf4j
-public class VerifyServiceImpl implements IVerifyService {
+public class VerifyService {
 
-    private ISubmissionCodeService submissionCodeService;
+    private SubmissionCodeService submissionCodeService;
 
     /**
      * Default constructor spring-injecting the needed services.
@@ -28,11 +26,18 @@ public class VerifyServiceImpl implements IVerifyService {
      *                              interface with the data base.
      */
     @Inject
-    public VerifyServiceImpl(ISubmissionCodeService submissionCodeService) {
+    public VerifyService(SubmissionCodeService submissionCodeService) {
         this.submissionCodeService = submissionCodeService;
     }
 
-    @Override
+    /**
+     * Method should be used to know if the code in parameter has been used or if it
+     * is still valid.
+     *
+     * @param code The code value to verify
+     * @param type The type of the provided code (see CodeTypeEnum)
+     * @return return the validity of the code.
+     */
     public boolean verifyCode(String code, String type) {
         Optional<CodeTypeEnum> typeToFound = CodeTypeEnum.searchMatchType(type);
         CodeTypeEnum typeFound = null;

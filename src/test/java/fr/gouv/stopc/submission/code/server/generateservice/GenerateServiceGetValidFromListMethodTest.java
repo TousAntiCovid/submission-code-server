@@ -1,6 +1,6 @@
 package fr.gouv.stopc.submission.code.server.generateservice;
 
-import fr.gouv.stopc.submission.code.server.business.service.impl.GenerateServiceImpl;
+import fr.gouv.stopc.submission.code.server.business.service.GenerateService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -19,7 +19,7 @@ public class GenerateServiceGetValidFromListMethodTest {
 
     @Spy
     @InjectMocks
-    private GenerateServiceImpl generateService;
+    private GenerateService generateService;
 
     private static final String targetZoneId = "Europe/Paris";
 

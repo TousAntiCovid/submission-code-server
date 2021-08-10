@@ -1,13 +1,9 @@
-package fr.gouv.stopc.submission.code.server.business.service.impl;
+package fr.gouv.stopc.submission.code.server.business.service;
 
-import fr.gouv.stopc.submission.code.server.business.controller.error.SubmissionCodeServerException;
+import fr.gouv.stopc.submission.code.server.business.controller.exception.SubmissionCodeServerException;
 import fr.gouv.stopc.submission.code.server.business.dto.CodeDetailedDto;
-import fr.gouv.stopc.submission.code.server.business.dto.CodeSimpleDto;
 import fr.gouv.stopc.submission.code.server.business.dto.SubmissionCodeDto;
-import fr.gouv.stopc.submission.code.server.business.service.IGenerateService;
-import fr.gouv.stopc.submission.code.server.business.service.ILongCodeService;
-import fr.gouv.stopc.submission.code.server.business.service.IShortCodeService;
-import fr.gouv.stopc.submission.code.server.business.service.ISubmissionCodeService;
+import fr.gouv.stopc.submission.code.server.business.model.CodeSimpleDto;
 import fr.gouv.stopc.submission.code.server.data.entity.Lot;
 import fr.gouv.stopc.submission.code.server.data.entity.SubmissionCode;
 import fr.gouv.stopc.submission.code.server.domain.enums.CodeTypeEnum;
@@ -33,13 +29,13 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-public class GenerateServiceImpl implements IGenerateService {
+public class GenerateService {
 
-    private final ILongCodeService longCodeService;
+    private final LongCodeService longCodeService;
 
-    private final ISubmissionCodeService submissionCodeService;
+    private final SubmissionCodeService submissionCodeService;
 
-    private final IShortCodeService shortCodeService;
+    private final ShortCodeService shortCodeService;
 
     /**
      * TargetZoneId is the time zone id (in the java.time.ZoneId way) on which the
@@ -81,15 +77,14 @@ public class GenerateServiceImpl implements IGenerateService {
      *                              access to persistence in db.
      */
     @Inject
-    public GenerateServiceImpl(ILongCodeService longCodeService,
-            IShortCodeService shortCodeService,
-            ISubmissionCodeService submissionCodeService) {
+    public GenerateService(LongCodeService longCodeService,
+            ShortCodeService shortCodeService,
+            SubmissionCodeService submissionCodeService) {
         this.shortCodeService = shortCodeService;
         this.longCodeService = longCodeService;
         this.submissionCodeService = submissionCodeService;
     }
 
-    @Override
     public CodeSimpleDto generateShortCode()
             throws SubmissionCodeServerException {
         final CodeSimpleDto shortCodeInstance = new CodeSimpleDto();
@@ -100,7 +95,14 @@ public class GenerateServiceImpl implements IGenerateService {
         return shortCodeInstance;
     }
 
-    @Override
+    /**
+     * Method used to sequentially generate codes of codeType in parameter
+     *
+     * @param size      the desired number of code to be generated
+     * @param cte       the code type desired
+     * @param validFrom date from the code should be valid.
+     * @return list of unique persisted codes
+     */
     public List<CodeDetailedDto> generateCodeGeneric(final long size,
             final CodeTypeEnum cte,
             final OffsetDateTime validFrom,
@@ -203,7 +205,14 @@ public class GenerateServiceImpl implements IGenerateService {
         }
     }
 
-    @Override
+    /**
+     * Method return List of OffsetDateTime increment by day and truncate to day
+     *
+     * @param size                give size of the list to be returned included
+     *                            validFromFirstValue
+     * @param validFromFirstValue seed time from the list should be generated from.
+     * @return List of OffsetDateTime increment by day and truncate to day.
+     */
     public List<OffsetDateTime> getListOfValidDatesFor(int size, OffsetDateTime validFromFirstValue) {
         final ArrayList<OffsetDateTime> validFromList = new ArrayList<>();
 
@@ -235,7 +244,6 @@ public class GenerateServiceImpl implements IGenerateService {
         return validFromList;
     }
 
-    @Override
     public List<CodeDetailedDto> generateLongCodesWithBulkMethod(
             final OffsetDateTime validFrom,
             final long dailyAmount,

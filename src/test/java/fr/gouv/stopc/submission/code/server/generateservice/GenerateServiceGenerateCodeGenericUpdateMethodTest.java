@@ -1,10 +1,10 @@
 package fr.gouv.stopc.submission.code.server.generateservice;
 
-import fr.gouv.stopc.submission.code.server.business.controller.error.SubmissionCodeServerException;
+import fr.gouv.stopc.submission.code.server.business.controller.exception.SubmissionCodeServerException;
 import fr.gouv.stopc.submission.code.server.business.dto.CodeDetailedDto;
-import fr.gouv.stopc.submission.code.server.business.service.IShortCodeService;
-import fr.gouv.stopc.submission.code.server.business.service.impl.GenerateServiceImpl;
-import fr.gouv.stopc.submission.code.server.business.service.impl.SubmissionCodeServiceImpl;
+import fr.gouv.stopc.submission.code.server.business.service.GenerateService;
+import fr.gouv.stopc.submission.code.server.business.service.ShortCodeService;
+import fr.gouv.stopc.submission.code.server.business.service.SubmissionCodeService;
 import fr.gouv.stopc.submission.code.server.data.entity.SubmissionCode;
 import fr.gouv.stopc.submission.code.server.data.repository.SubmissionCodeRepository;
 import fr.gouv.stopc.submission.code.server.domain.enums.CodeTypeEnum;
@@ -23,18 +23,18 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class GenerateServiceGenerateCodeGenericUpdateMethodTest {
 
     @Mock
-    private IShortCodeService shortCodeService;
+    private ShortCodeService shortCodeService;
 
     @Mock
     private SubmissionCodeRepository submissionCodeRepository;
 
     @Spy
     @InjectMocks
-    private SubmissionCodeServiceImpl submissionCodeService;
+    private SubmissionCodeService submissionCodeService;
 
     @Spy
     @InjectMocks
-    private GenerateServiceImpl generateService;
+    private GenerateService generateService;
 
     @BeforeEach
     public void init() {

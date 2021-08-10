@@ -1,8 +1,7 @@
-package fr.gouv.stopc.submission.code.server.business.service.impl;
+package fr.gouv.stopc.submission.code.server.business.service;
 
 import com.jcraft.jsch.*;
-import fr.gouv.stopc.submission.code.server.business.controller.error.SubmissionCodeServerException;
-import fr.gouv.stopc.submission.code.server.business.service.ISFTPService;
+import fr.gouv.stopc.submission.code.server.business.controller.exception.SubmissionCodeServerException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,7 +22,7 @@ import java.util.Properties;
 
 @Slf4j
 @Service
-public class SFTPServiceImpl implements ISFTPService {
+public class SFTPService {
 
     private static final String ALGORITHM_SHA256 = "SHA-256";
 
@@ -72,7 +71,7 @@ public class SFTPServiceImpl implements ISFTPService {
     @Value("${submission.code.server.sftp.enablestricthost}")
     private String strictHostCheck;
 
-    public SFTPServiceImpl(@Value("${submission.code.server.sftp.passphrase}") final String passphrase) {
+    public SFTPService(@Value("${submission.code.server.sftp.passphrase}") final String passphrase) {
         if (passphrase != null) {
             try {
                 this.passphrase = Base64.getDecoder().decode(passphrase);
@@ -83,7 +82,6 @@ public class SFTPServiceImpl implements ISFTPService {
         }
     }
 
-    @Override
     public void transferFileSFTP(ByteArrayOutputStream file) throws SubmissionCodeServerException {
 
         log.info("Transferring zip file to SFTP");
