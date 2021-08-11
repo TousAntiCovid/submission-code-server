@@ -1,4 +1,4 @@
-package fr.gouv.stopc.submission.code.server.business.controller.error;
+package fr.gouv.stopc.submission.code.server.business.controller.exception;
 
 import lombok.Getter;
 import lombok.Setter;

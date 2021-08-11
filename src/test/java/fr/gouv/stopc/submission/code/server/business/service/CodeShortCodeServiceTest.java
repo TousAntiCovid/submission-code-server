@@ -1,4 +1,4 @@
-package fr.gouv.stopc.submission.code.server.business.service.impl;
+package fr.gouv.stopc.submission.code.server.business.service;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -10,14 +10,14 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class CodeShortCodeServiceImplTest {
+class CodeShortCodeServiceTest {
 
     @Test
     @Disabled("for benchmark only")
     void generateCodeShortCodeTest() {
         Long size = new Long("300000");
         final long start = System.currentTimeMillis();
-        final List<String> shortCodeIds = Stream.generate(new ShortCodeServiceImpl()::generateCode)
+        final List<String> shortCodeIds = Stream.generate(new ShortCodeService()::generateCode)
                 .distinct()
                 .limit(size)
                 .collect(Collectors.toList());
@@ -39,7 +39,7 @@ class CodeShortCodeServiceImplTest {
         // getShuffledAlphaNumList.setAccessible(true);
         // final List<Character> shuffledAlphaNumList = (List<Character>)
         // getShuffledAlphaNumList.invoke(service);
-        final List<Character> shuffledAlphaNumList = new ShortCodeServiceImpl().getShuffledAlphaNumList();
+        final List<Character> shuffledAlphaNumList = new ShortCodeService().getShuffledAlphaNumList();
         System.out.println(
                 String.format(
                         "expected %s and get %s in %s millis", 26 + 10, shuffledAlphaNumList.size(),

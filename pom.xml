@@ -26,9 +26,8 @@
         <project.reporting.outputEncoding
     >UTF-8</project.reporting.outputEncoding>
         <maven.jar.plugin.version>3.1.1</maven.jar.plugin.version>
-        <javax-rs.version>2.1.1</javax-rs.version>
         <postgresql.version>42.2.12</postgresql.version>
-        <javax.validation.version>2.0.1.Final</javax.validation.version>
+        <org.projectlombok.version>1.18.20</org.projectlombok.version>
     </properties>
 
     <dependencies>
@@ -64,52 +63,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.junit.vintage</groupId>
-                    <artifactId>junit-vintage-engine</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>junit</groupId>
-                    <artifactId>junit</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.batch</groupId>
-            <artifactId>spring-batch-test</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>junit</groupId>
-                    <artifactId>junit</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.junit.vintage</groupId>
-                    <artifactId>junit-vintage-engine</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>javax.inject</groupId>
             <artifactId>javax.inject</artifactId>
             <version>1</version>
-        </dependency>
-        <dependency>
-            <groupId>javax.ws.rs</groupId>
-            <artifactId>javax.ws.rs-api</artifactId>
-            <version>${javax-rs.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>javax.validation</groupId>
-            <artifactId>validation-api</artifactId>
-            <version>${javax.validation.version}</version>
         </dependency>
         <dependency>
             <groupId>org.modelmapper</groupId>
@@ -145,6 +103,17 @@
             <artifactId>postgresql</artifactId>
             <version>${postgresql.version}</version>
         </dependency>
+        <!--Dependencies required for openapi generated sources -->
+        <dependency>
+            <groupId>org.openapitools</groupId>
+            <artifactId>jackson-databind-nullable</artifactId>
+            <version>0.2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger2</artifactId>
+            <version>2.9.2</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -178,6 +147,38 @@
             </plugins>
         </pluginManagement>
         <plugins>
+            <plugin>
+                <groupId>org.openapitools</groupId>
+                <artifactId>openapi-generator-maven-plugin</artifactId>
+                <version>5.1.0</version>
+                <configuration>
+                    <inputSpec
+          >${project.basedir}/src/main/resources/submission-code-server-api.yml</inputSpec>
+                    <generatorName>spring</generatorName>
+                    <apiPackage
+          >fr.gouv.stopc.submission.code.server.api</apiPackage>
+                    <modelPackage
+          >fr.gouv.stopc.submission.code.server.business.model</modelPackage>
+                    <configOptions>
+                        <dateLibrary>java8-localdatetime</dateLibrary>
+                        <interfaceOnly>true</interfaceOnly>
+                        <useTags>true</useTags>
+                        <additionalModelTypeAnnotations>
+                            @lombok.Builder
+                            @lombok.AllArgsConstructor
+                            @lombok.NoArgsConstructor
+                        </additionalModelTypeAnnotations>
+                        <unhandledException>true</unhandledException>
+                    </configOptions>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>com.rudikershaw.gitbuildhook</groupId>
                 <artifactId>git-build-hook-maven-plugin</artifactId>

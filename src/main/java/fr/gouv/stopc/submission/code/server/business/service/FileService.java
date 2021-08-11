@@ -1,15 +1,14 @@
-package fr.gouv.stopc.submission.code.server.business.service.impl;
+package fr.gouv.stopc.submission.code.server.business.service;
 
 import com.opencsv.bean.ColumnPositionMappingStrategy;
 import com.opencsv.bean.StatefulBeanToCsv;
 import com.opencsv.bean.StatefulBeanToCsvBuilder;
 import com.opencsv.exceptions.CsvDataTypeMismatchException;
 import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
-import fr.gouv.stopc.submission.code.server.business.controller.error.SubmissionCodeServerException;
+import fr.gouv.stopc.submission.code.server.business.controller.exception.SubmissionCodeServerException;
 import fr.gouv.stopc.submission.code.server.business.dto.CodeDetailedDto;
 import fr.gouv.stopc.submission.code.server.business.dto.SubmissionCodeCsvDto;
 import fr.gouv.stopc.submission.code.server.business.dto.SubmissionCodeDto;
-import fr.gouv.stopc.submission.code.server.business.service.*;
 import fr.gouv.stopc.submission.code.server.data.entity.Lot;
 import fr.gouv.stopc.submission.code.server.data.entity.SequenceFichier;
 import fr.gouv.stopc.submission.code.server.domain.enums.CodeTypeEnum;
@@ -35,7 +34,10 @@ import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPOutputStream;
 
@@ -44,17 +46,17 @@ import static org.apache.tomcat.util.http.fileupload.FileUtils.deleteDirectory;
 @Slf4j
 @Service
 @Transactional
-public class FileServiceImpl implements IFileService {
+public class FileService {
 
     private String HEADER_CSV = "code_pour_qr%s code_brut%s validite_debut%s validite_fin\n";
 
-    private ISubmissionCodeService submissionCodeService;
+    private SubmissionCodeService submissionCodeService;
 
-    private IGenerateService generateService;
+    private GenerateService generateService;
 
-    private ISFTPService sftpService;
+    private SFTPService sftpService;
 
-    private ISequenceFichierService sequenceFichierService;
+    private SequenceFichierService sequenceFichierService;
 
     @Value("${stop.covid.qr.code.url}")
     private String qrCodeBaseUrlToBeFormatted;
@@ -85,9 +87,9 @@ public class FileServiceImpl implements IFileService {
     private String directoryTmpCsv;
 
     @Inject
-    public FileServiceImpl(ISubmissionCodeService submissionCodeService, IGenerateService generateService,
-            ISFTPService sftpService,
-            ISequenceFichierService sequenceFichierService) {
+    public FileService(SubmissionCodeService submissionCodeService, GenerateService generateService,
+            SFTPService sftpService,
+            SequenceFichierService sequenceFichierService) {
         this.submissionCodeService = submissionCodeService;
         this.generateService = generateService;
         this.sftpService = sftpService;
@@ -95,7 +97,6 @@ public class FileServiceImpl implements IFileService {
     }
 
     @Async
-    @Override
     public Optional<ByteArrayOutputStream> zipExportAsync(Long numberCodeDay, Lot lotObject, String dateFrom,
             String dateTo)
             throws SubmissionCodeServerException {
@@ -115,7 +116,17 @@ public class FileServiceImpl implements IFileService {
         return byteArrayOutputStream;
     }
 
-    @Override
+    /**
+     * Method: 1)generate long codes between dateFrom to dateTo 2) export from
+     * database 3) create one csv file each day between dateFrom to dateTo 4) create
+     * archive with csv files
+     *
+     * @param numberCodeDay
+     * @param lotObject
+     * @param dateFrom
+     * @param dateTo
+     * @return
+     */
     public Optional<ByteArrayOutputStream> zipExport(Long numberCodeDay, Lot lotObject, String dateFrom, String dateTo)
             throws SubmissionCodeServerException {
         log.info("Generate {} codes per day from {} to {}", numberCodeDay, dateFrom, dateTo);
@@ -180,7 +191,16 @@ public class FileServiceImpl implements IFileService {
         return Optional.of(zipOutputStream);
     }
 
-    @Override
+    /**
+     * STEP - 1 [ PERSISTING ]
+     *
+     * @param codePerDays code per days to be generated
+     * @param lotObject   lot identifier that the series should take
+     * @param from        start date of the series of days code generation
+     * @param to          end date of the series of days code generation
+     * @throws SubmissionCodeServerException
+     * @return
+     */
     public List<CodeDetailedDto> persistLongCodes(Long codePerDays, Lot lotObject, OffsetDateTime from,
             OffsetDateTime to)
             throws SubmissionCodeServerException {
@@ -242,7 +262,14 @@ public class FileServiceImpl implements IFileService {
         return listFile;
     }
 
-    @Override
+    /**
+     * STEP 2 - [ PARSING DATA TO CSV Data ]
+     *
+     * @param submissionCodeDtos
+     * @param dates
+     * @param tmpDirectory
+     * @return List of csv dataByFilename
+     */
     public List<String> serializeCodesToCsv(
             List<SubmissionCodeDto> submissionCodeDtos,
             List<OffsetDateTime> dates,
@@ -283,7 +310,12 @@ public class FileServiceImpl implements IFileService {
         return dataByFilename;
     }
 
-    @Override
+    /**
+     * STEP 3 - [ Packaging dataByFilename in a Zip ]
+     *
+     * @param dataByFilename csv data to be zipped.
+     * @return ZipOutputStream instance containing csv data.
+     */
     public ByteArrayOutputStream packageCsvDataToZipFile(List<String> dataByFilename, File tmpDirectory)
             throws SubmissionCodeServerException, IOException {
         ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();

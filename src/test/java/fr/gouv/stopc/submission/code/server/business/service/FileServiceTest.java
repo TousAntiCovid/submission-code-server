@@ -1,9 +1,8 @@
-package fr.gouv.stopc.submission.code.server.business.service.impl;
+package fr.gouv.stopc.submission.code.server.business.service;
 
-import fr.gouv.stopc.submission.code.server.business.controller.error.SubmissionCodeServerException;
+import fr.gouv.stopc.submission.code.server.business.controller.exception.SubmissionCodeServerException;
 import fr.gouv.stopc.submission.code.server.business.dto.CodeDetailedDto;
 import fr.gouv.stopc.submission.code.server.business.dto.SubmissionCodeDto;
-import fr.gouv.stopc.submission.code.server.business.service.ISequenceFichierService;
 import fr.gouv.stopc.submission.code.server.data.entity.Lot;
 import fr.gouv.stopc.submission.code.server.data.entity.SequenceFichier;
 import fr.gouv.stopc.submission.code.server.domain.enums.CodeTypeEnum;
@@ -48,20 +47,20 @@ class FileServiceTest {
     private String targetZoneId;
 
     @Mock
-    private GenerateServiceImpl generateService;
+    private GenerateService generateService;
 
     @Mock
-    private SFTPServiceImpl sftpService;
+    private SFTPService sftpService;
 
     @Mock
-    private SubmissionCodeServiceImpl submissionCodeService;
+    private SubmissionCodeService submissionCodeService;
 
     @Mock
-    private ISequenceFichierService sequenceFichierService;
+    private SequenceFichierService sequenceFichierService;
 
     @Spy
     @InjectMocks
-    private FileServiceImpl fileExportService;
+    private FileService fileExportService;
 
     @BeforeEach
     public void init() {
@@ -82,8 +81,8 @@ class FileServiceTest {
         ReflectionTestUtils.setField(this.generateService, "timeValidityLongCode", 2);
         ReflectionTestUtils.setField(this.generateService, "timeValidityShortCode", 15);
         ReflectionTestUtils.setField(this.generateService, "submissionCodeService", this.submissionCodeService);
-        ReflectionTestUtils.setField(this.generateService, "shortCodeService", new ShortCodeServiceImpl());
-        ReflectionTestUtils.setField(this.generateService, "longCodeService", new LongCodeServiceImpl());
+        ReflectionTestUtils.setField(this.generateService, "shortCodeService", new ShortCodeService());
+        ReflectionTestUtils.setField(this.generateService, "longCodeService", new LongCodeService());
         when(this.sequenceFichierService.getSequence(any())).thenReturn(Optional.empty());
     }
 

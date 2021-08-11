@@ -9,7 +9,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @Data
 @SuperBuilder
-public class CodeDetailedDto extends CodeSimpleDto {
+public class CodeDetailedDto {
 
     /**
      * TODO rename ? UUIDv4 or 6-alphanum
@@ -20,5 +20,25 @@ public class CodeDetailedDto extends CodeSimpleDto {
      * 1 - > long code 2 - > short code
      */
     private Integer typeAsInt;
+
+    /**
+     * code generated formatted as long code or short code
+     */
+    private String code;
+
+    /**
+     * Format ISO date is : YYYY-MM-DDTHH:mm:ss.sssZ
+     */
+    private String validFrom;
+
+    /**
+     * Format ISO date is : YYYY-MM-DDTHH:mm:ss.sssZ
+     */
+    private String validUntil;
+
+    /**
+     * Format ISO date is : YYYY-MM-DDTHH:mm:ss.sssZ
+     */
+    private String dateGenerate;
 
 }

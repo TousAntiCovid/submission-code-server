@@ -1,8 +1,7 @@
-package fr.gouv.stopc.submission.code.server.business.service.impl;
+package fr.gouv.stopc.submission.code.server.business.service;
 
-import fr.gouv.stopc.submission.code.server.business.controller.error.SubmissionCodeServerException;
-import fr.gouv.stopc.submission.code.server.business.service.IKpiService;
-import fr.gouv.stopc.submission.code.server.business.vo.SubmissionCodeServerKpi;
+import fr.gouv.stopc.submission.code.server.business.controller.exception.SubmissionCodeServerException;
+import fr.gouv.stopc.submission.code.server.business.model.Kpi;
 import fr.gouv.stopc.submission.code.server.data.repository.SubmissionCodeRepository;
 import fr.gouv.stopc.submission.code.server.domain.enums.CodeTypeEnum;
 import fr.gouv.stopc.submission.code.server.domain.utils.FormatDatesKPI;
@@ -16,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class KpiServiceImpl implements IKpiService {
+public class KpiService {
 
     @Value("${stop.covid.qr.code.targetzone}")
     private String targetZoneId;
@@ -24,7 +23,7 @@ public class KpiServiceImpl implements IKpiService {
     private SubmissionCodeRepository submissionCodeRepository;
 
     @Autowired
-    public KpiServiceImpl(SubmissionCodeRepository submissionCodeRepository) {
+    public KpiService(SubmissionCodeRepository submissionCodeRepository) {
         this.submissionCodeRepository = submissionCodeRepository;
     }
 
@@ -37,13 +36,12 @@ public class KpiServiceImpl implements IKpiService {
      * @return
      * @throws SubmissionCodeServerException
      */
-    @Override
-    public List<SubmissionCodeServerKpi> generateKPI(LocalDate dateFrom, LocalDate dateTo)
+    public List<Kpi> generateKPI(LocalDate dateFrom, LocalDate dateTo)
             throws SubmissionCodeServerException {
         if (!validationDate(dateFrom, dateTo)) {
             throw new SubmissionCodeServerException(SubmissionCodeServerException.ExceptionEnum.INVALID_DATE);
         }
-        List<SubmissionCodeServerKpi> submissionCodeServerKpis = new ArrayList<>();
+        List<Kpi> submissionCodeServerKpis = new ArrayList<>();
         LocalDate loopDate;
         for (loopDate = dateFrom; validationDate(loopDate, dateTo); loopDate = loopDate.plusDays(1L)) {
             OffsetDateTime startDateTime = FormatDatesKPI.normaliseDateFrom(loopDate, this.targetZoneId);
@@ -96,11 +94,11 @@ public class KpiServiceImpl implements IKpiService {
         return this.submissionCodeRepository.countGeneratedCodes(startDateTime, endDateTime, code.getTypeCode());
     }
 
-    private SubmissionCodeServerKpi buildSubmissionCodeServerKpi(LocalDate loopDate, long nbLongCodesUsed,
+    private Kpi buildSubmissionCodeServerKpi(LocalDate loopDate, long nbLongCodesUsed,
             long nbShortCodesUsed,
             long nbLongCodesExpired, long nbShortCodesExpired, long nbShortCodesGenerated) {
 
-        return SubmissionCodeServerKpi.builder()
+        return Kpi.builder()
                 .date(loopDate)
                 .nbShortExpiredCodes(nbShortCodesExpired)
                 .nbLongExpiredCodes(nbLongCodesExpired)
