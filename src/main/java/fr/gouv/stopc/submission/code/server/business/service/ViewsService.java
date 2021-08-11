@@ -1,14 +1,10 @@
-package fr.gouv.stopc.submission.code.server.business.service.impl;
+package fr.gouv.stopc.submission.code.server.business.service;
 
-import fr.gouv.stopc.submission.code.server.business.controller.error.SubmissionCodeServerException;
+import fr.gouv.stopc.submission.code.server.business.controller.exception.SubmissionCodeServerException;
 import fr.gouv.stopc.submission.code.server.business.dto.ViewDto;
-import fr.gouv.stopc.submission.code.server.business.service.IFileService;
-import fr.gouv.stopc.submission.code.server.business.service.ISubmissionCodeService;
-import fr.gouv.stopc.submission.code.server.business.service.IViewService;
 import fr.gouv.stopc.submission.code.server.business.vo.ViewVo;
 import fr.gouv.stopc.submission.code.server.data.entity.Lot;
 import fr.gouv.stopc.submission.code.server.data.entity.SubmissionCode;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
@@ -18,13 +14,12 @@ import javax.validation.constraints.NotNull;
 import java.time.OffsetDateTime;
 import java.util.stream.Collectors;
 
-@Slf4j
 @Service
-public class ViewsServiceImpl implements IViewService {
+public class ViewsService {
 
-    private final ISubmissionCodeService submissionCodeService;
+    private final SubmissionCodeService submissionCodeService;
 
-    private final IFileService fileExportService;
+    private final FileService fileExportService;
 
     /**
      * Default constructor
@@ -33,12 +28,19 @@ public class ViewsServiceImpl implements IViewService {
      *                              access to persistence in db.
      */
     @Inject
-    public ViewsServiceImpl(ISubmissionCodeService submissionCodeService,
-            IFileService fileExportService) {
+    public ViewsService(SubmissionCodeService submissionCodeService,
+            FileService fileExportService) {
         this.submissionCodeService = submissionCodeService;
         this.fileExportService = fileExportService;
     }
 
+    /**
+     * The method returns the information as number of codes .
+     *
+     * @param lotIdentifier
+     * @return ViewDto.LotInformation
+     * @throws SubmissionCodeServerException
+     */
     public ViewDto.LotInformation getLotInformation(long lotIdentifier) throws SubmissionCodeServerException {
         final Long numOfCodes = this.submissionCodeService
                 .getNumberOfCodesForLotIdentifier(lotIdentifier);
@@ -55,6 +57,16 @@ public class ViewsServiceImpl implements IViewService {
                 .build();
     }
 
+    /**
+     * The method returns the information as number page, as number elements for
+     * page and list of codes.
+     *
+     * @param page
+     * @param elementByPage
+     * @param lotIdentifier
+     * @return
+     * @throws SubmissionCodeServerException
+     */
     public ViewDto.CodeValuesForPage getViewLotCodeDetailListFor(
             int page,
             int elementByPage,
@@ -91,6 +103,13 @@ public class ViewsServiceImpl implements IViewService {
                 .build();
     }
 
+    /**
+     * The method launch the generation code with the dates from and to and number
+     * of codes for day.
+     *
+     * @return ViewDto.CodeGenerationRequest defining if the request has been
+     *         successfully or not successfully submitted.
+     */
     public ViewDto.CodeGenerationRequest launchGenerationWith(
             ViewVo.CodeGenerationRequestBody codeGenerationRequestBody) throws SubmissionCodeServerException {
 

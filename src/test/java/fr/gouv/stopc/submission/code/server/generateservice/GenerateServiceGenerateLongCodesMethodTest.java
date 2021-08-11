@@ -1,9 +1,9 @@
 package fr.gouv.stopc.submission.code.server.generateservice;
 
-import fr.gouv.stopc.submission.code.server.business.controller.error.SubmissionCodeServerException;
-import fr.gouv.stopc.submission.code.server.business.service.impl.GenerateServiceImpl;
-import fr.gouv.stopc.submission.code.server.business.service.impl.LongCodeServiceImpl;
-import fr.gouv.stopc.submission.code.server.business.service.impl.SubmissionCodeServiceImpl;
+import fr.gouv.stopc.submission.code.server.business.controller.exception.SubmissionCodeServerException;
+import fr.gouv.stopc.submission.code.server.business.service.GenerateService;
+import fr.gouv.stopc.submission.code.server.business.service.LongCodeService;
+import fr.gouv.stopc.submission.code.server.business.service.SubmissionCodeService;
 import fr.gouv.stopc.submission.code.server.data.entity.Lot;
 import fr.gouv.stopc.submission.code.server.data.entity.SubmissionCode;
 import fr.gouv.stopc.submission.code.server.domain.enums.CodeTypeEnum;
@@ -23,14 +23,14 @@ import static org.mockito.Mockito.verify;
 class GenerateServiceGenerateLongCodesMethodTest {
 
     @Mock
-    private LongCodeServiceImpl longCodeService;
+    private LongCodeService longCodeService;
 
     @Mock
-    private SubmissionCodeServiceImpl submissionCodeService;
+    private SubmissionCodeService submissionCodeService;
 
     @Spy
     @InjectMocks
-    private GenerateServiceImpl generateService;
+    private GenerateService generateService;
 
     @BeforeEach
     public void init() {
@@ -63,7 +63,7 @@ class GenerateServiceGenerateLongCodesMethodTest {
 
     @Test
     void testGenerateLongCode() {
-        LongCodeServiceImpl longCodeService = new LongCodeServiceImpl();
+        LongCodeService longCodeService = new LongCodeService();
         log.info("{}", longCodeService.generateCode());
     }
 

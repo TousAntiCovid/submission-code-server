@@ -1,7 +1,6 @@
-package fr.gouv.stopc.submission.code.server.business.service.impl;
+package fr.gouv.stopc.submission.code.server.business.service;
 
 import fr.gouv.stopc.submission.code.server.business.dto.SubmissionCodeDto;
-import fr.gouv.stopc.submission.code.server.business.service.ISubmissionCodeService;
 import fr.gouv.stopc.submission.code.server.data.entity.Lot;
 import fr.gouv.stopc.submission.code.server.data.entity.SubmissionCode;
 import fr.gouv.stopc.submission.code.server.data.repository.SubmissionCodeRepository;
@@ -25,7 +24,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Valid
-public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
+public class SubmissionCodeService {
 
     private SubmissionCodeRepository submissionCodeRepository;
 
@@ -33,11 +32,10 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
     private Integer securityTimeBetweenTwoUsagesOfShortCode;
 
     @Inject
-    public SubmissionCodeServiceImpl(SubmissionCodeRepository submissionCodeRepository) {
+    public SubmissionCodeService(SubmissionCodeRepository submissionCodeRepository) {
         this.submissionCodeRepository = submissionCodeRepository;
     }
 
-    @Override
     public Optional<SubmissionCodeDto> getCodeValidity(String code, CodeTypeEnum type) {
         if (Strings.isBlank(code)) {
             return Optional.empty();
@@ -52,12 +50,10 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
         return Optional.of(submissionCodeDto);
     }
 
-    @Override
     public Iterable<SubmissionCode> saveAllCodes(List<SubmissionCodeDto> submissionCodeDtos) {
         return this.saveAllCodes(submissionCodeDtos, new Lot());
     }
 
-    @Override
     public Iterable<SubmissionCode> saveAllCodes(List<SubmissionCodeDto> submissionCodeDtos, Lot lot) {
         if (submissionCodeDtos.isEmpty()) {
             return Collections.emptyList();
@@ -73,7 +69,6 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
         return submissionCodeRepository.saveAll(submissionCodes);
     }
 
-    @Override
     public Optional<SubmissionCode> saveCode(SubmissionCodeDto submissionCodeDto) {
         if (Objects.isNull(submissionCodeDto)) {
             return Optional.empty();
@@ -83,7 +78,6 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
         return Optional.of(submissionCodeRepository.save(submissionCode));
     }
 
-    @Override
     public Optional<SubmissionCode> saveCode(SubmissionCodeDto submissionCodeDto, Lot lot) {
         if (Objects.isNull(submissionCodeDto)) {
             return Optional.empty();
@@ -122,7 +116,6 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
 
     }
 
-    @Override
     public boolean updateCodeUsed(SubmissionCodeDto submissionCodeDto) {
         String code = submissionCodeDto.getCode();
         String type = submissionCodeDto.getType();
@@ -136,18 +129,31 @@ public class SubmissionCodeServiceImpl implements ISubmissionCodeService {
         return true;
     }
 
-    @Override
+    /**
+     * Return number of code for the given lot identifier.
+     *
+     * @param lotIdentifier lot identifier in db
+     * @return return number of code with the given lot identifier
+     */
     public long getNumberOfCodesForLotIdentifier(long lotIdentifier) {
         return this.submissionCodeRepository.countSubmissionCodeByLotkeyId(lotIdentifier);
     }
 
-    @Override
+    /**
+     * Get specific range of code rows
+     *
+     * @param lotIdentifier  lot identifier the codes should be matched
+     * @param page           page number
+     * @param elementsByPage the row page the list ends.
+     * @return list of code page row "page" elementsByPage rows "elementsByPage"
+     *         e.g. : page = 10 and elementsByPage = 12 , size list is 3 and has
+     *         only row 10, 11, 12
+     */
     public Page<SubmissionCode> getSubmissionCodesFor(long lotIdentifier, int page, int elementsByPage) {
         return this.submissionCodeRepository
                 .findAllByLotkeyId(lotIdentifier, PageRequest.of(page, elementsByPage));
     }
 
-    @Override
     public void removeByLot(Lot lot) {
         this.submissionCodeRepository.deleteAllByLotkey(lot);
     }

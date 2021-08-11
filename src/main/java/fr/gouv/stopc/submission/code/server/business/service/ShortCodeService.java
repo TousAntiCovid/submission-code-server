@@ -1,6 +1,5 @@
-package fr.gouv.stopc.submission.code.server.business.service.impl;
+package fr.gouv.stopc.submission.code.server.business.service;
 
-import fr.gouv.stopc.submission.code.server.business.service.IShortCodeService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -12,7 +11,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-public class ShortCodeServiceImpl implements IShortCodeService {
+public class ShortCodeService {
 
     private static final String ALPHA_UPPER_CASE = "abcdefghijklmnopqrstuvwxyz".toUpperCase();
 
@@ -32,6 +31,11 @@ public class ShortCodeServiceImpl implements IShortCodeService {
             .mapToObj(c -> (char) c)
             .collect(Collectors.toList());
 
+    /**
+     * generate and stringify short code
+     *
+     * @return A randomly generated code of insensitive case alphanumeric char
+     */
     public String generateCode() {
         log.info("Generating random short code");
         final List<Character> characters = getShuffledAlphaNumList();

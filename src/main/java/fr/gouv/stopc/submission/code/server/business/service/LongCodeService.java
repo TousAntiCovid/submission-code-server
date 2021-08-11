@@ -1,6 +1,5 @@
-package fr.gouv.stopc.submission.code.server.business.service.impl;
+package fr.gouv.stopc.submission.code.server.business.service;
 
-import fr.gouv.stopc.submission.code.server.business.service.ILongCodeService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -11,12 +10,21 @@ import java.util.stream.Stream;
 
 @Service
 @Slf4j
-public class LongCodeServiceImpl implements ILongCodeService {
+public class LongCodeService {
 
+    /**
+     * generate and stringify a long code
+     *
+     * @return A randomly generated long code
+     */
     public String generateCode() {
         return (UUID.randomUUID()).toString();
     }
 
+    /**
+     * @param size number of code to be generated
+     * @return
+     */
     public List<String> generateCodes(long size) {
         return Stream.generate(this::generateCode)
                 .distinct()

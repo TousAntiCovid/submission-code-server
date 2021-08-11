@@ -1,4 +1,4 @@
-package fr.gouv.stopc.submission.code.server.business.service.impl;
+package fr.gouv.stopc.submission.code.server.business.service;
 
 import fr.gouv.stopc.submission.code.server.data.entity.SequenceFichier;
 import fr.gouv.stopc.submission.code.server.data.repository.SequenceFichierRepository;
@@ -18,10 +18,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
-public class SequenceFichierServiceImplTest {
+public class SequenceFichierServiceTest {
 
     @InjectMocks
-    private SequenceFichierServiceImpl service;
+    private SequenceFichierService service;
 
     @Mock
     private SequenceFichierRepository repository;
