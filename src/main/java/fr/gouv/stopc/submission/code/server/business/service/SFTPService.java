@@ -126,7 +126,7 @@ public class SFTPService {
      * 
      * @return An object channelSftp.
      */
-    private ChannelSftp createConnection() throws SubmissionCodeServerException {
+    public ChannelSftp createConnection() throws SubmissionCodeServerException {
         try {
             JSch jSch = new JSch();
 

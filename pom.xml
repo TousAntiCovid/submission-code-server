@@ -28,6 +28,7 @@
         <maven.jar.plugin.version>3.1.1</maven.jar.plugin.version>
         <postgresql.version>42.2.12</postgresql.version>
         <org.projectlombok.version>1.18.20</org.projectlombok.version>
+        <testcontainers.version>1.15.3</testcontainers.version>
     </properties>
 
     <dependencies>
@@ -113,6 +114,17 @@
             <groupId>io.springfox</groupId>
             <artifactId>springfox-swagger2</artifactId>
             <version>2.9.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>kafka</artifactId>
+            <version>${testcontainers.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>1.16.0</version>
         </dependency>
     </dependencies>
 
