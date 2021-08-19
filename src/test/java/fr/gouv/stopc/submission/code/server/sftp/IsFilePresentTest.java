@@ -1,14 +1,8 @@
 package fr.gouv.stopc.submission.code.server.sftp;
 
-import com.jcraft.jsch.ChannelSftp;
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.Session;
 import fr.gouv.stopc.submission.code.server.business.controller.exception.SubmissionCodeServerException;
-import fr.gouv.stopc.submission.code.server.business.dto.CodeDetailedDto;
 import fr.gouv.stopc.submission.code.server.business.service.*;
 import fr.gouv.stopc.submission.code.server.data.entity.Lot;
-import fr.gouv.stopc.submission.code.server.domain.enums.CodeTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,11 +18,15 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.TimeZone;
 
+import static fr.gouv.stopc.submission.code.server.sftp.SftpManager.assertThatAllFilesFromSftp;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 @Slf4j
@@ -38,9 +36,6 @@ import static org.mockito.Mockito.*;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class IsFilePresentTest {
 
-    /**
-     * Zone ID to use
-     */
     @Value("${stop.covid.qr.code.targetzone}")
     private String targetZoneId;
 
@@ -62,8 +57,8 @@ public class IsFilePresentTest {
     @BeforeEach
     public void init() throws SubmissionCodeServerException {
 
-        // Mock pour ne pas avoir à faire les clé priv/pub
-        when(this.sftp.createConnection()).thenReturn(this.createConnection());
+        // Mock sftp keys
+        when(this.sftp.createConnection()).thenReturn(SftpManager.createConnection());
         doCallRealMethod().when(this.sftp).transferFileSFTP(any(ByteArrayOutputStream.class));
 
         MockitoAnnotations.initMocks(this);
@@ -96,27 +91,11 @@ public class IsFilePresentTest {
     public void test_create_zip_complete_one_day() throws Exception {
         Optional<ByteArrayOutputStream> result;
 
-        final CodeDetailedDto sc = CodeDetailedDto.builder()
-                .typeAsString(CodeTypeEnum.LONG.getTypeCode())
-                .validUntil(OffsetDateTime.now().toString())
-                .validFrom(OffsetDateTime.now().toString())
-                .dateGenerate(OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME))
-                .code("3d27eeb8-956c-4660-bc04-8612a4c0a7f1")
-                .build();
-
         OffsetDateTime nowDay = OffsetDateTime.now();
         String nowDayString = nowDay.format(DateTimeFormatter.ISO_DATE_TIME);
         String endDay = nowDayString;
-
         Lot lot = new Lot();
         lot.setId(1L);
-
-        when(
-                generateService.generateLongCodesWithBulkMethod(
-                        any(OffsetDateTime.class), anyLong(), any(Lot.class), any(OffsetDateTime.class)
-                )
-        )
-                .thenReturn(Arrays.asList(sc));
         List<OffsetDateTime> dates = new ArrayList<>();
         dates.add(nowDay);
         when(generateService.getListOfValidDatesFor(1, nowDay)).thenReturn(dates);
@@ -124,55 +103,17 @@ public class IsFilePresentTest {
         result = fileExportService.zipExport(10L, lot, nowDayString, endDay);
 
         Assert.notNull(result.get());
-
     }
 
     @Test
     @Order(2)
-    void is_file_present() throws Exception {
+    void is_file_present() {
+        OffsetDateTime date = OffsetDateTime.now(ZoneId.of(targetZoneId));
+        String dateFile = date.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
-        log.info("SFTP: connection is about to be created");
-        ChannelSftp channelSftp = sftp.createConnection();
-        log.info("SFTP: connexion created");
-
-        log.info("===> SFTP: ls -lah /home/foo/upload");
-        Vector<ChannelSftp.LsEntry> ls = channelSftp.ls("upload");
-        for (ChannelSftp.LsEntry string : ls) {
-            log.info(">>> {}", String.valueOf(string.getFilename()));
-        }
-        log.info("<=== SFTP: ls -lah /home/foo/upload");
-
-        log.info("SFTP: connection is about to be closed");
-        channelSftp.exit();
-        log.info("SFTP: connection closed");
-
+        assertThatAllFilesFromSftp()
+                .hasSize(4)
+                .anyMatch(l -> l.matches(dateFile + "\\d{6}_stopcovid_qrcode_batch.tgz"))
+                .anyMatch(l -> l.matches(dateFile + "\\d{6}_stopcovid_qrcode_batch.sha256"));
     }
-
-    /**
-     * Create connection SFTP to transfer file in server. The connection is created
-     * with user and private key of user.
-     *
-     * @return An object channelSftp.
-     */
-    public ChannelSftp createConnection() throws SubmissionCodeServerException {
-        JSch jSch = new JSch();
-        try {
-            log.info("SFTP: host : {}", System.getProperty("spring.sftp.host"));
-            log.info("SFTP: port : {}", System.getProperty("spring.sftp.port"));
-            Session jsSession = jSch.getSession(
-                    "user", System.getProperty("spring.sftp.host"),
-                    Integer.parseInt(System.getProperty("spring.sftp.port"))
-            );
-            jsSession.setConfig("StrictHostKeyChecking", "no");
-            jsSession.setPassword("password");
-            jsSession.connect();
-            final ChannelSftp sftp = (ChannelSftp) jsSession.openChannel("sftp");
-            sftp.connect();
-            return sftp;
-        } catch (JSchException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
 }

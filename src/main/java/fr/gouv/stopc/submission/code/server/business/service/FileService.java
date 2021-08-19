@@ -279,7 +279,7 @@ public class FileService {
 
         for (OffsetDateTime dateTime : dates) {
             List<SubmissionCodeDto> listForDay = submissionCodeDtos
-                    .stream()// .filter(tmp -> dateTime.isEqual(tmp.getDateAvailable()))
+                    .stream().filter(tmp -> dateTime.isEqual(tmp.getDateAvailable()))
                     .collect(Collectors.toList());
 
             OffsetDateTime date = dateTime
