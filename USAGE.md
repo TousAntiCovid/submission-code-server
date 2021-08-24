@@ -16,6 +16,8 @@ En passant en paramètre les informations suivantes dans le Body :
     "dailyAmount":40000
 }
 ```
+from : correspond à la date du début de validité des codes.  
+to : correspond à la fin de validité des codes et doit être postérieure à la date from.    
 
 L'opérateur effectuera donc 7 appels avec le paramètre dailyAmount à 40000 et un appel avec le paramètre dailyAmount à 20000.  
 Tous les appels auront les mêmes paramères from et to qui correspondent au début et à la fin de validité des codes.
@@ -43,13 +45,13 @@ La nomenclature est la même pour le second fichier seule l'extention diffère `
 
 #### Premier fichier (yyyyMMddHHmmss_stopcovid_qrcode_batch.tgz)
 
-Le fichier contenant la liste des codes est une archive `tgz` contenant une seconde archive `tar` contenant un `csv` qui est la liste des codes.
-
+Le fichier contenant la liste des codes est une archive `tgz` contenant une seconde archive `tar` contenant un `csv` qui est la liste des codes.  
+La nomenclature du nom du fichier csv est la suivante `(numero de lot) + AAMMdd.csv ==> 25210825.csv`  
 Voici un exemple avec un seul code généré
 
 | code_pour_qr  |   code_brut   |           validite_debut |             validite_fin |
 | ------------- | :-----------: | -----------------------: | -----------------------: |
-| ...41 char... | ...36 char... | 2021-08-19T09:27:13.542Z | 2021-08-19T09:27:13.539Z |
+| ...41 char... | ...36 char... | 2021-08-25T22:00:00.000Z | 2021-09-02T21:59:00.000Z |
 
 Le séparateur de ce csv est une virgule `,` et il y a un retour chariot à la fin du fichier (LF).
 
