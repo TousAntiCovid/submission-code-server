@@ -24,6 +24,11 @@ Tous les appels auront les mêmes paramères from et to qui correspondent au dé
 
 Chaque appel donne lieu à la création de deux fichiers (voir § ci-dessous).
 
+Une exécution du script est finie quand ce message s'affiche dans les logs.
+```
+INFO fr.gouv.stopc.submission.code.server.ws.service.impl.FileServiceImpl [task-{}] It took {} seconds to generate {} codes
+```
+
 ## Fichiers de sortie
 
 ### Fichiers
@@ -46,7 +51,8 @@ La nomenclature est la même pour le second fichier seule l'extention diffère `
 #### Premier fichier (yyyyMMddHHmmss_stopcovid_qrcode_batch.tgz)
 
 Le fichier contenant la liste des codes est une archive `tgz` contenant une seconde archive `tar` contenant un `csv` qui est la liste des codes.  
-La nomenclature du nom du fichier csv est la suivante `(numero de lot) + AAMMdd.csv ==> 25210825.csv`  
+La nomenclature du nom du fichier csv est la suivante `(séquence) + AAMMdd.csv ==> 25210825.csv`  
+La séquence correspond à un incrément lié à un triptyque temporel (AAMMdd) pour éviter de générer deux fichiers de même nom.  
 Voici un exemple avec un seul code généré
 
 | code_pour_qr  |   code_brut   |           validite_debut |             validite_fin |
@@ -73,11 +79,18 @@ Je veux générer `500 000` codes :
 
 ### Reprise / Rejeux
 
-Dans le cas où un problème serait survenu, il faut invalider les codes générés.  
-Pour ce faire, il faut réaliser une requête en base de données.
+Dans le cas où un problème serait survenu, il faut invalider les codes générés ou lister les codes non sauvegardés en base.  
+Pour ce faire, il faut réaliser des requêtes en base de données ou sur le serveur sftp.
 
 ```
-(Attente d'exemple)
+# Utile pour repérer s'il n'y a pas de désynchro entre l'indice connu et le dernier fichier envoyé
+select * from seq_fichier where jour = '10' and mois = '08' and annee = '2021';
+
+# Compter le nombre de codes ajoutés (en tenant compte de l'UTC)
+select count(*) from submission_code where date_available between '2021-08-09 22:00:00' and '2021-08-17 22:00:00';
+
+# Lancer le script python de vérification des codes dans la base de données
+python verify-codes.py [dbName] [dbHost] [dbPort] [dbUser] [qrcodes-file-path]
 ```
 
-Puis regénérer le nombre de code souhaité.
+S'il manque des codes, il faut regénérer le nombre de code souhaité.
