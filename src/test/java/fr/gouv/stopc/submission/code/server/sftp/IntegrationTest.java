@@ -5,6 +5,7 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestExecutionListeners;
+import org.springframework.test.context.TestPropertySource;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
@@ -15,9 +16,8 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 import static org.springframework.test.context.TestExecutionListeners.MergeMode.MERGE_WITH_DEFAULTS;
 
 @ActiveProfiles("dev")
+@TestPropertySource("classpath:application-dev.properties")
 @SpringBootTest(webEnvironment = RANDOM_PORT)
-// @SpringBootTest(classes = SubmissionCodeServerApplication.class,
-// webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @TestExecutionListeners(listeners = { SftpManager.class }, mergeMode = MERGE_WITH_DEFAULTS)
 @Retention(RUNTIME)
 @Target(TYPE)

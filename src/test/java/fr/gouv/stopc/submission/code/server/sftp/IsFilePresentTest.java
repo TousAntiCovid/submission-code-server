@@ -1,119 +1,164 @@
 package fr.gouv.stopc.submission.code.server.sftp;
 
-import fr.gouv.stopc.submission.code.server.business.controller.exception.SubmissionCodeServerException;
-import fr.gouv.stopc.submission.code.server.business.service.*;
-import fr.gouv.stopc.submission.code.server.data.entity.Lot;
+import com.opencsv.CSVReader;
+import com.opencsv.exceptions.CsvValidationException;
+import fr.gouv.stopc.submission.code.server.business.service.SFTPService;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.*;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
-import org.modelmapper.internal.util.Assert;
+import org.junit.jupiter.api.io.TempDir;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.util.ReflectionTestUtils;
+import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 
-import java.io.ByteArrayOutputStream;
+import java.io.*;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.TimeZone;
+import java.util.zip.GZIPInputStream;
 
 import static fr.gouv.stopc.submission.code.server.sftp.SftpManager.assertThatAllFilesFromSftp;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static fr.gouv.stopc.submission.code.server.sftp.SftpManager.pushFileToSftp;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @Slf4j
 @ExtendWith(SpringExtension.class)
-@TestPropertySource("classpath:application.properties")
 @IntegrationTest
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@ContextConfiguration(classes = { SFTPService.class })
 public class IsFilePresentTest {
+
+    private static final String SEPARATOR = "/";
+
+    @Autowired
+    private SFTPService sftpService;
 
     @Value("${stop.covid.qr.code.targetzone}")
     private String targetZoneId;
 
-    @Mock
-    private GenerateService generateService;
-
-    @Mock
-    private SubmissionCodeService submissionCodeService;
-
-    @Mock
-    private SequenceFichierService sequenceFichierService;
-
-    @Spy
-    @InjectMocks
-    private FileService fileExportService;
-
-    private SFTPService sftp = mock(SFTPService.class);
-
-    @BeforeEach
-    public void init() throws SubmissionCodeServerException {
-
-        // Mock sftp keys
-        when(this.sftp.createConnection()).thenReturn(SftpManager.createConnection());
-        doCallRealMethod().when(this.sftp).transferFileSFTP(any(ByteArrayOutputStream.class));
-
-        MockitoAnnotations.initMocks(this);
-
-        TimeZone.setDefault(TimeZone.getTimeZone(this.targetZoneId));
-
-        ReflectionTestUtils.setField(this.fileExportService, "qrCodeBaseUrlToBeFormatted", "my%smy%s");
-        ReflectionTestUtils.setField(this.fileExportService, "targetZoneId", this.targetZoneId);
-        ReflectionTestUtils.setField(this.fileExportService, "csvSeparator", ',');
-        ReflectionTestUtils.setField(this.fileExportService, "csvDelimiter", '"');
-        ReflectionTestUtils.setField(this.fileExportService, "csvFilenameFormat", "%d%s.csv");
-        ReflectionTestUtils.setField(this.fileExportService, "directoryTmpCsv", "tmp");
-        ReflectionTestUtils.setField(this.fileExportService, "transferFile", true);
-        ReflectionTestUtils.setField(this.generateService, "targetZoneId", this.targetZoneId);
-        ReflectionTestUtils.setField(this.generateService, "numberOfTryInCaseOfError", 1);
-        ReflectionTestUtils.setField(this.generateService, "timeValidityLongCode", 2);
-        ReflectionTestUtils.setField(this.generateService, "timeValidityShortCode", 15);
-        ReflectionTestUtils.setField(this.generateService, "submissionCodeService", this.submissionCodeService);
-        ReflectionTestUtils.setField(this.generateService, "shortCodeService", new ShortCodeService());
-        ReflectionTestUtils.setField(this.generateService, "longCodeService", new LongCodeService());
-        ReflectionTestUtils.setField(this.sftp, "targetZoneId", this.targetZoneId);
-        ReflectionTestUtils.setField(this.sftp, "zipFilenameFormat", "upload/%s_stopcovid_qrcode_batch.tgz");
-        ReflectionTestUtils
-                .setField(this.sftp, "digestFileNameFormatSHA256", "upload/%s_stopcovid_qrcode_batch.sha256");
-        when(this.sequenceFichierService.getSequence(any())).thenReturn(Optional.empty());
-    }
+    @TempDir
+    File tmpDirectory;
 
     @Test
     @Order(1)
-    public void test_create_zip_complete_one_day() throws Exception {
-        Optional<ByteArrayOutputStream> result;
+    public void given_create_zip_complete_one_day() {
+        // TODO : function to be replace by the new service
+        List<String> listFilenames = new ArrayList<>();
+        listFilenames.add("stopcovid_qrcode_batch.tgz");
+        listFilenames.add("stopcovid_qrcode_batch.sha256");
+        OffsetDateTime date = OffsetDateTime.now(ZoneId.of(targetZoneId));
+        String dateFile = date.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
-        OffsetDateTime nowDay = OffsetDateTime.now();
-        String nowDayString = nowDay.format(DateTimeFormatter.ISO_DATE_TIME);
-        String endDay = nowDayString;
-        Lot lot = new Lot();
-        lot.setId(1L);
-        List<OffsetDateTime> dates = new ArrayList<>();
-        dates.add(nowDay);
-        when(generateService.getListOfValidDatesFor(1, nowDay)).thenReturn(dates);
-
-        result = fileExportService.zipExport(10L, lot, nowDayString, endDay);
-
-        Assert.notNull(result.get());
+        ClassLoader classLoader = getClass().getClassLoader();
+        for (String fileName : listFilenames) {
+            File file = new File(classLoader.getResource("sftp".concat(SEPARATOR).concat(fileName)).getFile());
+            String fileNameDest = dateFile.concat("000000_").concat(fileName);
+            pushFileToSftp(sftpService, file, fileNameDest);
+        }
     }
 
     @Test
     @Order(2)
-    void is_file_present() {
+    void is_file_present_on_sftp() {
         OffsetDateTime date = OffsetDateTime.now(ZoneId.of(targetZoneId));
         String dateFile = date.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
-        assertThatAllFilesFromSftp()
-                .hasSize(4)
+        assertThatAllFilesFromSftp(sftpService)
+                .hasSize(2)
                 .anyMatch(l -> l.matches(dateFile + "\\d{6}_stopcovid_qrcode_batch.tgz"))
                 .anyMatch(l -> l.matches(dateFile + "\\d{6}_stopcovid_qrcode_batch.sha256"));
+    }
+
+    @Test
+    @Order(3)
+    void csv_file_from_sftp_contains_good_number_of_rows() throws CsvValidationException, IOException {
+        log.debug("Created directory {}", tmpDirectory.getAbsolutePath());
+        List<String> fileList = SftpManager.getAllFilesFromSftp(sftpService, tmpDirectory);
+        assertFalse(fileList.isEmpty());
+        assertEquals(2, processExtractAndCount(fileList, tmpDirectory));
+    }
+
+    @Test
+    @Order(4)
+    void local_and_dest_files_are_the_same() throws IOException {
+        // upload
+        String fileName = "stopcovid_qrcode_batch.tgz";
+        ClassLoader classLoader = getClass().getClassLoader();
+        File uploadedFile = new File(classLoader.getResource("sftp".concat(SEPARATOR).concat(fileName)).getFile());
+        OffsetDateTime date = OffsetDateTime.now(ZoneId.of(targetZoneId));
+        String dateFile = date.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String fileNameDest = dateFile.concat("000001_").concat(fileName);
+        pushFileToSftp(sftpService, uploadedFile, fileNameDest);
+        // download
+        File downloadedFile = SftpManager.getFileFromSftp(sftpService, fileNameDest, tmpDirectory);
+        // compare
+        assertTrue(areSameFiles(uploadedFile, downloadedFile));
+    }
+
+    private boolean areSameFiles(File uploaded, File downloaded) throws IOException {
+        return FileUtils.contentEquals(uploaded, downloaded);
+    }
+
+    private int processExtractAndCount(List<String> fileList, File tmpDirectory) {
+        int nbRows = 0;
+        for (String file : fileList) {
+            log.debug("File :  {}", file);
+            if (file.contains(".tgz")) {
+                log.debug("Try to extract file : {}", file);
+                try (
+                        FileInputStream fis = new FileInputStream(file);
+                        GZIPInputStream gzipInputStream = new GZIPInputStream(new BufferedInputStream(fis));
+                        TarArchiveInputStream tis = new TarArchiveInputStream(gzipInputStream)) {
+                    TarArchiveEntry entry;
+                    while ((entry = tis.getNextTarEntry()) != null) {
+                        log.debug("Extracted file : {}", entry.getName());
+                        final File curfile = new File(tmpDirectory, entry.getName());
+                        extractFileFromTar(curfile, tis);
+                        nbRows = this.countRowsFromCsvFile(curfile.getAbsolutePath());
+                        curfile.delete();
+                    }
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+        return nbRows;
+    }
+
+    private void extractFileFromTar(File file, TarArchiveInputStream tis) throws IOException {
+        int count;
+        byte data[] = new byte[2048];
+        try (BufferedOutputStream outputStream = new BufferedOutputStream(
+                new FileOutputStream(file)
+        )) {
+
+            while ((count = tis.read(data)) != -1) {
+                outputStream.write(data, 0, count);
+            }
+
+            outputStream.flush();
+        }
+    }
+
+    private int countRowsFromCsvFile(String filePath) throws IOException, CsvValidationException {
+        CSVReader reader = new CSVReader(new FileReader(filePath));
+        int count = 0;
+        while (reader.readNext() != null) {
+            count++;
+        }
+        log.debug("File : {} contains ({}) rows.", filePath, String.valueOf(count));
+        reader.close();
+        return count;
     }
 }
