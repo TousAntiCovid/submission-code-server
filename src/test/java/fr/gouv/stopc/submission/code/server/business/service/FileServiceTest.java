@@ -34,6 +34,7 @@ import java.util.TimeZone;
 
 import static org.apache.tomcat.util.http.fileupload.FileUtils.deleteDirectory;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
@@ -108,7 +109,11 @@ class FileServiceTest {
         List<OffsetDateTime> dates = new ArrayList<>();
         dates.add(date);
 
-        Mockito.when(generateService.generateLongCodesWithBulkMethod(date, 10, lot, date))
+        Mockito.when(
+                generateService.generateLongCodesWithBulkMethod(
+                        any(OffsetDateTime.class), anyLong(), any(Lot.class), any(OffsetDateTime.class)
+                )
+        )
                 .thenReturn(Arrays.asList(sc));
         Mockito.when(generateService.getListOfValidDatesFor(5, startDate)).thenReturn(dates);
         Optional<ByteArrayOutputStream> result = Optional.empty();
@@ -139,7 +144,11 @@ class FileServiceTest {
         Lot lot = new Lot();
         lot.setId(1L);
 
-        Mockito.when(generateService.generateLongCodesWithBulkMethod(nowDay, 10, lot, nowDay))
+        Mockito.when(
+                generateService.generateLongCodesWithBulkMethod(
+                        any(OffsetDateTime.class), anyLong(), any(Lot.class), any(OffsetDateTime.class)
+                )
+        )
                 .thenReturn(Arrays.asList(sc));
         List<OffsetDateTime> dates = new ArrayList<>();
         dates.add(nowDay);
