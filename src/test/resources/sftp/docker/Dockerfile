@@ -15,6 +15,7 @@ COPY files/install.sh /etc/sftp.d/
 
 RUN dos2unix entrypoint && \
     dos2unix /etc/sftp.d/install.sh && \
+    dos2unix /usr/local/bin/create-sftp-user && \
     chmod +x entrypoint && \
     chmod +x /etc/sftp.d/install.sh && \
     chmod +x /usr/local/bin/create-sftp-user
