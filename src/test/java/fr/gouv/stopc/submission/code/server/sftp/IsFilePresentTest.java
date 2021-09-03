@@ -22,7 +22,6 @@ import java.io.*;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 
@@ -54,9 +53,10 @@ public class IsFilePresentTest {
     @Order(1)
     public void given_create_zip_complete_one_day() {
         // TODO : function to be replace by the new service
-        List<String> listFilenames = new ArrayList<>();
-        listFilenames.add("stopcovid_qrcode_batch.tgz");
-        listFilenames.add("stopcovid_qrcode_batch.sha256");
+        List<String> listFilenames = List.of(
+                "stopcovid_qrcode_batch.tgz",
+                "stopcovid_qrcode_batch.sha256"
+        );
         OffsetDateTime date = OffsetDateTime.now(ZoneId.of(targetZoneId));
         String dateFile = date.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 

@@ -495,4 +495,67 @@ public class FileService {
         return submissionCodeDto;
     }
 
+    // TODO : Temporaire pour fonctionnement à l'identique. Etudier le mécanisme complet, réécrire et corriger le pb de mémoire.
+    public void generateAndPersisit(Long numberCodeDay, Lot lotObject, OffsetDateTime from) throws SubmissionCodeServerException {
+        File tmpDirectory = new File(System.getProperty("java.io.tmpdir") + directoryTmpCsv);
+        tmpDirectory.mkdir();
+        log.info("Create directory {} and Start generation codes bulk method", tmpDirectory.getAbsolutePath());
+        List<String> dataByFilename = persistLongCodes(numberCodeDay, lotObject, from, tmpDirectory);
+
+        log.info("End generation codes");
+        // STEP 3 packaging csv data
+        ByteArrayOutputStream zipOutputStream = null;
+        try {
+            zipOutputStream = packageCsvDataToZipFile(dataByFilename, tmpDirectory);
+        } catch (IOException e) {
+            log.error(SubmissionCodeServerException.ExceptionEnum.PACKAGING_CSV_FILE_ERROR.getMessage(), e);
+            throw new SubmissionCodeServerException(
+                    SubmissionCodeServerException.ExceptionEnum.PACKAGING_CSV_FILE_ERROR,
+                    e
+            );
+        }
+        if (transferFile) {
+            // async method is called here.
+            log.info("SFTP transfer is about to be submitted.");
+            sftpService.transferFileSFTP(zipOutputStream);
+
+            log.info("SFTP transfer have been submitted.");
+        } else {
+            log.info("No SFTP transfer have been submitted.");
+        }
+
+        // delete directory
+        try {
+            log.info("Delete directory {}", tmpDirectory.getAbsolutePath());
+            deleteDirectory(tmpDirectory);
+        } catch (IOException e) {
+            log.error("Delete directory is not good");
+        }
+    }
+
+    private List<String> persistLongCodes(Long codePerDays, Lot lotObject, OffsetDateTime from,
+                                              File tmpDirectory)
+            throws SubmissionCodeServerException {
+        List<String> listFile = new ArrayList<>();
+
+        OffsetDateTime validGenDate = OffsetDateTime.now();
+
+        List<CodeDetailedDto> codeSaves = this.generateService.generateLongCodesWithBulkMethod(
+                from,
+                codePerDays,
+                lotObject,
+                validGenDate
+        );
+
+        if (CollectionUtils.isNotEmpty(codeSaves)) {
+            final List<SubmissionCodeDto> collect = codeSaves.stream()
+                    .map(codeDetailedDto -> mapToSubmissionCodeDto(codeDetailedDto, lotObject.getId()))
+                    .collect(Collectors.toList());
+
+            listFile.addAll((this.serializeCodesToCsv(collect, Arrays.asList(from), tmpDirectory)));
+        }
+
+        return listFile;
+    }
+
 }

@@ -15,7 +15,6 @@ import org.testcontainers.utility.MountableFile;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 import java.util.stream.Collectors;
@@ -28,10 +27,6 @@ public class SftpManager implements TestExecutionListener {
     private static final String USER = "user";
 
     private static final String PASSWORD = "password";
-
-    private static final String UPLOAD = "/upload";
-
-    private static final String SEPARATOR = "/";
 
     private static final GenericContainer SFTP = new GenericContainer(
             new ImageFromDockerfile()
@@ -61,14 +56,12 @@ public class SftpManager implements TestExecutionListener {
         log.debug("SFTP: connexion created");
 
         log.debug("SFTP: list files in upload directory");
-        List<String> listAssert = new ArrayList<>();
-        Vector<ChannelSftp.LsEntry> ls = channelSftp.ls(UPLOAD);
-        for (ChannelSftp.LsEntry lsEntry : ls) {
-            if (!lsEntry.getAttrs().isDir()) {
-                listAssert.add(lsEntry.getFilename());
-                log.debug(">>> {}", String.valueOf(lsEntry.getFilename()));
-            }
-        }
+        List<String> listAssert;
+        Vector<ChannelSftp.LsEntry> ls = channelSftp.ls("/upload");
+        listAssert = ls.stream()
+                .filter(lsEntry -> !lsEntry.getAttrs().isDir())
+                .map(lsEntry -> lsEntry.getFilename())
+                .collect(Collectors.toList());
 
         log.debug("SFTP: connection is about to be closed");
         channelSftp.exit();
@@ -80,12 +73,7 @@ public class SftpManager implements TestExecutionListener {
     @SneakyThrows
     public static File getFileFromSftp(SFTPService sftpService, String fileName, File tmpDirectory) {
         ChannelSftp channelSftp = sftpService.createConnection();
-        channelSftp.get(
-                UPLOAD
-                        .concat(SEPARATOR)
-                        .concat(fileName),
-                tmpDirectory.getAbsolutePath()
-        );
+        channelSftp.get("/upload/".concat(fileName), tmpDirectory.getAbsolutePath());
         File file = new File(
                 tmpDirectory.getAbsolutePath()
                         .concat(File.separator)
@@ -98,16 +86,12 @@ public class SftpManager implements TestExecutionListener {
     public static List<String> getAllFilesFromSftp(SFTPService sftpService, File tmpDirectory) {
         List<String> fileList;
         ChannelSftp channelSftp = sftpService.createConnection();
-
-        Vector<ChannelSftp.LsEntry> ls = channelSftp.ls(UPLOAD);
-        log.debug("Start list files");
+        Vector<ChannelSftp.LsEntry> ls = channelSftp.ls("/upload");
         fileList = ls.stream()
                 .filter(lsEntry -> !lsEntry.getAttrs().isDir())
                 .map(lsEntry -> {
                     try {
-                        channelSftp.get(
-                                UPLOAD
-                                        .concat(SEPARATOR)
+                        channelSftp.get("/upload/"
                                         .concat(lsEntry.getFilename()),
                                 tmpDirectory.getAbsolutePath()
                         );
@@ -120,7 +104,6 @@ public class SftpManager implements TestExecutionListener {
 
                 })
                 .collect(Collectors.toList());
-        log.debug("End list files");
 
         return fileList;
     }
@@ -131,8 +114,6 @@ public class SftpManager implements TestExecutionListener {
         log.debug("SFTP: is about to pushed the zip file.");
         try {
             channelSftp.put(new FileInputStream(file), fileNameDest);
-        } catch (SftpException e) {
-            throw new RuntimeException(e);
         } finally {
             channelSftp.exit();
         }
