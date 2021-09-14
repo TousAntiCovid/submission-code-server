@@ -14,6 +14,10 @@ import java.time.OffsetDateTime;
 public class GenerationRequest {
 
     private OffsetDateTime startDateTime;
-    private long numberOfCodeToGenerate;
-    // TODO : put more data, will be user for lot stats
+
+    private OffsetDateTime endDateTime;
+
+    private Long numberOfCodeToGenerate;
+
+    private Long iterationBatchNumber;
 }

@@ -120,9 +120,12 @@ public class ViewsService {
         @NotNull
         OffsetDateTime to = codeGenerationRequestBody.getTo();
 
+        Lot newLot = new Lot();
+        newLot.setNumberOfCodes(codePerDay);
+        newLot.setDateExecution(OffsetDateTime.now());
         this.fileExportService.zipExportAsync(
                 codePerDay,
-                new Lot(),
+                newLot,
                 from.toString(),
                 to.toString()
         );

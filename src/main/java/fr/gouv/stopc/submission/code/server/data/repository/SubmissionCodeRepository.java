@@ -4,7 +4,6 @@ import fr.gouv.stopc.submission.code.server.data.entity.Lot;
 import fr.gouv.stopc.submission.code.server.data.entity.SubmissionCode;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
@@ -35,6 +34,8 @@ public interface SubmissionCodeRepository extends PagingAndSortingRepository<Sub
     void deleteAllByLotkey(Lot lotkey);
 
     long countAllByTypeAndDateAvailableEquals(String type, OffsetDateTime dateFrom);
+
+    long countAllByTypeAndDateEndValidityBefore(String type, OffsetDateTime dateFrom);
 
     @Transactional
     Long deleteAllByUsedFalseAndDateEndValidityBefore(OffsetDateTime dateEndValidityAfter);

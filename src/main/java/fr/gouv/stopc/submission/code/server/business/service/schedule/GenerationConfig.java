@@ -12,11 +12,13 @@ import java.time.OffsetDateTime;
 @Data
 @SuperBuilder
 public class GenerationConfig implements Comparable<GenerationConfig> {
-    OffsetDateTime startdate;
+
+    OffsetDateTime startDate;
+
     long dailyProduction;
 
     @Override
     public int compareTo(GenerationConfig o) {
-        return getStartdate().compareTo(o.getStartdate());
+        return getStartDate().compareTo(o.getStartDate());
     }
 }

@@ -4,15 +4,13 @@ import fr.gouv.stopc.submission.code.server.business.service.FileService;
 import fr.gouv.stopc.submission.code.server.data.entity.Lot;
 import fr.gouv.stopc.submission.code.server.data.repository.SubmissionCodeRepository;
 import fr.gouv.stopc.submission.code.server.domain.enums.CodeTypeEnum;
-import fr.gouv.stopc.submission.code.server.domain.utils.FormatDatesKPI;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -24,24 +22,21 @@ public class DailyGenerateSchedule {
 
     private static final int TEN_DAYS = 10;
 
-    private static final int MAX_BATCH_SIZE = 40000;
-
     private final SubmissionCodeRepository submissionCodeRepository;
 
     private final FileService fileService;
 
-    // TODO : find a better way, a dataTable by exemple
-    private final GenerationConfigProperties generationConfigList;
+    private final GenerationConfigProperties generationConfig;
 
     private List<GenerationRequest> generationRequestList;
 
     @Autowired
     public DailyGenerateSchedule(SubmissionCodeRepository submissionCodeRepository,
-                                 FileService fileService,
-                                 GenerationConfigProperties generationConfigList) {
+            FileService fileService,
+            GenerationConfigProperties generationConfig) {
         this.submissionCodeRepository = submissionCodeRepository;
         this.fileService = fileService;
-        this.generationConfigList = generationConfigList;
+        this.generationConfig = generationConfig;
     }
 
     @Scheduled(cron = "${stop.covid.qr.code.cron.schedule}")
@@ -57,42 +52,55 @@ public class DailyGenerateSchedule {
         log.info("SCHEDULER : End dailyProductionCodeScheduler");
     }
 
+    public List<GenerationConfig> getScheduling() {
+        return generationConfig.getScheduling();
+    }
+
     /**
-     * Compute for each ten next days how many tar.gz we have to do
-     * after, generate and save the result in a list of objects representing the requests.
+     * Compute for each ten next days how many tar.gz we have to do after, generate
+     * and save the result in a list of objects representing the requests.
      */
     private void computeAndGenerateRequestList() {
-        LocalDate today = LocalDate.now(ZoneOffset.UTC);
+        OffsetDateTime today = OffsetDateTime.now().truncatedTo(ChronoUnit.DAYS);
         generationRequestList = new ArrayList<>();
 
-        Collections.sort(generationConfigList.getScheduling());
+        Collections.sort(getScheduling());
 
-        for (int i=0; i < TEN_DAYS; i++) {
-            final OffsetDateTime startDateTime = FormatDatesKPI.normaliseDateFrom(today, ZoneOffset.UTC.toString());
-
+        for (int i = 0; i <= TEN_DAYS; i++) {
+            final OffsetDateTime startDateTime = today;
             long dailyProductionTarget = getDailyProductionTarget(startDateTime);
-
             var numberOfAvailableCodes = this.submissionCodeRepository
                     .countAllByTypeAndDateAvailableEquals(CodeTypeEnum.LONG.getTypeCode(), startDateTime);
             var numberOfCodeToGenerate = dailyProductionTarget - numberOfAvailableCodes;
-            var fragmentRemainingToGenerate = numberOfCodeToGenerate % MAX_BATCH_SIZE;
-            var numberOfFullBatch = Math.toIntExact(numberOfCodeToGenerate / MAX_BATCH_SIZE);
+            var fragmentRemainingToGenerate = numberOfCodeToGenerate % generationConfig.getMaxbatchsize();
+            var numberOfFullBatch = Math.toIntExact(numberOfCodeToGenerate / generationConfig.getMaxbatchsize());
 
-            generateRequestList(numberOfFullBatch, fragmentRemainingToGenerate, startDateTime);
+            OffsetDateTime endDateTime = startDateTime.plusDays(1);
+
+            // Batchs with max size
+            for (long batchNumber = 0; batchNumber < numberOfFullBatch; batchNumber++) {
+                updateOrCreateRequest(batchNumber, generationConfig.getMaxbatchsize(), startDateTime, endDateTime);
+            }
+            // Batch with less than max size
+            if (fragmentRemainingToGenerate > 0) {
+                updateOrCreateRequest(null, fragmentRemainingToGenerate, startDateTime, endDateTime);
+            }
 
             today = today.plusDays(1);
         }
     }
 
     /**
-     * Return the daily production target of current startDateTime from the properties files
+     * Return the daily production target of current startDateTime from the
+     * properties files
+     * 
      * @param startDateTime current startDateTime
      * @return long dailyProductionTarget
      */
     private long getDailyProductionTarget(OffsetDateTime startDateTime) {
         long dailyProductionTarget = 0;
-        Optional<GenerationConfig> config = generationConfigList.getScheduling().stream().filter(
-                c -> c.getStartdate().isBefore(startDateTime) || c.getStartdate().isEqual(startDateTime)
+        Optional<GenerationConfig> config = getScheduling().stream().filter(
+                c -> c.getStartDate().isBefore(startDateTime) || c.getStartDate().isEqual(startDateTime)
         ).reduce((f, s) -> s);
 
         if (config.isPresent()) {
@@ -101,32 +109,46 @@ public class DailyGenerateSchedule {
         return dailyProductionTarget;
     }
 
-    private void generateRequestList(long numberOfFullBatch, long fragmentRemainingToGenerate, OffsetDateTime startDateTime) {
-        for (long i = 0; i < numberOfFullBatch; i++) {
-            generationRequestList.add(GenerationRequest.builder()
-                    .numberOfCodeToGenerate(MAX_BATCH_SIZE)
-                    .startDateTime(startDateTime)
-                    .build()
+    private void updateOrCreateRequest(Long fullBatchIterationNumber,
+            long dailyProduction,
+            OffsetDateTime startDateTime,
+            OffsetDateTime endDateTime) {
+        boolean updated = false;
+        // Update
+        for (GenerationRequest gr : generationRequestList) {
+            if (gr.getNumberOfCodeToGenerate().equals(dailyProduction)
+                    && (gr.getIterationBatchNumber() == null
+                            || gr.getIterationBatchNumber().equals(fullBatchIterationNumber))) {
+                gr.setEndDateTime(endDateTime);
+                updated = true;
+                break;
+            }
+        }
+        // Create
+        if (!updated) {
+            generationRequestList.add(
+                    GenerationRequest.builder()
+                            .numberOfCodeToGenerate(dailyProduction)
+                            .startDateTime(startDateTime)
+                            .endDateTime(endDateTime)
+                            .iterationBatchNumber(fullBatchIterationNumber)
+                            .build()
             );
         }
-
-        if (fragmentRemainingToGenerate > 0) {
-            generationRequestList.add(GenerationRequest.builder()
-                    .numberOfCodeToGenerate(fragmentRemainingToGenerate)
-                    .startDateTime(startDateTime)
-                    .build()
-            );
-        }
-        log.info("SCHEDULER : Had generated {} tar.gz of 40000 codes and one of {} for the day {}", numberOfFullBatch, fragmentRemainingToGenerate, startDateTime);
     }
 
-    /**
-     * Generate codes, tar.gz and push to sftp server
-     */
     public void generateCodesAndExportToSftp() {
-        for (GenerationRequest generationRequest: generationRequestList) {
+        for (GenerationRequest generationRequest : generationRequestList) {
             try {
-                this.fileService.generateAndPersisit(generationRequest.getNumberOfCodeToGenerate(), new Lot(), generationRequest.getStartDateTime());
+                Lot newLot = new Lot();
+                newLot.setNumberOfCodes(generationRequest.getNumberOfCodeToGenerate());
+                newLot.setDateExecution(OffsetDateTime.now());
+                this.fileService.schedulerZipExport(
+                        generationRequest.getNumberOfCodeToGenerate(),
+                        newLot,
+                        generationRequest.getStartDateTime().toString(),
+                        generationRequest.getEndDateTime().toString()
+                );
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -138,7 +160,8 @@ public class DailyGenerateSchedule {
      */
     void purgeUnusedCodes() {
         OffsetDateTime dateEndValidityAfter = OffsetDateTime.now().minusMonths(2);
-        Long numberOfDeletedCodes = submissionCodeRepository.deleteAllByUsedFalseAndDateEndValidityBefore(dateEndValidityAfter);
+        Long numberOfDeletedCodes = submissionCodeRepository
+                .deleteAllByUsedFalseAndDateEndValidityBefore(dateEndValidityAfter);
         log.info("SCHEDULER : {} codes with a validity date of more than two months deleted", numberOfDeletedCodes);
     }
 

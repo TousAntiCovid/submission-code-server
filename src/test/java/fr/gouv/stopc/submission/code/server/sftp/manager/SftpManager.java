@@ -1,4 +1,4 @@
-package fr.gouv.stopc.submission.code.server.sftp;
+package fr.gouv.stopc.submission.code.server.sftp.manager;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.SftpException;
@@ -14,7 +14,6 @@ import org.testcontainers.images.builder.ImageFromDockerfile;
 import org.testcontainers.utility.MountableFile;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.util.List;
 import java.util.Vector;
 import java.util.stream.Collectors;
@@ -35,7 +34,8 @@ public class SftpManager implements TestExecutionListener {
             .withExposedPorts(PORT)
             .withCommand(USER + ":" + PASSWORD + ":1001:::upload");
 
-    static {
+    @Override
+    public void beforeTestClass(TestContext testContext) {
         SFTP.start();
         System.setProperty("SUBMISSION_CODE_SERVER_SFTP_HOST", SFTP.getHost());
         System.setProperty("SUBMISSION_CODE_SERVER_SFTP_PORT", SFTP.getMappedPort(PORT).toString());
@@ -60,7 +60,7 @@ public class SftpManager implements TestExecutionListener {
         Vector<ChannelSftp.LsEntry> ls = channelSftp.ls("/upload");
         listAssert = ls.stream()
                 .filter(lsEntry -> !lsEntry.getAttrs().isDir())
-                .map(lsEntry -> lsEntry.getFilename())
+                .map(ChannelSftp.LsEntry::getFilename)
                 .collect(Collectors.toList());
 
         log.debug("SFTP: connection is about to be closed");
@@ -71,53 +71,47 @@ public class SftpManager implements TestExecutionListener {
     }
 
     @SneakyThrows
-    public static File getFileFromSftp(SFTPService sftpService, String fileName, File tmpDirectory) {
+    public static void purgeSftp(SFTPService sftpService) {
         ChannelSftp channelSftp = sftpService.createConnection();
-        channelSftp.get("/upload/".concat(fileName), tmpDirectory.getAbsolutePath());
-        File file = new File(
-                tmpDirectory.getAbsolutePath()
-                        .concat(File.separator)
-                        .concat(fileName)
-        );
-        return file;
+        Vector<ChannelSftp.LsEntry> ls = channelSftp.ls("/upload");
+        ls.stream()
+                .filter(lsEntry -> !lsEntry.getAttrs().isDir()).forEach(lsEntry -> {
+                    try {
+                        channelSftp.rm(lsEntry.getFilename());
+                    } catch (SftpException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+        channelSftp.exit();
     }
 
     @SneakyThrows
-    public static List<String> getAllFilesFromSftp(SFTPService sftpService, File tmpDirectory) {
-        List<String> fileList;
+    public static List<File> getAllFilesFromSftp(SFTPService sftpService, File tmpDirectory) {
+        List<File> fileList;
         ChannelSftp channelSftp = sftpService.createConnection();
         Vector<ChannelSftp.LsEntry> ls = channelSftp.ls("/upload");
         fileList = ls.stream()
                 .filter(lsEntry -> !lsEntry.getAttrs().isDir())
                 .map(lsEntry -> {
                     try {
-                        channelSftp.get("/upload/"
+                        channelSftp.get(
+                                "/upload/"
                                         .concat(lsEntry.getFilename()),
                                 tmpDirectory.getAbsolutePath()
                         );
-                        return tmpDirectory.getAbsolutePath()
-                                .concat(File.separator)
-                                .concat(lsEntry.getFilename());
+                        return new File(
+                                tmpDirectory.getAbsolutePath()
+                                        .concat(File.separator)
+                                        .concat(lsEntry.getFilename())
+                        );
                     } catch (SftpException e) {
                         throw new RuntimeException(e);
                     }
 
                 })
                 .collect(Collectors.toList());
-
+        channelSftp.exit();
         return fileList;
-    }
-
-    @SneakyThrows
-    public static void pushFileToSftp(SFTPService sftpService, File file, String fileNameDest) {
-        ChannelSftp channelSftp = sftpService.createConnection();
-        log.debug("SFTP: is about to pushed the zip file.");
-        try {
-            channelSftp.put(new FileInputStream(file), fileNameDest);
-        } finally {
-            channelSftp.exit();
-        }
-        log.debug("SFTP: files have been pushed");
     }
 
 }

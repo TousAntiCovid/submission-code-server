@@ -191,46 +191,6 @@ public class FileService {
         return Optional.of(zipOutputStream);
     }
 
-    /**
-     * STEP - 1 [ PERSISTING ]
-     *
-     * @param codePerDays code per days to be generated
-     * @param lotObject   lot identifier that the series should take
-     * @param from        start date of the series of days code generation
-     * @param to          end date of the series of days code generation
-     * @throws SubmissionCodeServerException
-     * @return
-     */
-    public List<CodeDetailedDto> persistLongCodes(Long codePerDays, Lot lotObject, OffsetDateTime from,
-            OffsetDateTime to)
-            throws SubmissionCodeServerException {
-        List<CodeDetailedDto> listCodeDetailedDto = new ArrayList<>();
-        OffsetDateTime fromWithoutHours = from.truncatedTo(ChronoUnit.DAYS);
-        OffsetDateTime toWithoutHours = to.truncatedTo(ChronoUnit.DAYS);
-
-        OffsetDateTime validGenDate = OffsetDateTime.now();
-
-        long diffDays = ChronoUnit.DAYS.between(fromWithoutHours, toWithoutHours) + 1;
-        int diff = Integer.parseInt(Long.toString(diffDays));
-        List<OffsetDateTime> datesFromList = generateService.getListOfValidDatesFor(diff, from);
-        int i = 0;
-        for (OffsetDateTime dateFromDay : datesFromList) {
-            i++;
-            log.info("Generate code for start validity date : {} [{}/{}]", dateFromDay, i, datesFromList.size());
-            List<CodeDetailedDto> codeSaves = this.generateService.generateLongCodesWithBulkMethod(
-                    dateFromDay,
-                    codePerDays,
-                    lotObject,
-                    validGenDate
-            );
-
-            if (CollectionUtils.isNotEmpty(codeSaves)) {
-                listCodeDetailedDto.addAll(codeSaves);
-            }
-        }
-        return listCodeDetailedDto;
-    }
-
     public List<String> persistLongCodesQuiet(Long codePerDays, Lot lotObject, OffsetDateTime from, OffsetDateTime to,
             File tmpDirectory)
             throws SubmissionCodeServerException {
@@ -495,12 +455,48 @@ public class FileService {
         return submissionCodeDto;
     }
 
-    // TODO : Temporaire pour fonctionnement à l'identique. Etudier le mécanisme complet, réécrire et corriger le pb de mémoire.
-    public void generateAndPersisit(Long numberCodeDay, Lot lotObject, OffsetDateTime from) throws SubmissionCodeServerException {
+    /**
+     * Method: 1)generate long codes between dateFrom to dateTo 2) export from
+     * database 3) create one csv file each day between dateFrom to dateTo 4) create
+     * archive with csv files
+     *
+     * @param numberCodeDay
+     * @param lotObject
+     * @param dateFrom
+     * @param dateTo
+     * @return
+     */
+    public Optional<ByteArrayOutputStream> schedulerZipExport(Long numberCodeDay, Lot lotObject, String dateFrom,
+            String dateTo)
+            throws SubmissionCodeServerException {
+        log.info("Generate {} codes per day from {} to {}", numberCodeDay, dateFrom, dateTo);
+        OffsetDateTime dateTimeFrom;
+        OffsetDateTime dateTimeTo;
+
+        try {
+            dateTimeFrom = OffsetDateTime.parse(dateFrom, DateTimeFormatter.ISO_DATE_TIME);
+            dateTimeTo = OffsetDateTime.parse(dateTo, DateTimeFormatter.ISO_DATE_TIME);
+        } catch (RuntimeException e) {
+            log.error(SubmissionCodeServerException.ExceptionEnum.PARSE_STR_DATE_ERROR.getMessage());
+            throw new SubmissionCodeServerException(
+                    SubmissionCodeServerException.ExceptionEnum.PARSE_STR_DATE_ERROR
+            );
+        }
+
+        if (!isDateValid(dateTimeFrom, dateTimeTo)) {
+            log.error(SubmissionCodeServerException.ExceptionEnum.INVALID_DATE.getMessage());
+            throw new SubmissionCodeServerException(
+                    SubmissionCodeServerException.ExceptionEnum.INVALID_DATE
+            );
+        }
+
+        // STEP 1 - create codes
+        // STEP 2 parsing codes to csv dataByFilename
         File tmpDirectory = new File(System.getProperty("java.io.tmpdir") + directoryTmpCsv);
         tmpDirectory.mkdir();
         log.info("Create directory {} and Start generation codes bulk method", tmpDirectory.getAbsolutePath());
-        List<String> dataByFilename = persistLongCodes(numberCodeDay, lotObject, from, tmpDirectory);
+        List<String> dataByFilename = this
+                .schedulerPersistLongCodesQuiet(numberCodeDay, lotObject, dateTimeFrom, dateTimeTo, tmpDirectory);
 
         log.info("End generation codes");
         // STEP 3 packaging csv data
@@ -531,31 +527,39 @@ public class FileService {
         } catch (IOException e) {
             log.error("Delete directory is not good");
         }
+
+        return Optional.of(zipOutputStream);
     }
 
-    private List<String> persistLongCodes(Long codePerDays, Lot lotObject, OffsetDateTime from,
-                                              File tmpDirectory)
+    public List<String> schedulerPersistLongCodesQuiet(Long codePerDays,
+            Lot lotObject,
+            OffsetDateTime from,
+            OffsetDateTime to,
+            File tmpDirectory)
             throws SubmissionCodeServerException {
         List<String> listFile = new ArrayList<>();
 
+        OffsetDateTime fromWithoutHours = from.truncatedTo(ChronoUnit.DAYS);
+        OffsetDateTime toWithoutHours = to.truncatedTo(ChronoUnit.DAYS);
         OffsetDateTime validGenDate = OffsetDateTime.now();
 
-        List<CodeDetailedDto> codeSaves = this.generateService.generateLongCodesWithBulkMethod(
-                from,
-                codePerDays,
-                lotObject,
-                validGenDate
-        );
+        while (fromWithoutHours.isBefore(toWithoutHours)) {
+            List<CodeDetailedDto> codeSaves = this.generateService.generateLongCodesWithBulkMethod(
+                    fromWithoutHours,
+                    codePerDays,
+                    lotObject,
+                    validGenDate
+            );
 
-        if (CollectionUtils.isNotEmpty(codeSaves)) {
-            final List<SubmissionCodeDto> collect = codeSaves.stream()
-                    .map(codeDetailedDto -> mapToSubmissionCodeDto(codeDetailedDto, lotObject.getId()))
-                    .collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(codeSaves)) {
+                final List<SubmissionCodeDto> collect = codeSaves.stream()
+                        .map(codeDetailedDto -> mapToSubmissionCodeDto(codeDetailedDto, lotObject.getId()))
+                        .collect(Collectors.toList());
 
-            listFile.addAll((this.serializeCodesToCsv(collect, Arrays.asList(from), tmpDirectory)));
+                listFile.addAll((this.serializeCodesToCsv(collect, Arrays.asList(fromWithoutHours), tmpDirectory)));
+            }
+            fromWithoutHours = fromWithoutHours.plusDays(1);
         }
-
         return listFile;
     }
-
 }

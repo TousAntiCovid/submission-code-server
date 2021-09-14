@@ -10,5 +10,8 @@ import java.util.List;
 @Component
 @ConfigurationProperties(prefix = "stop.covid.qr.code.cron")
 public class GenerationConfigProperties {
+
     List<GenerationConfig> scheduling;
+
+    int maxbatchsize;
 }
