@@ -120,6 +120,16 @@
             <version>1.16.0</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>net.javacrumbs.shedlock</groupId>
+            <artifactId>shedlock-spring</artifactId>
+            <version>4.27.0</version>
+        </dependency>
+        <dependency>
+            <groupId>net.javacrumbs.shedlock</groupId>
+            <artifactId>shedlock-provider-jdbc-template</artifactId>
+            <version>4.27.0</version>
+        </dependency>
     </dependencies>
 
     <build>

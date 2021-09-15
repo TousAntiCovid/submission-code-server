@@ -15,9 +15,9 @@ public class Lot {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
 
-    @Column(name = "date_execution", nullable = false)
-    private OffsetDateTime dateExecution;
+    @Column(name = "date_execution", nullable = false, columnDefinition = "timestamp default CURRENT_TIMESTAMP")
+    private OffsetDateTime dateExecution = OffsetDateTime.now();
 
-    @Column(name = "number_of_codes", nullable = false)
-    private Long numberOfCodes;
+    @Column(name = "number_of_codes", nullable = false, columnDefinition = "bigint default 0")
+    private Long numberOfCodes = 0L;
 }

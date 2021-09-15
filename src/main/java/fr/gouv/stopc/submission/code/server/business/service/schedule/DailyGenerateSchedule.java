@@ -5,6 +5,8 @@ import fr.gouv.stopc.submission.code.server.data.entity.Lot;
 import fr.gouv.stopc.submission.code.server.data.repository.SubmissionCodeRepository;
 import fr.gouv.stopc.submission.code.server.domain.enums.CodeTypeEnum;
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.core.LockAssert;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -39,8 +41,10 @@ public class DailyGenerateSchedule {
         this.generationConfig = generationConfig;
     }
 
-    @Scheduled(cron = "${stop.covid.qr.code.cron.schedule}")
+    @Scheduled(cron = "${stop.covid.qr.code.cron.schedule}", zone = "Europe/Paris")
+    @SchedulerLock(name = "dailyProductionCodeScheduler")
     public void dailyProductionCodeScheduler() {
+        LockAssert.assertLocked();
         log.info("SCHEDULER : Start dailyProductionCodeScheduler");
 
         computeAndGenerateRequestList();

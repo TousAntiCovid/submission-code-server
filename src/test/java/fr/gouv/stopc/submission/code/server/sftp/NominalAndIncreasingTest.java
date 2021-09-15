@@ -8,6 +8,7 @@ import fr.gouv.stopc.submission.code.server.domain.utils.FormatDatesKPI;
 import fr.gouv.stopc.submission.code.server.sftp.utils.IntegrationTest;
 import fr.gouv.stopc.submission.code.server.sftp.utils.SchedulerTestUtil;
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.core.LockAssert;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,11 +33,11 @@ class NominalAndIncreasingTest extends SchedulerTestUtil {
 
     @Test
     @Order(1)
-    void when_scheduler_generate_300k_code_per_days_during_10_days()
-            throws NoSuchFieldException, IllegalAccessException {
+    void when_scheduler_generate_300k_code_per_days_during_10_days() {
         Map<Integer, Integer> dayAndVolumeMap = Map.of(0, 300);
         configureScheduler(dayAndVolumeMap);
-        dailyGenerateSchedule.dailyProductionCodeScheduler();
+        LockAssert.TestHelper.makeAllAssertsPass(true);
+        Assertions.assertDoesNotThrow(() -> dailyGenerateSchedule.dailyProductionCodeScheduler());
     }
 
     @Test
@@ -78,15 +79,16 @@ class NominalAndIncreasingTest extends SchedulerTestUtil {
     @Test
     @Order(7)
     void when_generate_long_code_older_thant_two_months() throws SubmissionCodeServerException {
-        createFalsesCodesInDB(OffsetDateTime.now().minusMonths(3), 100);
+        assertCreateFalsesCodesInDB(OffsetDateTime.now().minusMonths(3), 100);
     }
 
     @Test
     @Order(8)
-    void when_we_change_j5_daily_production_to_400k() throws NoSuchFieldException, IllegalAccessException {
+    void when_we_change_j5_daily_production_to_400k() {
         Map<Integer, Integer> dayAndVolumeMap = Map.of(0, 300, 5, 400);
         configureScheduler(dayAndVolumeMap);
-        dailyGenerateSchedule.dailyProductionCodeScheduler();
+        LockAssert.TestHelper.makeAllAssertsPass(true);
+        Assertions.assertDoesNotThrow(() -> dailyGenerateSchedule.dailyProductionCodeScheduler());
     }
 
     @Test
@@ -125,7 +127,8 @@ class NominalAndIncreasingTest extends SchedulerTestUtil {
         assertPurgeSftpAndDB();
     }
 
-    private void createFalsesCodesInDB(OffsetDateTime from, long dailyAmount) throws SubmissionCodeServerException {
+    private void assertCreateFalsesCodesInDB(OffsetDateTime from, long dailyAmount)
+            throws SubmissionCodeServerException {
         Lot newLot = new Lot();
         newLot.setNumberOfCodes((long) 1);
         newLot.setDateExecution(OffsetDateTime.now());

@@ -7,6 +7,7 @@ import fr.gouv.stopc.submission.code.server.sftp.manager.SftpManager;
 import fr.gouv.stopc.submission.code.server.sftp.utils.IntegrationTest;
 import fr.gouv.stopc.submission.code.server.sftp.utils.SchedulerTestUtil;
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.core.LockAssert;
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
@@ -47,6 +48,7 @@ class GeneratedFilesContentTest extends SchedulerTestUtil {
     void when_scheduler_generate_10_code_per_days_during_1day() {
         Map<Integer, Integer> dayAndVolumeMap = Map.of(0, 10, 1, 0);
         configureScheduler(dayAndVolumeMap);
+        LockAssert.TestHelper.makeAllAssertsPass(true);
         Assertions.assertDoesNotThrow(() -> dailyGenerateSchedule.dailyProductionCodeScheduler());
     }
 
