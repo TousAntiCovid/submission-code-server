@@ -3,8 +3,8 @@ package fr.gouv.stopc.submission.code.server.sftp.utils;
 import fr.gouv.stopc.submission.code.server.business.service.FileService;
 import fr.gouv.stopc.submission.code.server.business.service.SFTPService;
 import fr.gouv.stopc.submission.code.server.business.service.schedule.DailyGenerateSchedule;
-import fr.gouv.stopc.submission.code.server.business.service.schedule.GenerationConfig;
 import fr.gouv.stopc.submission.code.server.business.service.schedule.GenerationConfigProperties;
+import fr.gouv.stopc.submission.code.server.business.service.schedule.GenerationConfigProperties.GenerationConfig;
 import fr.gouv.stopc.submission.code.server.data.repository.SubmissionCodeRepository;
 import fr.gouv.stopc.submission.code.server.domain.enums.CodeTypeEnum;
 import fr.gouv.stopc.submission.code.server.sftp.manager.SftpManager;
@@ -70,11 +70,11 @@ public class SchedulerTestUtil {
         );
     }
 
-    protected void assertPurgeSftp() {
+    protected void purgeSftp() {
         SftpManager.purgeSftp(sftpService);
     }
 
-    protected void assertPurgeSftpAndDB() {
+    protected void purgeSftpAndDB() {
         submissionCodeRepository.deleteAll();
         SftpManager.purgeSftp(sftpService);
     }

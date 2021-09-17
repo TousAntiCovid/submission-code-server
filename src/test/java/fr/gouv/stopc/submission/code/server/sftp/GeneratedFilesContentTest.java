@@ -2,6 +2,7 @@ package fr.gouv.stopc.submission.code.server.sftp;
 
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
+import fr.gouv.stopc.submission.code.server.business.service.GenerateService;
 import fr.gouv.stopc.submission.code.server.sftp.dto.CsvRowDto;
 import fr.gouv.stopc.submission.code.server.sftp.manager.SftpManager;
 import fr.gouv.stopc.submission.code.server.sftp.utils.IntegrationTest;
@@ -15,8 +16,10 @@ import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.shadow.com.univocity.parsers.csv.CsvParser;
 import org.junit.jupiter.params.shadow.com.univocity.parsers.csv.CsvParserSettings;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.*;
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -37,11 +40,8 @@ class GeneratedFilesContentTest extends SchedulerTestUtil {
     @TempDir
     File tmpDirectory;
 
-    @Test
-    @Order(0)
-    void when_sftp_contains_0_files_between_J_and_J10() {
-        assertThatAllFilesFromSftp(sftpService).hasSize(0);
-    }
+    @Autowired
+    GenerateService generateService;
 
     @Test
     @Order(1)
@@ -93,8 +93,8 @@ class GeneratedFilesContentTest extends SchedulerTestUtil {
 
     @Test
     @Order(6)
-    void when_purge() {
-        assertPurgeSftpAndDB();
+    void then_purge() {
+        purgeSftpAndDB();
     }
 
     private File getTgzFile() {
@@ -149,11 +149,12 @@ class GeneratedFilesContentTest extends SchedulerTestUtil {
             for (CsvRowDto row : csvRowDtoList) {
                 Assertions.assertTrue(row.getQrcode().matches("https://app.stopcovid.gouv.fr\\?code=(.{36})&type=1"));
                 Assertions.assertTrue(row.getCode().matches("(.{36})"));
-                OffsetDateTime date = OffsetDateTime.now(ZoneId.of(targetZoneId)).truncatedTo(ChronoUnit.DAYS);
-                Assertions.assertEquals(date, row.getDateAvailable());
-                date = OffsetDateTime.now(ZoneId.of(targetZoneId)).truncatedTo(ChronoUnit.DAYS).plusDays(3)
-                        .minusHours(2).minusMinutes(1);
-                Assertions.assertEquals(date, row.getDateEndValidity());
+                Instant dateAvailable = Instant.now().truncatedTo(ChronoUnit.DAYS);
+                Assertions.assertEquals(dateAvailable, row.getDateAvailable());
+                Instant expectedEndValidityDate = OffsetDateTime.now(ZoneId.of(targetZoneId))
+                        .truncatedTo(ChronoUnit.DAYS).plus(8, ChronoUnit.DAYS)
+                        .minus(1, ChronoUnit.MINUTES).toInstant();
+                Assertions.assertEquals(expectedEndValidityDate, row.getDateEndValidity());
             }
         }
     }
@@ -161,13 +162,13 @@ class GeneratedFilesContentTest extends SchedulerTestUtil {
     private HashedMap countRowsFromCsvFiles(List<File> fileList) throws IOException, CsvValidationException {
         HashedMap map = new HashedMap();
         for (File file : fileList) {
-            CSVReader reader = new CSVReader(new FileReader(file.getPath()));
-            int count = 0;
-            while (reader.readNext() != null) {
-                count++;
+            try (CSVReader reader = new CSVReader(new FileReader(file.getPath()))) {
+                int count = 0;
+                while (reader.readNext() != null) {
+                    count++;
+                }
+                map.put(file.getName(), count);
             }
-            map.put(file.getName(), count);
-            reader.close();
         }
         return map;
     }

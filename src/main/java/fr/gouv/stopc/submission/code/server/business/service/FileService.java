@@ -58,7 +58,7 @@ public class FileService {
 
     private SequenceFichierService sequenceFichierService;
 
-    @Value("${stop.covid.qr.code.url}")
+    @Value("${submission.code.server.cron.url}")
     private String qrCodeBaseUrlToBeFormatted;
 
     /**
@@ -462,33 +462,16 @@ public class FileService {
      *
      * @param numberCodeDay
      * @param lotObject
-     * @param dateFrom
-     * @param dateTo
+     * @param dateTimeFrom
+     * @param dateTimeTo
      * @return
      */
-    public Optional<ByteArrayOutputStream> schedulerZipExport(Long numberCodeDay, Lot lotObject, String dateFrom,
-            String dateTo)
+    public void schedulerZipExport(Long numberCodeDay, Lot lotObject, OffsetDateTime dateTimeFrom,
+            OffsetDateTime dateTimeTo)
             throws SubmissionCodeServerException {
-        log.info("Generate {} codes per day from {} to {}", numberCodeDay, dateFrom, dateTo);
-        OffsetDateTime dateTimeFrom;
-        OffsetDateTime dateTimeTo;
-
-        try {
-            dateTimeFrom = OffsetDateTime.parse(dateFrom, DateTimeFormatter.ISO_DATE_TIME);
-            dateTimeTo = OffsetDateTime.parse(dateTo, DateTimeFormatter.ISO_DATE_TIME);
-        } catch (RuntimeException e) {
-            log.error(SubmissionCodeServerException.ExceptionEnum.PARSE_STR_DATE_ERROR.getMessage());
-            throw new SubmissionCodeServerException(
-                    SubmissionCodeServerException.ExceptionEnum.PARSE_STR_DATE_ERROR
-            );
-        }
-
-        if (!isDateValid(dateTimeFrom, dateTimeTo)) {
-            log.error(SubmissionCodeServerException.ExceptionEnum.INVALID_DATE.getMessage());
-            throw new SubmissionCodeServerException(
-                    SubmissionCodeServerException.ExceptionEnum.INVALID_DATE
-            );
-        }
+        log.info(
+                "Generate {} codes per day from {} to {}", numberCodeDay, dateTimeFrom.toString(), dateTimeTo.toString()
+        );
 
         // STEP 1 - create codes
         // STEP 2 parsing codes to csv dataByFilename
@@ -527,8 +510,6 @@ public class FileService {
         } catch (IOException e) {
             log.error("Delete directory is not good");
         }
-
-        return Optional.of(zipOutputStream);
     }
 
     public List<String> schedulerPersistLongCodesQuiet(Long codePerDays,

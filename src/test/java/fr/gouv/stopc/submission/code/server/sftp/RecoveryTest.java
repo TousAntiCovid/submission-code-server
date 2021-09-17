@@ -40,7 +40,7 @@ class RecoveryTest extends SchedulerTestUtil {
 
     @Test
     @Order(3)
-    void then_in_db_there_is_300k_code_each_days_between_J_and_J8() {
+    void then_in_db_there_is_300_code_each_days_between_J_and_J8() {
         assertFromStartDayDuringNumberOfDaysCorrespondingToNumberOfCodes(0, 8, 300);
     }
 
@@ -53,7 +53,7 @@ class RecoveryTest extends SchedulerTestUtil {
     @Test
     @Order(5)
     void when_purge_sftp_before_schedule() {
-        assertPurgeSftp();
+        purgeSftp();
     }
 
     @Test
@@ -67,7 +67,7 @@ class RecoveryTest extends SchedulerTestUtil {
 
     @Test
     @Order(7)
-    void then_in_db_there_is_300k_code_each_days_between_J_and_J10() {
+    void then_in_db_there_is_300_code_each_days_between_J_and_J10() {
         assertFromStartDayDuringNumberOfDaysCorrespondingToNumberOfCodes(0, 10, 300);
     }
 
@@ -80,6 +80,6 @@ class RecoveryTest extends SchedulerTestUtil {
     @Test
     @Order(9)
     void when_purge() {
-        assertPurgeSftpAndDB();
+        purgeSftpAndDB();
     }
 }

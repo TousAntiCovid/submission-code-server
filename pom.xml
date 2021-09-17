@@ -25,6 +25,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding
     >UTF-8</project.reporting.outputEncoding>
+        <org.testcontainers>1.16.0</org.testcontainers>
     </properties>
 
     <dependencies>
@@ -94,6 +95,18 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${org.testcontainers}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>${org.testcontainers}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <version>42.2.12</version>
@@ -108,17 +121,6 @@
             <groupId>io.springfox</groupId>
             <artifactId>springfox-swagger2</artifactId>
             <version>3.0.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <version>1.16.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>postgresql</artifactId>
-            <version>1.16.0</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>net.javacrumbs.shedlock</groupId>

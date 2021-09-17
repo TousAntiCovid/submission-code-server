@@ -17,7 +17,7 @@ public class GenerationRequest {
 
     private OffsetDateTime endDateTime;
 
-    private Long numberOfCodeToGenerate;
+    private Integer numberOfCodeToGenerate;
 
     private Long iterationBatchNumber;
 }

@@ -18,6 +18,6 @@ public class Lot {
     @Column(name = "date_execution", nullable = false, columnDefinition = "timestamp default CURRENT_TIMESTAMP")
     private OffsetDateTime dateExecution = OffsetDateTime.now();
 
-    @Column(name = "number_of_codes", nullable = false, columnDefinition = "bigint default 0")
-    private Long numberOfCodes = 0L;
+    @Column(name = "number_of_codes", nullable = false, columnDefinition = "int default 0")
+    private Integer numberOfCodes = 0;
 }
