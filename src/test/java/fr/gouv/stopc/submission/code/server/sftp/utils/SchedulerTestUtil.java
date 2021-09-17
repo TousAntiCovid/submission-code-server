@@ -1,10 +1,13 @@
 package fr.gouv.stopc.submission.code.server.sftp.utils;
 
+import fr.gouv.stopc.submission.code.server.business.controller.exception.SubmissionCodeServerException;
 import fr.gouv.stopc.submission.code.server.business.service.FileService;
+import fr.gouv.stopc.submission.code.server.business.service.GenerateService;
 import fr.gouv.stopc.submission.code.server.business.service.SFTPService;
 import fr.gouv.stopc.submission.code.server.business.service.schedule.DailyGenerateSchedule;
 import fr.gouv.stopc.submission.code.server.business.service.schedule.GenerationConfigProperties;
 import fr.gouv.stopc.submission.code.server.business.service.schedule.GenerationConfigProperties.GenerationConfig;
+import fr.gouv.stopc.submission.code.server.data.entity.Lot;
 import fr.gouv.stopc.submission.code.server.data.repository.SubmissionCodeRepository;
 import fr.gouv.stopc.submission.code.server.domain.enums.CodeTypeEnum;
 import fr.gouv.stopc.submission.code.server.sftp.manager.SftpManager;
@@ -35,6 +38,9 @@ public class SchedulerTestUtil {
 
     @Autowired
     protected SFTPService sftpService;
+
+    @Autowired
+    GenerateService generateService;
 
     protected void assertFromStartDayDuringNumberOfDaysCorrespondingToNumberOfCodes(int startDay, int numberOfDays,
             int numberOfExpectedCodes) {
@@ -77,5 +83,19 @@ public class SchedulerTestUtil {
     protected void purgeSftpAndDB() {
         submissionCodeRepository.deleteAll();
         SftpManager.purgeSftp(sftpService);
+    }
+
+    protected void createFalsesCodesInDB(OffsetDateTime from, long dailyAmount)
+            throws SubmissionCodeServerException {
+        Lot newLot = new Lot();
+        newLot.setNumberOfCodes(1);
+        newLot.setDateExecution(OffsetDateTime.now());
+
+        generateService.generateLongCodesWithBulkMethod(
+                from,
+                dailyAmount,
+                newLot,
+                OffsetDateTime.now()
+        );
     }
 }

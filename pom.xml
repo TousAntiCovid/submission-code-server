@@ -26,6 +26,7 @@
         <project.reporting.outputEncoding
     >UTF-8</project.reporting.outputEncoding>
         <org.testcontainers>1.16.0</org.testcontainers>
+        <io.cucumber>7.0.0-RC1</io.cucumber>
     </properties>
 
     <dependencies>
@@ -104,6 +105,24 @@
             <groupId>org.testcontainers</groupId>
             <artifactId>postgresql</artifactId>
             <version>${org.testcontainers}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.cucumber</groupId>
+            <artifactId>cucumber-junit</artifactId>
+            <version>${io.cucumber}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.cucumber</groupId>
+            <artifactId>cucumber-java</artifactId>
+            <version>${io.cucumber}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.cucumber</groupId>
+            <artifactId>cucumber-spring</artifactId>
+            <version>${io.cucumber}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

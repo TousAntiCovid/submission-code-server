@@ -2,26 +2,26 @@ package fr.gouv.stopc.submission.code.server.sftp;
 
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
-import fr.gouv.stopc.submission.code.server.business.service.GenerateService;
+import fr.gouv.stopc.submission.code.server.business.controller.exception.SubmissionCodeServerException;
+import fr.gouv.stopc.submission.code.server.domain.enums.CodeTypeEnum;
+import fr.gouv.stopc.submission.code.server.domain.utils.FormatDatesKPI;
 import fr.gouv.stopc.submission.code.server.sftp.dto.CsvRowDto;
 import fr.gouv.stopc.submission.code.server.sftp.manager.SftpManager;
-import fr.gouv.stopc.submission.code.server.sftp.utils.IntegrationTest;
 import fr.gouv.stopc.submission.code.server.sftp.utils.SchedulerTestUtil;
+import io.cucumber.java.en.Given;
+import io.cucumber.java.en.Then;
 import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.core.LockAssert;
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.shadow.com.univocity.parsers.csv.CsvParser;
 import org.junit.jupiter.params.shadow.com.univocity.parsers.csv.CsvParserSettings;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.testcontainers.shaded.com.google.common.io.Files;
 
 import java.io.*;
-import java.time.Instant;
-import java.time.OffsetDateTime;
-import java.time.ZoneId;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -33,38 +33,79 @@ import java.util.zip.GZIPInputStream;
 import static fr.gouv.stopc.submission.code.server.sftp.manager.SftpManager.assertThatAllFilesFromSftp;
 
 @Slf4j
-@IntegrationTest
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class GeneratedFilesContentTest extends SchedulerTestUtil {
+public class SftpStepDefinitions extends SchedulerTestUtil {
 
-    @TempDir
-    File tmpDirectory;
+    private File tmpDirectory;
 
-    @Autowired
-    GenerateService generateService;
+    @Given("generate long code older thant two months")
+    public void generate_long_code_older_thant_two_months() throws SubmissionCodeServerException {
+        createFalsesCodesInDB(OffsetDateTime.now().minusMonths(3), 100);
+    }
 
-    @Test
-    @Order(1)
-    void when_scheduler_generate_10_code_per_days_during_1day() {
-        Map<Integer, Integer> dayAndVolumeMap = Map.of(0, 10, 1, 0);
+    @Given("purge sftp")
+    public void purge_sftp() {
+        purgeSftp();
+    }
+
+    @Given("purge sftp and data base")
+    public void purge_sftp_and_db() {
+        purgeSftpAndDB();
+    }
+
+    @Given("scheduler generate codes and stop after the first batch of j8")
+    public void scheduler_generate_codes_and_stop_after_the_first_batch_of_j8() {
+        Map<Integer, Integer> dayAndVolumeMap = Map.of(0, 300, 8, 40, 9, 0);
         configureScheduler(dayAndVolumeMap);
         LockAssert.TestHelper.makeAllAssertsPass(true);
         Assertions.assertDoesNotThrow(() -> dailyGenerateSchedule.dailyProductionCodeScheduler());
     }
 
-    @Test
-    @Order(2)
-    void then_sftp_contains_2_files() {
+    @Given("scheduler generate {int} code per days since J {int} and J {int}")
+    public void scheduler_generate_code_per_days_since_j_and_j(int numberOfCodes, int startDayNumber,
+            int endDayNumber) {
+        endDayNumber++;
+        Map<Integer, Integer> dayAndVolumeMap = Map.of(startDayNumber, numberOfCodes, endDayNumber, 0);
+        configureScheduler(dayAndVolumeMap);
+        LockAssert.TestHelper.makeAllAssertsPass(true);
+        Assertions.assertDoesNotThrow(() -> dailyGenerateSchedule.dailyProductionCodeScheduler());
+    }
+
+    @Then("sftp contains {int} files")
+    public void then_sftp_contains_files(int numberOfFiles) {
+        assertThatAllFilesFromSftp(sftpService).hasSize(numberOfFiles);
+    }
+
+    @Then("then in db there is {int} codes each days between j {int} and j {int}")
+    public void then_in_db_there_is_code_each_days_between_J_and_J8(int numberOfCodes,
+            int startDayNumber,
+            int endDayNumber) {
+        int numberOfDays = endDayNumber + 1 - startDayNumber;
+        assertFromStartDayDuringNumberOfDaysCorrespondingToNumberOfCodes(startDayNumber, numberOfDays, numberOfCodes);
+    }
+
+    @Then("then there is no more codes older than two months")
+    public void then_there_is_no_more_long_codes_older_thant_two_months() {
+        LocalDate today = LocalDate.now(ZoneOffset.UTC);
+        final OffsetDateTime endDateTime = FormatDatesKPI.normaliseDateFrom(today, ZoneOffset.UTC.toString())
+                .minusMonths(2);
+        long availableCodes = submissionCodeRepository.countAllByTypeAndDateEndValidityBefore(
+                CodeTypeEnum.LONG.getTypeCode(), endDateTime
+        );
+        Assertions.assertEquals(0, availableCodes);
+    }
+
+    @Then("sftp contains {int} files and names are well formatted")
+    public void then_sftp_contains_files_and_names_are_well_formatted(int numberOfFiles) {
         OffsetDateTime date = OffsetDateTime.now(ZoneId.of(targetZoneId));
         String dateFile = date.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        assertThatAllFilesFromSftp(sftpService).hasSize(2)
+        assertThatAllFilesFromSftp(sftpService).hasSize(numberOfFiles)
                 .anyMatch(l -> l.matches(dateFile + "\\d{6}_stopcovid_qrcode_batch.tgz"))
                 .anyMatch(l -> l.matches(dateFile + "\\d{6}_stopcovid_qrcode_batch.sha256"));
     }
 
-    @Test
-    @Order(3)
-    void then_archive_and_csv_had_right_filename() {
+    @Then("archive and csv had right filename")
+    public void archive_and_csv_had_right_filename() {
+        tmpDirectory = Files.createTempDir();
         File archiveFile = getTgzFile();
         OffsetDateTime date = OffsetDateTime.now(ZoneId.of(targetZoneId));
         List<File> listCsvFiles = extractFile(archiveFile.getPath());
@@ -73,28 +114,20 @@ class GeneratedFilesContentTest extends SchedulerTestUtil {
                 .assertTrue(listCsvFiles.stream().allMatch(l -> l.getName().matches("\\d{2}" + csvDateFile + ".csv")));
     }
 
-    @Test
-    @Order(4)
-    void then_csv_contains_11_lines() throws CsvValidationException, IOException {
+    @Then("csv contains {int} lines")
+    public void csv_contains_x_lines(int numberOfLines) throws CsvValidationException, IOException {
         File archiveFile = getTgzFile();
         List<File> listCsvFiles = extractFile(archiveFile.getPath());
         HashedMap filesRowsCount = countRowsFromCsvFiles(listCsvFiles);
         Assertions.assertTrue(filesRowsCount.values().stream().findFirst().isPresent());
-        Assertions.assertEquals(11, filesRowsCount.values().stream().findFirst().get());
+        Assertions.assertEquals(numberOfLines, filesRowsCount.values().stream().findFirst().get());
     }
 
-    @Test
-    @Order(5)
-    void then_first_csv_content_is_correct() throws IOException {
+    @Then("first csv content is correct")
+    public void first_csv_content_is_correct() throws IOException {
         File archiveFile = getTgzFile();
         List<File> listCsvFiles = extractFile(archiveFile.getPath());
         verifyRowsFromCsvFiles(listCsvFiles);
-    }
-
-    @Test
-    @Order(6)
-    void then_purge() {
-        purgeSftpAndDB();
     }
 
     private File getTgzFile() {
@@ -131,6 +164,35 @@ class GeneratedFilesContentTest extends SchedulerTestUtil {
         return csvFiles;
     }
 
+    private void extractFileFromTar(File file, TarArchiveInputStream tis) throws IOException {
+        int count;
+        byte[] data = new byte[2048];
+        try (BufferedOutputStream outputStream = new BufferedOutputStream(
+                new FileOutputStream(file)
+        )) {
+
+            while ((count = tis.read(data)) != -1) {
+                outputStream.write(data, 0, count);
+            }
+
+            outputStream.flush();
+        }
+    }
+
+    private HashedMap countRowsFromCsvFiles(List<File> fileList) throws IOException, CsvValidationException {
+        HashedMap map = new HashedMap();
+        for (File file : fileList) {
+            try (CSVReader reader = new CSVReader(new FileReader(file.getPath()))) {
+                int count = 0;
+                while (reader.readNext() != null) {
+                    count++;
+                }
+                map.put(file.getName(), count);
+            }
+        }
+        return map;
+    }
+
     private void verifyRowsFromCsvFiles(List<File> fileList) throws IOException {
         for (File file : fileList) {
             CsvParserSettings settings = new CsvParserSettings();
@@ -156,35 +218,6 @@ class GeneratedFilesContentTest extends SchedulerTestUtil {
                         .minus(1, ChronoUnit.MINUTES).toInstant();
                 Assertions.assertEquals(expectedEndValidityDate, row.getDateEndValidity());
             }
-        }
-    }
-
-    private HashedMap countRowsFromCsvFiles(List<File> fileList) throws IOException, CsvValidationException {
-        HashedMap map = new HashedMap();
-        for (File file : fileList) {
-            try (CSVReader reader = new CSVReader(new FileReader(file.getPath()))) {
-                int count = 0;
-                while (reader.readNext() != null) {
-                    count++;
-                }
-                map.put(file.getName(), count);
-            }
-        }
-        return map;
-    }
-
-    private void extractFileFromTar(File file, TarArchiveInputStream tis) throws IOException {
-        int count;
-        byte[] data = new byte[2048];
-        try (BufferedOutputStream outputStream = new BufferedOutputStream(
-                new FileOutputStream(file)
-        )) {
-
-            while ((count = tis.read(data)) != -1) {
-                outputStream.write(data, 0, count);
-            }
-
-            outputStream.flush();
         }
     }
 

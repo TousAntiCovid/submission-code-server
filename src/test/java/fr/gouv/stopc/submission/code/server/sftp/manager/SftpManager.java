@@ -7,7 +7,6 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.ListAssert;
-import org.springframework.test.context.TestContext;
 import org.springframework.test.context.TestExecutionListener;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.images.builder.ImageFromDockerfile;
@@ -34,18 +33,12 @@ public class SftpManager implements TestExecutionListener {
             .withExposedPorts(PORT)
             .withCommand(USER + ":" + PASSWORD + ":1001:::upload");
 
-    @Override
-    public void beforeTestClass(TestContext testContext) {
+    static {
         SFTP.start();
         System.setProperty("SUBMISSION_CODE_SERVER_SFTP_HOST", SFTP.getHost());
         System.setProperty("SUBMISSION_CODE_SERVER_SFTP_PORT", SFTP.getMappedPort(PORT).toString());
         String fsp = MountableFile.forClasspathResource("sftp/rsa_scs").getResolvedPath();
         System.setProperty("SUBMISSION_CODE_SERVER_SFTP_KEY", fsp);
-    }
-
-    @Override
-    public void afterTestClass(TestContext testContext) {
-        SFTP.close();
     }
 
     @SneakyThrows

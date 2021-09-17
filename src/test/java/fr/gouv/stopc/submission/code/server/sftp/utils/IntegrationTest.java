@@ -3,9 +3,7 @@ package fr.gouv.stopc.submission.code.server.sftp.utils;
 import fr.gouv.stopc.submission.code.server.SubmissionCodeServerApplication;
 import fr.gouv.stopc.submission.code.server.sftp.manager.PostgresManager;
 import fr.gouv.stopc.submission.code.server.sftp.manager.SftpManager;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
@@ -26,7 +24,5 @@ import static org.springframework.test.context.TestExecutionListeners.MergeMode.
 @Retention(RUNTIME)
 @Target(TYPE)
 @ContextConfiguration(classes = SubmissionCodeServerApplication.class)
-@SpringBootApplication()
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public @interface IntegrationTest {
 }
