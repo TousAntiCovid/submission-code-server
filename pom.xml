@@ -101,6 +101,13 @@
             <version>${org.testcontainers}</version>
             <scope>test</scope>
         </dependency>
+        <!-- Cucumber is based on JUnit 4 -->
+        <dependency>
+            <groupId>org.junit.vintage</groupId>
+            <artifactId>junit-vintage-engine</artifactId>
+            <version>5.8.0</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>postgresql</artifactId>
