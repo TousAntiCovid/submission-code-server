@@ -102,8 +102,8 @@ public class ItDefinitionSteps extends SchedulerTestUtil {
                 .anyMatch(l -> l.matches(dateFile + "\\d{6}_stopcovid_qrcode_batch.sha256"));
     }
 
-    @Then("archive and csv had right filename")
-    public void archive_and_csv_had_right_filename() {
+    @Then("archive and csv has right filename")
+    public void archive_and_csv_has_right_filename() {
         tmpDirectory = Files.createTempDir();
         File archiveFile = getTgzFile();
         OffsetDateTime date = OffsetDateTime.now(ZoneId.of(targetZoneId));
