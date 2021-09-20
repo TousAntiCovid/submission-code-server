@@ -1,4 +1,4 @@
-Feature: Normal schecduler execution and increasing volumetry on day 5
+Feature: Normal scheduler execution and increasing volumetry on day 5
 
   Background:
     Given scheduler generate 300 code per days since J 0 and J 10
