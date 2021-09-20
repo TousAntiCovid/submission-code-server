@@ -8,4 +8,3 @@ Feature: Test if the generated file is well formatted
     Then archive and csv had right filename
     Then csv contains 11 lines
     Then first csv content is correct
-    Given purge sftp and data base

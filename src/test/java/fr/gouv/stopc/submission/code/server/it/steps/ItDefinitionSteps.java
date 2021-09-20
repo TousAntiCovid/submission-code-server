@@ -1,13 +1,14 @@
-package fr.gouv.stopc.submission.code.server.sftp;
+package fr.gouv.stopc.submission.code.server.it.steps;
 
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
 import fr.gouv.stopc.submission.code.server.business.controller.exception.SubmissionCodeServerException;
 import fr.gouv.stopc.submission.code.server.domain.enums.CodeTypeEnum;
 import fr.gouv.stopc.submission.code.server.domain.utils.FormatDatesKPI;
-import fr.gouv.stopc.submission.code.server.sftp.dto.CsvRowDto;
-import fr.gouv.stopc.submission.code.server.sftp.manager.SftpManager;
-import fr.gouv.stopc.submission.code.server.sftp.utils.SchedulerTestUtil;
+import fr.gouv.stopc.submission.code.server.it.dto.CsvRowDto;
+import fr.gouv.stopc.submission.code.server.it.manager.SftpManager;
+import fr.gouv.stopc.submission.code.server.it.utils.SchedulerTestUtil;
+import io.cucumber.java.Before;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import lombok.extern.slf4j.Slf4j;
@@ -30,26 +31,24 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 
-import static fr.gouv.stopc.submission.code.server.sftp.manager.SftpManager.assertThatAllFilesFromSftp;
-
 @Slf4j
-public class SftpStepDefinitions extends SchedulerTestUtil {
+public class ItDefinitionSteps extends SchedulerTestUtil {
 
     private File tmpDirectory;
 
-    @Given("generate long code older thant two months")
-    public void generate_long_code_older_thant_two_months() throws SubmissionCodeServerException {
+    @Before
+    public void initialization() {
+        purgeSftpAndDB();
+    }
+
+    @Given("generate long code older than two months")
+    public void generate_long_code_older_than_two_months() throws SubmissionCodeServerException {
         createFalsesCodesInDB(OffsetDateTime.now().minusMonths(3), 100);
     }
 
     @Given("purge sftp")
     public void purge_sftp() {
         purgeSftp();
-    }
-
-    @Given("purge sftp and data base")
-    public void purge_sftp_and_db() {
-        purgeSftpAndDB();
     }
 
     @Given("scheduler generate codes and stop after the first batch of j8")
@@ -72,11 +71,11 @@ public class SftpStepDefinitions extends SchedulerTestUtil {
 
     @Then("sftp contains {int} files")
     public void then_sftp_contains_files(int numberOfFiles) {
-        assertThatAllFilesFromSftp(sftpService).hasSize(numberOfFiles);
+        SftpManager.assertThatAllFilesFromSftp(sftpService).hasSize(numberOfFiles);
     }
 
     @Then("then in db there is {int} codes each days between j {int} and j {int}")
-    public void then_in_db_there_is_code_each_days_between_J_and_J8(int numberOfCodes,
+    public void then_in_db_there_is_code_each_days_between_J_and_J(int numberOfCodes,
             int startDayNumber,
             int endDayNumber) {
         int numberOfDays = endDayNumber + 1 - startDayNumber;
@@ -98,7 +97,7 @@ public class SftpStepDefinitions extends SchedulerTestUtil {
     public void then_sftp_contains_files_and_names_are_well_formatted(int numberOfFiles) {
         OffsetDateTime date = OffsetDateTime.now(ZoneId.of(targetZoneId));
         String dateFile = date.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        assertThatAllFilesFromSftp(sftpService).hasSize(numberOfFiles)
+        SftpManager.assertThatAllFilesFromSftp(sftpService).hasSize(numberOfFiles)
                 .anyMatch(l -> l.matches(dateFile + "\\d{6}_stopcovid_qrcode_batch.tgz"))
                 .anyMatch(l -> l.matches(dateFile + "\\d{6}_stopcovid_qrcode_batch.sha256"));
     }

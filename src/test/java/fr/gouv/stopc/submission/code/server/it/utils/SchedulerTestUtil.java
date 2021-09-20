@@ -1,4 +1,4 @@
-package fr.gouv.stopc.submission.code.server.sftp.utils;
+package fr.gouv.stopc.submission.code.server.it.utils;
 
 import fr.gouv.stopc.submission.code.server.business.controller.exception.SubmissionCodeServerException;
 import fr.gouv.stopc.submission.code.server.business.service.FileService;
@@ -10,7 +10,7 @@ import fr.gouv.stopc.submission.code.server.business.service.schedule.Generation
 import fr.gouv.stopc.submission.code.server.data.entity.Lot;
 import fr.gouv.stopc.submission.code.server.data.repository.SubmissionCodeRepository;
 import fr.gouv.stopc.submission.code.server.domain.enums.CodeTypeEnum;
-import fr.gouv.stopc.submission.code.server.sftp.manager.SftpManager;
+import fr.gouv.stopc.submission.code.server.it.manager.SftpManager;
 import org.junit.jupiter.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

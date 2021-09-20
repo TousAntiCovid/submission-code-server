@@ -1,8 +1,8 @@
-package fr.gouv.stopc.submission.code.server.sftp.utils;
+package fr.gouv.stopc.submission.code.server.it.utils;
 
 import fr.gouv.stopc.submission.code.server.SubmissionCodeServerApplication;
-import fr.gouv.stopc.submission.code.server.sftp.manager.PostgresManager;
-import fr.gouv.stopc.submission.code.server.sftp.manager.SftpManager;
+import fr.gouv.stopc.submission.code.server.it.manager.PostgresManager;
+import fr.gouv.stopc.submission.code.server.it.manager.SftpManager;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;

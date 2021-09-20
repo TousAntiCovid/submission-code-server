@@ -1,6 +1,6 @@
-package fr.gouv.stopc.submission.code.server.sftp;
+package fr.gouv.stopc.submission.code.server.it;
 
-import fr.gouv.stopc.submission.code.server.sftp.utils.IntegrationTest;
+import fr.gouv.stopc.submission.code.server.it.utils.IntegrationTest;
 import io.cucumber.spring.CucumberContextConfiguration;
 
 @CucumberContextConfiguration

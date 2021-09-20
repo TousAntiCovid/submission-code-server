@@ -1,4 +1,4 @@
-package fr.gouv.stopc.submission.code.server.sftp.dto;
+package fr.gouv.stopc.submission.code.server.it.dto;
 
 import com.opencsv.bean.CsvBindByPosition;
 import lombok.AllArgsConstructor;

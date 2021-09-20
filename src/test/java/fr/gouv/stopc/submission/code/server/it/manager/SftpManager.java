@@ -1,4 +1,4 @@
-package fr.gouv.stopc.submission.code.server.sftp.manager;
+package fr.gouv.stopc.submission.code.server.it.manager;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.SftpException;

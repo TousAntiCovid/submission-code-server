@@ -1,4 +1,4 @@
-package fr.gouv.stopc.submission.code.server.sftp.manager;
+package fr.gouv.stopc.submission.code.server.it.manager;
 
 import org.springframework.test.context.TestExecutionListener;
 import org.testcontainers.containers.GenericContainer;
