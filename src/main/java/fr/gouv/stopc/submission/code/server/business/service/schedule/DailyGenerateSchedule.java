@@ -134,7 +134,9 @@ public class DailyGenerateSchedule {
     void purgeUnusedCodes() {
         OffsetDateTime dateEndValidityAfter = OffsetDateTime.now().minusMonths(2);
         Long numberOfDeletedCodes = submissionCodeRepository
-                .deleteAllByUsedFalseAndDateEndValidityBefore(dateEndValidityAfter);
+                .deleteAllByTypeAndUsedFalseAndDateEndValidityBefore(
+                        CodeTypeEnum.LONG.getTypeCode(), dateEndValidityAfter
+                );
         log.info("SCHEDULER : {} codes with a validity date of more than two months deleted", numberOfDeletedCodes);
     }
 

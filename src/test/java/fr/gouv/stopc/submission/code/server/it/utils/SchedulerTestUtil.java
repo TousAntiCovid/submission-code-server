@@ -59,8 +59,8 @@ public class SchedulerTestUtil {
         OffsetDateTime todayOff = OffsetDateTime.now(ZoneId.of(targetZoneId)).truncatedTo(ChronoUnit.DAYS);
         List<GenerationConfig> scheduling = new ArrayList<>();
         production.forEach((day, volume) -> {
-            OffsetDateTime inSevenDaysOff = todayOff.plusDays(day);
-            GenerationConfig conf = GenerationConfig.builder().dailyProduction(volume).startDate(inSevenDaysOff)
+            OffsetDateTime currentDate = todayOff.plusDays(day);
+            GenerationConfig conf = GenerationConfig.builder().dailyProduction(volume).startDate(currentDate)
                     .build();
             scheduling.add(conf);
         }

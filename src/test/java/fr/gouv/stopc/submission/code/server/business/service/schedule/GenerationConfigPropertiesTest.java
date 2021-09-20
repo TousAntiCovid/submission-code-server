@@ -23,7 +23,7 @@ class GenerationConfigPropertiesTest {
     }
 
     @Test
-    void inreasingVolumetryAndStop() {
+    void increasingVolumetryAndStop() {
         Map<Integer, Integer> dayAndVolumeMap = Map.of(0, 300, 5, 800, 10, 0);
         List<Integer> returnedValues = getDailyProductionTargetList(dayAndVolumeMap);
         List<Integer> expectedValues = List.of(300, 300, 300, 300, 300, 800, 800, 800, 800, 800, 0);
@@ -77,9 +77,9 @@ class GenerationConfigPropertiesTest {
         OffsetDateTime todayOff = OffsetDateTime.now(ZoneId.of(targetZoneId)).truncatedTo(ChronoUnit.DAYS);
         List<GenerationConfigProperties.GenerationConfig> scheduling = new ArrayList<>();
         dayAndVolumeMap.forEach((day, volume) -> {
-            OffsetDateTime inSevenDaysOff = todayOff.plusDays(day);
+            OffsetDateTime currentDate = todayOff.plusDays(day);
             GenerationConfigProperties.GenerationConfig conf = GenerationConfigProperties.GenerationConfig.builder()
-                    .dailyProduction(volume).startDate(inSevenDaysOff)
+                    .dailyProduction(volume).startDate(currentDate)
                     .build();
             scheduling.add(conf);
         }
