@@ -1,6 +1,5 @@
 package fr.gouv.stopc.submission.code.server.kpiservice;
 
-import fr.gouv.stopc.submission.code.server.SubmissionCodeServerApplication;
 import fr.gouv.stopc.submission.code.server.business.controller.exception.SubmissionCodeServerException;
 import fr.gouv.stopc.submission.code.server.business.model.Kpi;
 import fr.gouv.stopc.submission.code.server.business.service.KpiService;
@@ -13,8 +12,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.TestPropertySource;
@@ -34,9 +31,7 @@ import static org.mockito.Mockito.when;
  * @author plant-stopcovid
  */
 @ExtendWith(SpringExtension.class)
-@EnableAutoConfiguration(exclude = { DataSourceAutoConfiguration.class })
-@SpringBootTest(classes = {
-        SubmissionCodeServerApplication.class }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(classes = { KpiService.class })
 @TestPropertySource("classpath:application.properties")
 public class KpiServiceTest {
 
