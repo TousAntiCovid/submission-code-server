@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
-public class SubmissionCodeServerException extends Exception {
+public class SubmissionCodeServerException extends RuntimeException {
 
     private ExceptionEnum serverExceptionEnum;
 

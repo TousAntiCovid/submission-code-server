@@ -2,6 +2,7 @@ package fr.gouv.stopc.submission.code.server.business.service;
 
 import com.jcraft.jsch.*;
 import fr.gouv.stopc.submission.code.server.business.controller.exception.SubmissionCodeServerException;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,6 +33,7 @@ public class SFTPService {
     private String host;
 
     @Value("${submission.code.server.sftp.host.port}")
+    @Setter
     private int port;
 
     @Value("${submission.code.server.sftp.host.key.algorithm}")
