@@ -1,8 +1,10 @@
 package fr.gouv.stopc.submission.code.server.it.manager;
 
 import com.jcraft.jsch.ChannelSftp;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Session;
 import com.jcraft.jsch.SftpException;
-import fr.gouv.stopc.submission.code.server.business.service.SFTPService;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
@@ -13,7 +15,9 @@ import org.testcontainers.images.builder.ImageFromDockerfile;
 import org.testcontainers.utility.MountableFile;
 
 import java.io.File;
+import java.util.Base64;
 import java.util.List;
+import java.util.Properties;
 import java.util.Vector;
 import java.util.stream.Collectors;
 
@@ -26,6 +30,14 @@ public class SftpManager implements TestExecutionListener {
 
     private static final String PASSWORD = "password";
 
+    private static final byte[] PASSPHRASE = Base64.getDecoder().decode("cGFzc3BocmFzZQ==");
+
+    private static final String HOST_KNOWN_FILE = "~/.ssh/known_hosts";
+
+    private static final String HOST_KEY_ALGORITHM = "ssh-rsa";
+
+    private static final String FSP = MountableFile.forClasspathResource("sftp/rsa_scs").getResolvedPath();
+
     private static final GenericContainer SFTP = new GenericContainer(
             new ImageFromDockerfile()
                     .withFileFromClasspath(".", "sftp/docker")
@@ -33,19 +45,22 @@ public class SftpManager implements TestExecutionListener {
             .withExposedPorts(PORT)
             .withCommand(USER + ":" + PASSWORD + ":1001:::upload");
 
+    public static int getMappedPort() {
+        return SFTP.getMappedPort(PORT);
+    }
+
     static {
         SFTP.start();
         System.setProperty("SUBMISSION_CODE_SERVER_SFTP_HOST", SFTP.getHost());
         System.setProperty("SUBMISSION_CODE_SERVER_SFTP_PORT", SFTP.getMappedPort(PORT).toString());
-        String fsp = MountableFile.forClasspathResource("sftp/rsa_scs").getResolvedPath();
-        System.setProperty("SUBMISSION_CODE_SERVER_SFTP_KEY", fsp);
+        System.setProperty("SUBMISSION_CODE_SERVER_SFTP_KEY", FSP);
     }
 
     @SneakyThrows
-    public static ListAssert<String> assertThatAllFilesFromSftp(SFTPService sftpService) {
+    public static ListAssert<String> assertThatAllFilesFromSftp() {
 
         log.debug("SFTP: connection is about to be created");
-        ChannelSftp channelSftp = sftpService.createConnection();
+        ChannelSftp channelSftp = createConnection();
         log.debug("SFTP: connexion created");
 
         log.debug("SFTP: list files in upload directory");
@@ -64,8 +79,8 @@ public class SftpManager implements TestExecutionListener {
     }
 
     @SneakyThrows
-    public static void purgeSftp(SFTPService sftpService) {
-        ChannelSftp channelSftp = sftpService.createConnection();
+    public static void purgeSftp() {
+        ChannelSftp channelSftp = createConnection();
         Vector<ChannelSftp.LsEntry> ls = channelSftp.ls("/upload");
         ls.stream()
                 .filter(lsEntry -> !lsEntry.getAttrs().isDir()).forEach(lsEntry -> {
@@ -79,9 +94,9 @@ public class SftpManager implements TestExecutionListener {
     }
 
     @SneakyThrows
-    public static List<File> getAllFilesFromSftp(SFTPService sftpService, File tmpDirectory) {
+    public static List<File> getAllFilesFromSftp(File tmpDirectory) {
         List<File> fileList;
-        ChannelSftp channelSftp = sftpService.createConnection();
+        ChannelSftp channelSftp = createConnection();
         Vector<ChannelSftp.LsEntry> ls = channelSftp.ls("/upload");
         fileList = ls.stream()
                 .filter(lsEntry -> !lsEntry.getAttrs().isDir())
@@ -105,6 +120,52 @@ public class SftpManager implements TestExecutionListener {
                 .collect(Collectors.toList());
         channelSftp.exit();
         return fileList;
+    }
+
+    /**
+     * Create connection SFTP to transfer file in server. The connection is created
+     * with user and private key of user.
+     *
+     * @return An object channelSftp.
+     */
+    private static ChannelSftp createConnection() {
+        try {
+            JSch jSch = new JSch();
+
+            Session jsSession = jSch.getSession(USER, SFTP.getHost(), SFTP.getMappedPort(PORT));
+            jSch.addIdentity(FSP, PASSPHRASE);
+
+            jSch.setKnownHosts(HOST_KNOWN_FILE);
+
+            Properties config = new Properties();
+
+            config.put("StrictHostKeyChecking", "no");
+
+            config.put("cipher.s2c", "aes256-ctr,aes256-cbc");
+            config.put("cipher.c2s", "aes256-ctr,aes256-cbc");
+
+            config.put("mac.s2c", "hmac-sha2-256");
+            config.put("mac.c2s", "hmac-sha2-256");
+
+            config.put("kex", "ecdh-sha2-nistp256,ecdh-sha2-nistp384,ecdh-sha2-nistp521");
+
+            config.put("server_host_key", HOST_KEY_ALGORITHM);
+
+            jsSession.setConfig(config);
+
+            jsSession.connect();
+
+            final ChannelSftp sftp = (ChannelSftp) jsSession.openChannel("sftp");
+
+            // attempting to open a jsSession.
+            sftp.connect();
+
+            sftp.cd("/upload");
+
+            return sftp;
+        } catch (JSchException | SftpException e) {
+            throw new UnsupportedOperationException("unexpected error occurred", e);
+        }
     }
 
 }

@@ -38,6 +38,7 @@ public class ItDefinitionSteps extends SchedulerTestUtil {
 
     @Before
     public void initialization() {
+        makeSftpReachable();
         purgeSftpAndDB();
     }
 
@@ -49,6 +50,11 @@ public class ItDefinitionSteps extends SchedulerTestUtil {
     @Given("purge sftp")
     public void purge_sftp() {
         purgeSftp();
+    }
+
+    @Given("sftp server is unreachable")
+    public void stop_sftp() {
+        makeSftpUnreachable();
     }
 
     @Given("scheduler generate codes and stop after the first batch of j8")
@@ -71,7 +77,7 @@ public class ItDefinitionSteps extends SchedulerTestUtil {
 
     @Then("sftp contains {int} files")
     public void then_sftp_contains_files(int numberOfFiles) {
-        SftpManager.assertThatAllFilesFromSftp(sftpService).hasSize(numberOfFiles);
+        SftpManager.assertThatAllFilesFromSftp().hasSize(numberOfFiles);
     }
 
     @Then("then in db there is {int} codes each days between j {int} and j {int}")
@@ -97,7 +103,7 @@ public class ItDefinitionSteps extends SchedulerTestUtil {
     public void then_sftp_contains_files_and_names_are_well_formatted(int numberOfFiles) {
         OffsetDateTime date = OffsetDateTime.now(ZoneId.of(targetZoneId));
         String dateFile = date.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        SftpManager.assertThatAllFilesFromSftp(sftpService).hasSize(numberOfFiles)
+        SftpManager.assertThatAllFilesFromSftp().hasSize(numberOfFiles)
                 .anyMatch(l -> l.matches(dateFile + "\\d{6}_stopcovid_qrcode_batch.tgz"))
                 .anyMatch(l -> l.matches(dateFile + "\\d{6}_stopcovid_qrcode_batch.sha256"));
     }
@@ -132,7 +138,7 @@ public class ItDefinitionSteps extends SchedulerTestUtil {
     private File getTgzFile() {
         OffsetDateTime date = OffsetDateTime.now(ZoneId.of(targetZoneId));
         String dateFile = date.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        List<File> fileList = SftpManager.getAllFilesFromSftp(sftpService, tmpDirectory);
+        List<File> fileList = SftpManager.getAllFilesFromSftp(tmpDirectory);
         File archiveFile = fileList.stream()
                 .filter(l -> l.getName().matches(dateFile + "\\d{6}_stopcovid_qrcode_batch.tgz")).findFirst()
                 .orElse(null);

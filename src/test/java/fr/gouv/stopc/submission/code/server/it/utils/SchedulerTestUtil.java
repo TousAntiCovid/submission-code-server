@@ -77,12 +77,12 @@ public class SchedulerTestUtil {
     }
 
     protected void purgeSftp() {
-        SftpManager.purgeSftp(sftpService);
+        SftpManager.purgeSftp();
     }
 
     protected void purgeSftpAndDB() {
         submissionCodeRepository.deleteAll();
-        SftpManager.purgeSftp(sftpService);
+        SftpManager.purgeSftp();
     }
 
     protected void createFalsesCodesInDB(OffsetDateTime from, long dailyAmount)
@@ -97,5 +97,13 @@ public class SchedulerTestUtil {
                 newLot,
                 OffsetDateTime.now()
         );
+    }
+
+    public void makeSftpUnreachable() {
+        sftpService.setPort(2222);
+    }
+
+    public void makeSftpReachable() {
+        sftpService.setPort(SftpManager.getMappedPort());
     }
 }
