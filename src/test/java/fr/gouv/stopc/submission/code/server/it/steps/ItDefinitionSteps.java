@@ -80,7 +80,7 @@ public class ItDefinitionSteps extends SchedulerTestUtil {
         SftpManager.assertThatAllFilesFromSftp().hasSize(numberOfFiles);
     }
 
-    @Then("then in db there is {int} codes each days between j {int} and j {int}")
+    @Then("in db there is {int} codes each days between j {int} and j {int}")
     public void then_in_db_there_is_code_each_days_between_J_and_J(int numberOfCodes,
             int startDayNumber,
             int endDayNumber) {
