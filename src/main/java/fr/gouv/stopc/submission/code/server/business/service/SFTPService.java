@@ -123,8 +123,9 @@ public class SFTPService {
     }
 
     public static class TestLogger implements com.jcraft.jsch.Logger {
-        static java.util.Hashtable<Integer, String> name=new java.util.Hashtable<>();
-        static{
+
+        static java.util.Hashtable<Integer, String> name = new java.util.Hashtable<>();
+        static {
             name.put(new Integer(DEBUG), "DEBUG: ");
             name.put(new Integer(INFO), "INFO: ");
             name.put(new Integer(WARN), "WARN: ");
@@ -132,11 +133,11 @@ public class SFTPService {
             name.put(new Integer(FATAL), "FATAL: ");
         }
 
-        public boolean isEnabled(int level){
+        public boolean isEnabled(int level) {
             return true;
         }
 
-        public void log(int level, String message){
+        public void log(int level, String message) {
             System.err.print(name.get(new Integer(level)));
             System.err.println(message);
         }
