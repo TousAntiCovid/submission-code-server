@@ -94,8 +94,9 @@ public class DailyGenerateSchedule {
         boolean updated = false;
         // Update
         for (GenerationRequest gr : generationRequestList) {
-            if (gr.getNumberOfCodeToGenerate() == numberOfCodeToGenerate
-                    && gr.getIterationBatchNumber() == iterationBatchNumber) {
+            if (gr.getNumberOfCodeToGenerate().equals(numberOfCodeToGenerate)
+                    && (null == gr.getIterationBatchNumber()
+                            || gr.getIterationBatchNumber().equals(iterationBatchNumber))) {
                 gr.setEndDateTime(endDateTime);
                 updated = true;
                 break;
