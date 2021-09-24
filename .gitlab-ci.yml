@@ -34,7 +34,7 @@ deploy_int:
     APP_VERSION: develop-SNAPSHOT
   trigger:
     project: stemcovid19/infrastructure/functional-zone/services/codegeneration/codegeneration-ansible
-    branch: master
+    branch: feature/gitlab-ci
     strategy: depend
   rules:
-    - if: '$CI_COMMIT_BRANCH == "develop"'
+    - if: '$CI_COMMIT_BRANCH == "feature/trigger-deploy"'
