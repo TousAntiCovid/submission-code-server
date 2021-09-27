@@ -32,7 +32,7 @@ public class DailyGenerateSchedule {
 
     private List<GenerationRequest> generationRequestList;
 
-    @Scheduled(cron = "${submission.code.server.cron.schedule}", zone = "Europe/Paris")
+    @Scheduled(cron = "${submission.code.server.cron.schedule}", zone = "UTC")
     @SchedulerLock(name = "dailyProductionCodeScheduler")
     public void dailyProductionCodeScheduler() {
         LockAssert.assertLocked();
