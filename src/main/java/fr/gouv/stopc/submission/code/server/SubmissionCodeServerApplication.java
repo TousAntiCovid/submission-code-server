@@ -14,7 +14,7 @@ import java.util.TimeZone;
 @ComponentScan(basePackages = "fr.gouv.stopc")
 @EnableAsync
 @EnableScheduling
-@EnableSchedulerLock(defaultLockAtMostFor = "90m")
+@EnableSchedulerLock(defaultLockAtMostFor = "100m")
 @SpringBootApplication
 public class SubmissionCodeServerApplication {
 
