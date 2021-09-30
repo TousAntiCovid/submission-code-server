@@ -57,7 +57,7 @@ public class TestCodesSteps {
                 .plus(3, ChronoUnit.DAYS);
         Instant validUntil = Instant.parse(codeSimpleDto.getValidUntil())
                 .truncatedTo(ChronoUnit.DAYS);
-        validUntil.equals(inThreeDays);
+        Assertions.assertEquals(inThreeDays, validUntil);
     }
 
     @When("I request it's verification")
