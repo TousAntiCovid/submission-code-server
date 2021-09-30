@@ -9,7 +9,8 @@ import java.util.Optional;
 public enum CodeTypeEnum {
 
     LONG("1", "UUIDv4", Pattern.LONG),
-    SHORT("2", "6-alphanum", Pattern.SHORT);
+    SHORT("2", "6-alphanum", Pattern.SHORT),
+    TEST("3", "12-aphanum", Pattern.LONG);
 
     /**
      * type code is an numeric in string (ex. "1")
@@ -79,6 +80,8 @@ public enum CodeTypeEnum {
         String SHORT = "([a-zA-Z0-9]{6})";
 
         String LONG = "([a-f0-9]{8}(-[a-f0-9]{4}){4}[a-f0-9]{8})";
+
+        String TEST = "([a-zA-Z0-9]{12})";
     }
 
 }
