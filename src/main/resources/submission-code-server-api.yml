@@ -55,16 +55,11 @@ paths:
         NOTE: This API must be protected and used only by a trusted back-end server over a secure private connection.
       operationId: verify
       parameters:
-        - name: type
-          in: query
-          required: true
-          schema:
-            type: string
         - name: code
           in: query
           required: true
           description: should respect regexp ([a-zA-Z0-9]{6}) |
-            ([a-f0-9]{8}(-[a-f0-9]{4}){4}[a-f0-9]{8})
+            ([a-f0-9]{8}(-[a-f0-9]{4}){4}[a-f0-9]{8}) | ([a-zA-Z0-9]{12})
           schema:
             type: string
       responses:

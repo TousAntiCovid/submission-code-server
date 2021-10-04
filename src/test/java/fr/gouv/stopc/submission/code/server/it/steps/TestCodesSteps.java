@@ -4,7 +4,6 @@ import fr.gouv.stopc.submission.code.server.business.model.CodeSimpleDto;
 import fr.gouv.stopc.submission.code.server.business.service.GenerateService;
 import fr.gouv.stopc.submission.code.server.business.service.VerifyService;
 import fr.gouv.stopc.submission.code.server.data.repository.SubmissionCodeRepository;
-import fr.gouv.stopc.submission.code.server.domain.enums.CodeTypeEnum;
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
 import io.cucumber.java.en.And;
@@ -21,14 +20,19 @@ import java.util.regex.Pattern;
 
 public class TestCodesSteps {
 
-    @Autowired
-    GenerateService generateService;
+    private final GenerateService generateService;
+
+    private final VerifyService verifyService;
+
+    private final SubmissionCodeRepository submissionCodeRepository;
 
     @Autowired
-    VerifyService verifyService;
-
-    @Autowired
-    protected SubmissionCodeRepository submissionCodeRepository;
+    public TestCodesSteps(GenerateService generateService, VerifyService verifyService,
+            SubmissionCodeRepository submissionCodeRepository) {
+        this.generateService = generateService;
+        this.verifyService = verifyService;
+        this.submissionCodeRepository = submissionCodeRepository;
+    }
 
     private CodeSimpleDto codeSimpleDto;
 
@@ -63,7 +67,7 @@ public class TestCodesSteps {
     @When("I request it's verification")
     @And("It's verification has already been requested")
     public void i_request_it_s_verification() {
-        verify = verifyService.verifyCode(codeSimpleDto.getCode(), CodeTypeEnum.TEST.getTypeCode());
+        verify = verifyService.verifyCode(codeSimpleDto.getCode());
     }
 
     @Then("The verification response is successful")

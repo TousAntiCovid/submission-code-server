@@ -36,12 +36,11 @@ public class SubmissionCodeService {
         this.submissionCodeRepository = submissionCodeRepository;
     }
 
-    public Optional<SubmissionCodeDto> getCodeValidity(String code, CodeTypeEnum type) {
+    public Optional<SubmissionCodeDto> getCodeValidity(String code) {
         if (Strings.isBlank(code)) {
             return Optional.empty();
         }
-        String typeCode = type.getTypeCode();
-        SubmissionCode submissionCode = submissionCodeRepository.findByCodeAndType(code, typeCode);
+        SubmissionCode submissionCode = submissionCodeRepository.findByCode(code);
         if (Objects.isNull(submissionCode)) {
             return Optional.empty();
         }
@@ -118,8 +117,7 @@ public class SubmissionCodeService {
 
     public boolean updateCodeUsed(SubmissionCodeDto submissionCodeDto) {
         String code = submissionCodeDto.getCode();
-        String type = submissionCodeDto.getType();
-        SubmissionCode submissionCode = submissionCodeRepository.findByCodeAndType(code, type);
+        SubmissionCode submissionCode = submissionCodeRepository.findByCode(code);
         if (Objects.isNull(submissionCode)) {
             return false;
         }

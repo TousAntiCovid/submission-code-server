@@ -10,13 +10,10 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
-import java.util.List;
 
 public interface SubmissionCodeRepository extends PagingAndSortingRepository<SubmissionCode, Long> {
 
-    SubmissionCode findByCodeAndType(String code, String type);
-
-    List<SubmissionCode> findAllByLotkeyIdAndTypeEquals(long lot, String type);
+    SubmissionCode findByCode(String code);
 
     /**
      * count number of codes in db for the given lot identifier.
