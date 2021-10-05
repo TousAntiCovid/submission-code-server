@@ -35,7 +35,7 @@ public interface SubmissionCodeRepository extends PagingAndSortingRepository<Sub
     long countAllByTypeAndDateEndValidityBefore(String type, OffsetDateTime dateFrom);
 
     @Transactional
-    Long deleteAllByTypeAndUsedFalseAndDateEndValidityBefore(String type, OffsetDateTime dateEndValidityAfter);
+    Long deleteAllByUsedFalseAndDateEndValidityBefore(OffsetDateTime dateEndValidityAfter);
 
     /**
      * The method serches the used codes from fromDate until dateTo of type
