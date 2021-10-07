@@ -35,17 +35,24 @@ public class VerifyService {
      * is still valid.
      *
      * @param code The code value to verify
-     * @param type The type of the provided code (see CodeTypeEnum)
      * @return return the validity of the code.
      */
-    public boolean verifyCode(String code, String type) {
-        Optional<CodeTypeEnum> typeToFound = CodeTypeEnum.searchMatchType(type);
-        CodeTypeEnum typeFound = null;
-        if (typeToFound.isPresent()) {
-            typeFound = typeToFound.get();
+    public boolean verifyCode(String code) {
+        Optional<CodeTypeEnum> typeToFound = CodeTypeEnum.searchMatchLength(code.length());
+
+        if (!typeToFound.isPresent()) {
+            log.warn("Code {} size is incorrect.", code);
+            return false;
         }
 
-        Optional<SubmissionCodeDto> codeDtoOptional = submissionCodeService.getCodeValidity(code, typeFound);
+        CodeTypeEnum codeTypeEnum = typeToFound.get();
+        if (!codeTypeEnum.matchPattern(code)) {
+            log.warn("Code {} doesn't respect the pattern of {}.", code, codeTypeEnum.getType());
+            return false;
+        }
+
+        String type = codeTypeEnum.getTypeCode();
+        Optional<SubmissionCodeDto> codeDtoOptional = submissionCodeService.getCodeValidity(code);
 
         if (!codeDtoOptional.isPresent()) {
             log.warn("Code {} ({}) was not found.", code, type);
@@ -81,12 +88,6 @@ public class VerifyService {
 
     /**
      * A code cannot be used before he is valid or after it has expired.
-     * 
-     * @param code
-     * @param dateNow
-     * @param dateAvailable
-     * @param dateEndValidity
-     * @return
      */
     private boolean validateDate(String code,
             String type,

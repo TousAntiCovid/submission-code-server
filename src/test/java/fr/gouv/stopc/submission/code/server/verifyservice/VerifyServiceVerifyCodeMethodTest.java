@@ -24,6 +24,10 @@ public class VerifyServiceVerifyCodeMethodTest {
 
     private static final String FALSE_CODE = "FALSE_CODE";
 
+    private static final String BAD_PATTERN_CODE = "!!!!!!";
+
+    private static final String GOOD_CODE = "AAAAAA";
+
     @Mock
     SubmissionCodeService submissionCodeService;
 
@@ -36,31 +40,14 @@ public class VerifyServiceVerifyCodeMethodTest {
         MockitoAnnotations.initMocks(this);
     }
 
-    /**
-     * Code does not exists
-     */
     @Test
-    void testCodeNotExist() throws SubmissionCodeServerException {
+    void testCodeHasBadPattern() throws SubmissionCodeServerException {
 
-        when(this.submissionCodeService.getCodeValidity(FALSE_CODE, CodeTypeEnum.SHORT))
-                .thenReturn(Optional.empty());
-
-        final boolean isPresent = this.verifyService.verifyCode(FALSE_CODE, CodeTypeEnum.SHORT.getType());
-        assertFalse(isPresent);
-
-    }
-
-    /**
-     * Code exists for given CodeType
-     */
-    @Test
-    void testCodeExistForGivenCodeType() throws SubmissionCodeServerException {
-
-        when(this.submissionCodeService.getCodeValidity(FALSE_CODE, CodeTypeEnum.SHORT))
+        when(this.submissionCodeService.getCodeValidity(BAD_PATTERN_CODE))
                 .thenReturn(
                         Optional.of(
                                 SubmissionCodeDto.builder()
-                                        .code(FALSE_CODE)
+                                        .code(BAD_PATTERN_CODE)
                                         .type(CodeTypeEnum.SHORT.getTypeCode())
                                         .used(false)
                                         .dateAvailable(OffsetDateTime.now().minusDays(11))
@@ -72,21 +59,48 @@ public class VerifyServiceVerifyCodeMethodTest {
         when(this.submissionCodeService.updateCodeUsed(any()))
                 .thenReturn(true);
 
-        final boolean isPresent = this.verifyService.verifyCode(FALSE_CODE, CodeTypeEnum.SHORT.getTypeCode());
-        assertTrue(isPresent);
+        final boolean isPresent = this.verifyService.verifyCode(BAD_PATTERN_CODE);
+        assertFalse(isPresent);
     }
 
     /**
-     * Code exists but not for given CodeType
+     * Code does not exists
      */
     @Test
-    void testCodeNotExistForGivenCodeType() throws SubmissionCodeServerException {
+    void testCodeNotExist() throws SubmissionCodeServerException {
 
-        when(this.submissionCodeService.getCodeValidity(FALSE_CODE, CodeTypeEnum.SHORT))
+        when(this.submissionCodeService.getCodeValidity(FALSE_CODE))
                 .thenReturn(Optional.empty());
 
-        final boolean isPresent = this.verifyService.verifyCode(FALSE_CODE, CodeTypeEnum.LONG.getTypeCode());
+        final boolean isPresent = this.verifyService.verifyCode(FALSE_CODE);
         assertFalse(isPresent);
+
+    }
+
+    /**
+     * Code exists
+     */
+    @Test
+    void testCodeExist() throws SubmissionCodeServerException {
+
+        when(this.submissionCodeService.getCodeValidity(GOOD_CODE))
+                .thenReturn(
+                        Optional.of(
+                                SubmissionCodeDto.builder()
+                                        .code(GOOD_CODE)
+                                        .type(CodeTypeEnum.SHORT.getTypeCode())
+                                        .used(false)
+                                        .dateAvailable(OffsetDateTime.now().minusDays(11))
+                                        .dateEndValidity(OffsetDateTime.now().plusDays(12))
+                                        .build()
+                        )
+                );
+
+        when(this.submissionCodeService.updateCodeUsed(any()))
+                .thenReturn(true);
+
+        final boolean isPresent = this.verifyService.verifyCode(GOOD_CODE);
+        assertTrue(isPresent);
     }
 
     /**
@@ -95,7 +109,7 @@ public class VerifyServiceVerifyCodeMethodTest {
     @Test
     void testCodeAlreadyVerify() throws SubmissionCodeServerException {
 
-        when(this.submissionCodeService.getCodeValidity(FALSE_CODE, CodeTypeEnum.SHORT))
+        when(this.submissionCodeService.getCodeValidity(FALSE_CODE))
                 .thenReturn(
                         Optional.of(
                                 SubmissionCodeDto.builder()
@@ -108,7 +122,7 @@ public class VerifyServiceVerifyCodeMethodTest {
                         )
                 );
 
-        final boolean isPresent2 = this.verifyService.verifyCode(FALSE_CODE, CodeTypeEnum.SHORT.getTypeCode());
+        final boolean isPresent2 = this.verifyService.verifyCode(FALSE_CODE);
         assertFalse(isPresent2);
     }
 
@@ -118,7 +132,7 @@ public class VerifyServiceVerifyCodeMethodTest {
     @Test
     void testExpiredCode() throws SubmissionCodeServerException {
 
-        when(this.submissionCodeService.getCodeValidity(FALSE_CODE, CodeTypeEnum.SHORT))
+        when(this.submissionCodeService.getCodeValidity(FALSE_CODE))
                 .thenReturn(
                         Optional.of(
                                 SubmissionCodeDto.builder()
@@ -131,7 +145,7 @@ public class VerifyServiceVerifyCodeMethodTest {
                         )
                 );
 
-        final boolean isPresent = this.verifyService.verifyCode(FALSE_CODE, CodeTypeEnum.SHORT.getTypeCode());
+        final boolean isPresent = this.verifyService.verifyCode(FALSE_CODE);
         assertFalse(isPresent);
     }
 }
