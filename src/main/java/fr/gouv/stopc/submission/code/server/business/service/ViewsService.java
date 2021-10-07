@@ -37,19 +37,11 @@ public class ViewsService {
     /**
      * The method returns the information as number of codes .
      *
-     * @param lotIdentifier
      * @return ViewDto.LotInformation
-     * @throws SubmissionCodeServerException
      */
     public ViewDto.LotInformation getLotInformation(long lotIdentifier) throws SubmissionCodeServerException {
-        final Long numOfCodes = this.submissionCodeService
+        final long numOfCodes = this.submissionCodeService
                 .getNumberOfCodesForLotIdentifier(lotIdentifier);
-
-        if (numOfCodes == null) {
-            throw new SubmissionCodeServerException(
-                    SubmissionCodeServerException.ExceptionEnum.DB_NO_RECORD_FOR_LOT_IDENTIFIER_ERROR
-            );
-        }
 
         return ViewDto.LotInformation.builder()
                 .lotIdentifier(lotIdentifier)
@@ -60,12 +52,6 @@ public class ViewsService {
     /**
      * The method returns the information as number page, as number elements for
      * page and list of codes.
-     *
-     * @param page
-     * @param elementByPage
-     * @param lotIdentifier
-     * @return
-     * @throws SubmissionCodeServerException
      */
     public ViewDto.CodeValuesForPage getViewLotCodeDetailListFor(
             int page,

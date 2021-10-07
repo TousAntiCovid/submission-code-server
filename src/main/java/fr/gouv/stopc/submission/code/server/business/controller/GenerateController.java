@@ -39,4 +39,11 @@ public class GenerateController implements GenerateCodeApi {
         return ResponseEntity.ok(this.generateService.generateShortCode());
     }
 
+    @Override
+    public ResponseEntity<CodeSimpleDto> generateTest() {
+        log.info("Try to generate a test code that is 12 characters long.");
+
+        return ResponseEntity.ok(this.generateService.generateTestCode());
+    }
+
 }

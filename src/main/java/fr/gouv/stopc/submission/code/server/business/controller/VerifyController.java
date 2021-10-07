@@ -31,16 +31,15 @@ public class VerifyController implements VerifyCodeApi {
      * This API must be protected and used only by a trusted back-end server over a
      * secure private connection.
      *
-     * @param type (required) The type of the provided code
      * @param code should respect regexp ([a-zA-Z0-9]{6}) |
-     *             ([a-f0-9]{8}(-[a-f0-9]{4}){4}[a-f0-9]{8}) (required) The code
-     *             value to verify
+     *             ([a-f0-9]{8}(-[a-f0-9]{4}){4}[a-f0-9]{8}) | ([a-zA-Z0-9]{12})
+     *             (required) The code value to verify
      * @return VerifyDto A boolean representing the result status
      */
     @Override
-    public ResponseEntity<VerifyDto> verify(String type, String code) throws Exception {
-        log.info("Receiving code : {} and type : {}", code, type);
-        boolean result = verifyServiceImpl.verifyCode(code, type);
+    public ResponseEntity<VerifyDto> verify(String code) throws Exception {
+        log.info("Receiving code : {}", code);
+        boolean result = verifyServiceImpl.verifyCode(code);
         return ResponseEntity.ok(VerifyDto.builder().valid(result).build());
     }
 
