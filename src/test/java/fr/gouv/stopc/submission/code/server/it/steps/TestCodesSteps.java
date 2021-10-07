@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Assertions;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
