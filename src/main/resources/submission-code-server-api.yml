@@ -17,8 +17,8 @@ paths:
         - Generate Code
       summary: Generate 6-alphanum code
       description:
-        Generate a new submission code. Codes are usable once and are valid
-        after a specific date and until a validity date.
+        Generate a new submission code. It can be validated only once.
+        Once it's has been verificated, it'll be valid until a end validity date.
       operationId: generate
       responses:
         "200":

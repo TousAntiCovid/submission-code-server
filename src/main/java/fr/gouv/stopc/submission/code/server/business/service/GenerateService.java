@@ -106,28 +106,24 @@ public class GenerateService {
         CodeSimpleDto codeSimpleDto = null;
         final SubmissionCodeDto submissionCodeDto = generateSubmissionCodeDtoForTestCode();
 
-        try {
-            final Optional<SubmissionCode> submissionCodeOptional = this.submissionCodeService
-                    .saveCode(submissionCodeDto);
+        final Optional<SubmissionCode> submissionCodeOptional = this.submissionCodeService
+                .saveCode(submissionCodeDto);
 
-            if (!submissionCodeOptional.isPresent()) {
-                throw new SubmissionCodeServerException(
-                        SubmissionCodeServerException.ExceptionEnum.DB_SAVE_OPTIONAL_EMPTY
-                );
-            }
-
-            final SubmissionCode submissionCodeEntity = submissionCodeOptional.get();
-
-            codeSimpleDto = CodeSimpleDto.builder()
-                    .code(submissionCodeEntity.getCode())
-                    .dateGenerate(submissionCodeEntity.getDateGeneration().format(DateTimeFormatter.ISO_INSTANT))
-                    .validFrom(submissionCodeEntity.getDateAvailable().format(DateTimeFormatter.ISO_INSTANT))
-                    .validUntil(submissionCodeEntity.getDateEndValidity().format(DateTimeFormatter.ISO_INSTANT))
-                    .build();
-
-        } catch (DataIntegrityViolationException divException) {
-            log.error("Code generated is not unique. Relaunch the request to obtain an other test code.");
+        if (!submissionCodeOptional.isPresent()) {
+            throw new SubmissionCodeServerException(
+                    SubmissionCodeServerException.ExceptionEnum.DB_SAVE_OPTIONAL_EMPTY
+            );
         }
+
+        final SubmissionCode submissionCodeEntity = submissionCodeOptional.get();
+
+        codeSimpleDto = CodeSimpleDto.builder()
+                .code(submissionCodeEntity.getCode())
+                .dateGenerate(submissionCodeEntity.getDateGeneration().format(DateTimeFormatter.ISO_INSTANT))
+                .validFrom(submissionCodeEntity.getDateAvailable().format(DateTimeFormatter.ISO_INSTANT))
+                .validUntil(submissionCodeEntity.getDateEndValidity().format(DateTimeFormatter.ISO_INSTANT))
+                .build();
+
         return codeSimpleDto;
     }
 

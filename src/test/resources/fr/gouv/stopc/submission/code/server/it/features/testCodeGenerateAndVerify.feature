@@ -1,6 +1,6 @@
 Feature: Test code generation
 
-  Scenario: Can I generate a "test" submission code
+  Scenario: Generate a "test" submission code
     When I request a "test" submission code
     Then I received a 12 characters code valid until now plus 3 days
 
