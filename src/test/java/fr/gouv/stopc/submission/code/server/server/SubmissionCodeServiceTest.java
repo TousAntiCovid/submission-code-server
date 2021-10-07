@@ -4,7 +4,6 @@ import fr.gouv.stopc.submission.code.server.business.dto.SubmissionCodeDto;
 import fr.gouv.stopc.submission.code.server.business.service.SubmissionCodeService;
 import fr.gouv.stopc.submission.code.server.data.entity.SubmissionCode;
 import fr.gouv.stopc.submission.code.server.data.repository.SubmissionCodeRepository;
-import fr.gouv.stopc.submission.code.server.domain.enums.CodeTypeEnum;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -23,13 +22,13 @@ public class SubmissionCodeServiceTest {
     @Test
     public void testGetCodeValidity() {
         SubmissionCode submissionCode = new SubmissionCode();
-        Mockito.when(submissionCodeRepositoryMock.findByCodeAndType(Mockito.anyString(), Mockito.anyString()))
+        Mockito.when(submissionCodeRepositoryMock.findByCode(Mockito.anyString()))
                 .thenReturn(submissionCode);
         SubmissionCodeService submissionCodeServiceImplTest = new SubmissionCodeService(
                 submissionCodeRepositoryMock
         );
         String code = "test";
-        Optional<SubmissionCodeDto> result = submissionCodeServiceImplTest.getCodeValidity(code, CodeTypeEnum.LONG);
+        Optional<SubmissionCodeDto> result = submissionCodeServiceImplTest.getCodeValidity(code);
         Assertions.assertTrue(result.isPresent());
     }
 
@@ -65,11 +64,11 @@ public class SubmissionCodeServiceTest {
     @Test
     public void testGetValidityEmpty() {
         SubmissionCode submissionCode = new SubmissionCode();
-        Mockito.when(submissionCodeRepositoryMock.findByCodeAndType(Mockito.anyString(), Mockito.anyString()))
+        Mockito.when(submissionCodeRepositoryMock.findByCode(Mockito.anyString()))
                 .thenReturn(submissionCode);
         SubmissionCodeService submissionCodeService = new SubmissionCodeService(submissionCodeRepositoryMock);
         String code = "";
-        Optional<SubmissionCodeDto> result = submissionCodeService.getCodeValidity(code, CodeTypeEnum.LONG);
+        Optional<SubmissionCodeDto> result = submissionCodeService.getCodeValidity(code);
         Assertions.assertTrue(!result.isPresent());
     }
 
@@ -86,7 +85,7 @@ public class SubmissionCodeServiceTest {
         submissionCodeDto.setCode("test");
         submissionCodeDto.setType("test");
         SubmissionCode submissionCode = new SubmissionCode();
-        Mockito.when(submissionCodeRepositoryMock.findByCodeAndType(Mockito.anyString(), Mockito.anyString()))
+        Mockito.when(submissionCodeRepositoryMock.findByCode(Mockito.anyString()))
                 .thenReturn(submissionCode);
         Mockito.when(submissionCodeRepositoryMock.save(submissionCode)).thenReturn(submissionCode);
         SubmissionCodeService submissionCodeService = new SubmissionCodeService(submissionCodeRepositoryMock);
@@ -99,7 +98,7 @@ public class SubmissionCodeServiceTest {
         submissionCodeDto.setCode("test");
         submissionCodeDto.setType("test");
         SubmissionCode submissionCode = new SubmissionCode();
-        Mockito.when(submissionCodeRepositoryMock.findByCodeAndType(Mockito.anyString(), Mockito.anyString()))
+        Mockito.when(submissionCodeRepositoryMock.findByCode(Mockito.anyString()))
                 .thenReturn(null);
         Mockito.when(submissionCodeRepositoryMock.save(submissionCode)).thenReturn(submissionCode);
         SubmissionCodeService submissionCodeService = new SubmissionCodeService(submissionCodeRepositoryMock);

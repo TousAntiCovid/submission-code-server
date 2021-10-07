@@ -16,10 +16,22 @@ paths:
       tags:
         - Generate Code
       summary: Generate 6-alphanum code
-      description:
-        Generate a new submission code. Codes are usable once and are valid
-        after a specific date and until a validity date.
+      description: Generate a new submission code. Codes are usable once.
       operationId: generate
+      responses:
+        "200":
+          description: Generated code
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CodeSimpleDto"
+  "/generate/test":
+    get:
+      tags:
+        - Generate Code
+      summary: Generate a test code that is 12 characters long.
+      description: Generate a new submission code. Codes are usable once.
+      operationId: generateTest
       responses:
         "200":
           description: Generated code
@@ -39,16 +51,11 @@ paths:
         NOTE: This API must be protected and used only by a trusted back-end server over a secure private connection.
       operationId: verify
       parameters:
-        - name: type
-          in: query
-          required: true
-          schema:
-            type: string
         - name: code
           in: query
           required: true
           description: should respect regexp ([a-zA-Z0-9]{6}) |
-            ([a-f0-9]{8}(-[a-f0-9]{4}){4}[a-f0-9]{8})
+            ([a-f0-9]{8}(-[a-f0-9]{4}){4}[a-f0-9]{8}) | ([a-zA-Z0-9]{12})
           schema:
             type: string
       responses:
