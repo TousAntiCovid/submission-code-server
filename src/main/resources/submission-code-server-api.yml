@@ -16,9 +16,7 @@ paths:
       tags:
         - Generate Code
       summary: Generate 6-alphanum code
-      description:
-        Generate a new submission code. It can be validated only once.
-        Once it's has been verificated, it'll be valid until a end validity date.
+      description: Generate a new submission code. Codes are usable once.
       operationId: generate
       responses:
         "200":
@@ -32,9 +30,7 @@ paths:
       tags:
         - Generate Code
       summary: Generate a test code that is 12 characters long.
-      description:
-        Generate a new submission code. Codes are usable once and are valid
-        after a specific date and until 3 days after generation.
+      description: Generate a new submission code. Codes are usable once.
       operationId: generateTest
       responses:
         "200":

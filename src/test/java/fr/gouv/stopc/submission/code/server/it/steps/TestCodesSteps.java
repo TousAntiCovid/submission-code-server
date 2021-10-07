@@ -36,15 +36,13 @@ public class TestCodesSteps {
 
     @Then("I received a 12 characters code valid until now plus 3 days")
     public void the_generated_code_is_a_well_formatted_code() {
-        Pattern p = Pattern.compile("([a-zA-Z0-9]{12})");
-        final String code = codeSimpleDto.getCode();
-        Assertions.assertNotNull(code);
-        assertThat(code).matches(p);
+        assertThat(codeSimpleDto.getCode())
+                .matches("([a-zA-Z0-9]{12})");
 
         Instant inThreeDays = Instant.now().truncatedTo(ChronoUnit.DAYS)
                 .plus(3, ChronoUnit.DAYS);
         Instant validUntil = Instant.parse(codeSimpleDto.getValidUntil());
-        Assertions.assertEquals(inThreeDays, validUntil);
+        assertThat(inThreeDays).isEqualTo(validUntil);
     }
 
     @When("I request it's verification")
