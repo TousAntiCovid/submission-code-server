@@ -9,4 +9,4 @@ Ce fichier ne doit pas être mis à jour directement, il faut utiliser le fichie
 Par la suite les changements de `CHANGELOG-UNRELEASED.md` sont reversé dans ce
 fichier lors de la création d'une nouvelle release.
 
-## 
+##
