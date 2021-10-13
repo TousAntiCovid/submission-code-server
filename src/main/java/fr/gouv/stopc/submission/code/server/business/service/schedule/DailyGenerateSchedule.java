@@ -60,6 +60,7 @@ public class DailyGenerateSchedule {
      * and save the result in a list of objects representing the requests.
      */
     private void computeAndGenerateRequestList() {
+        log.info("SCHEDULER : Start computeAndGenerateRequestList");
         OffsetDateTime currentDate = OffsetDateTime.now().truncatedTo(ChronoUnit.DAYS);
         generationRequestList = new ArrayList<>();
 
@@ -68,6 +69,7 @@ public class DailyGenerateSchedule {
             Integer dailyProductionTarget = generationConfig.getDailyProductionTarget(startDateTime);
             var numberOfAvailableCodes = this.submissionCodeRepository
                     .countAllByTypeAndDateAvailableEquals(CodeTypeEnum.LONG.getTypeCode(), startDateTime);
+            log.info("SCHEDULER : We have to produce {} codes for day {}", dailyProductionTarget, startDateTime.toString());
             var numberOfCodeToGenerate = dailyProductionTarget - numberOfAvailableCodes;
             Long fragmentRemainingToGenerate = numberOfCodeToGenerate % generationConfig.getMaxbatchsize();
             var numberOfFullBatch = Math.toIntExact(numberOfCodeToGenerate / generationConfig.getMaxbatchsize());
@@ -135,11 +137,11 @@ public class DailyGenerateSchedule {
     void purgeUnusedCodes() {
         log.info("SCHEDULER : Start purge unused codes");
         OffsetDateTime dateEndValidityAfter = OffsetDateTime.now().minusMonths(2);
-        Long numberOfDeletedCodes = submissionCodeRepository
+        submissionCodeRepository
                 .deleteAllByTypeAndUsedFalseAndDateEndValidityBefore(
                         CodeTypeEnum.LONG.getTypeCode(), dateEndValidityAfter
                 );
-        log.info("SCHEDULER : {} codes with a validity date of more than two months deleted", numberOfDeletedCodes);
+        log.info("SCHEDULER : End deletion of codes with a validity date of more than two months deleted");
     }
 
 }
