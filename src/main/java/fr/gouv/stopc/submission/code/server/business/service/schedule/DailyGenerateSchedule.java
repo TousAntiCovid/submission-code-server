@@ -69,7 +69,10 @@ public class DailyGenerateSchedule {
             Integer dailyProductionTarget = generationConfig.getDailyProductionTarget(startDateTime);
             var numberOfAvailableCodes = this.submissionCodeRepository
                     .countAllByTypeAndDateAvailableEquals(CodeTypeEnum.LONG.getTypeCode(), startDateTime);
-            log.info("SCHEDULER : We have to produce {} codes for day {}", dailyProductionTarget, startDateTime.toString());
+            log.info(
+                    "SCHEDULER : We have to produce {} codes for day {}", dailyProductionTarget,
+                    startDateTime.toString()
+            );
             var numberOfCodeToGenerate = dailyProductionTarget - numberOfAvailableCodes;
             Long fragmentRemainingToGenerate = numberOfCodeToGenerate % generationConfig.getMaxbatchsize();
             var numberOfFullBatch = Math.toIntExact(numberOfCodeToGenerate / generationConfig.getMaxbatchsize());
