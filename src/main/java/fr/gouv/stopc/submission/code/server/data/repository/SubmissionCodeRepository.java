@@ -40,9 +40,8 @@ public interface SubmissionCodeRepository extends PagingAndSortingRepository<Sub
 
     @Transactional
     @Modifying
-    @Query("DELETE FROM SubmissionCode s where s.type = :type and s.used = false and s.dateEndValidity < :toDate")
-    void deleteAllByTypeAndUsedFalseAndDateEndValidityBefore(@Param("type") String type,
-            @Param("toDate") OffsetDateTime dateTo);
+    @Query("DELETE FROM SubmissionCode s where s.type = :type and s.used = false and s.dateEndValidity < :dateEndValidity")
+    void deleteAllByTypeAndUsedFalseAndDateEndValidityBefore(String type, OffsetDateTime dateEndValidity);
 
     /**
      * The method serches the used codes from fromDate until dateTo of type
