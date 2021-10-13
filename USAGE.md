@@ -16,8 +16,9 @@ En passant en paramètre les informations suivantes dans le Body :
     "dailyAmount":40000
 }
 ```
+
 from : correspond à la date du début de validité des codes.  
-to : correspond à la fin de validité des codes et doit être postérieure à la date from.    
+to : correspond à la fin de validité des codes et doit être postérieure à la date from.
 
 L'opérateur effectuera donc 7 appels avec le paramètre dailyAmount à 40000 et un appel avec le paramètre dailyAmount à 20000.  
 Tous les appels auront les mêmes paramères from et to qui correspondent au début et à la fin de validité des codes.
@@ -25,6 +26,7 @@ Tous les appels auront les mêmes paramères from et to qui correspondent au dé
 Chaque appel donne lieu à la création de deux fichiers (voir § ci-dessous).
 
 Une exécution du script est finie quand ce message s'affiche dans les logs.
+
 ```
 INFO fr.gouv.stopc.submission.code.server.ws.service.impl.FileServiceImpl [task-{}] It took {} seconds to generate {} codes
 ```

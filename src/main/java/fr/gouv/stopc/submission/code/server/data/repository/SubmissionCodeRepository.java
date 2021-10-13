@@ -4,6 +4,7 @@ import fr.gouv.stopc.submission.code.server.data.entity.Lot;
 import fr.gouv.stopc.submission.code.server.data.entity.SubmissionCode;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
@@ -35,7 +36,9 @@ public interface SubmissionCodeRepository extends PagingAndSortingRepository<Sub
     long countAllByTypeAndDateEndValidityBefore(String type, OffsetDateTime dateFrom);
 
     @Transactional
-    Long deleteAllByUsedFalseAndDateEndValidityBefore(OffsetDateTime dateEndValidityAfter);
+    @Modifying
+    @Query("DELETE FROM SubmissionCode s where s.type = :type and s.used = false and s.dateEndValidity < :dateEndValidity")
+    void deleteAllByTypeAndUsedFalseAndDateEndValidityBefore(String type, OffsetDateTime dateEndValidity);
 
     /**
      * The method serches the used codes from fromDate until dateTo of type
