@@ -12,7 +12,7 @@ import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.time.OffsetDateTime;
+import java.time.*;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,17 +55,28 @@ public class DailyGenerateSchedule {
         return generationConfig.getScheduling();
     }
 
+    protected OffsetDateTime getMidnight() {
+        LocalTime midnight = LocalTime.MIDNIGHT;
+        LocalDate today = LocalDate.now(ZoneId.of("Europe/Paris"));
+        LocalDateTime todayMidnight = LocalDateTime.of(today, midnight);
+        ZonedDateTime zonedDateTimeParis = ZonedDateTime.of(todayMidnight, ZoneId.of("Europe/Paris"));
+
+        Instant todayAsInstant = zonedDateTimeParis.toInstant();
+        return todayAsInstant.atOffset(ZoneOffset.UTC);
+    }
+
     /**
      * Compute for each ten next days how many tar.gz we have to do after, generate
      * and save the result in a list of objects representing the requests.
      */
     private void computeAndGenerateRequestList() {
         log.info("SCHEDULER : Start computeAndGenerateRequestList");
-        OffsetDateTime currentDate = OffsetDateTime.now().truncatedTo(ChronoUnit.DAYS);
+        OffsetDateTime currentDate = getMidnight();
         generationRequestList = new ArrayList<>();
 
         for (int i = 0; i <= TEN_DAYS; i++) {
             final OffsetDateTime startDateTime = currentDate;
+
             Integer dailyProductionTarget = generationConfig.getDailyProductionTarget(startDateTime);
             var numberOfAvailableCodes = this.submissionCodeRepository
                     .countAllByTypeAndDateAvailableEquals(CodeTypeEnum.LONG.getTypeCode(), startDateTime);
@@ -137,7 +148,7 @@ public class DailyGenerateSchedule {
     /**
      * Purge unused codes no more valid since two months
      */
-    void purgeUnusedCodes() {
+    public void purgeUnusedCodes() {
         log.info("SCHEDULER : Start purge unused codes");
         OffsetDateTime dateEndValidityAfter = OffsetDateTime.now().minusMonths(2);
         submissionCodeRepository

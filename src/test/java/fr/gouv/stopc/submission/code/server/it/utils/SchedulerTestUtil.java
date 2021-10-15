@@ -15,8 +15,7 @@ import org.junit.jupiter.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
-import java.time.OffsetDateTime;
-import java.time.ZoneId;
+import java.time.*;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,11 +41,22 @@ public class SchedulerTestUtil {
     @Autowired
     GenerateService generateService;
 
+    protected OffsetDateTime getMidnight() {
+        LocalTime midnight = LocalTime.MIDNIGHT;
+        LocalDate today = LocalDate.now(ZoneId.of("Europe/Paris"));
+        LocalDateTime todayMidnight = LocalDateTime.of(today, midnight);
+        ZonedDateTime zonedDateTimeParis = ZonedDateTime.of(todayMidnight, ZoneId.of("Europe/Paris"));
+
+        Instant todayAsInstant = zonedDateTimeParis.toInstant();
+        return todayAsInstant.atOffset(ZoneOffset.UTC);
+    }
+
     protected void assertFromStartDayDuringNumberOfDaysCorrespondingToNumberOfCodes(int startDay, int numberOfDays,
             int numberOfExpectedCodes) {
-        OffsetDateTime iterateDate = OffsetDateTime.now().plusDays(startDay);
+        OffsetDateTime currentDate = getMidnight();
+        OffsetDateTime iterateDate = currentDate.plusDays(startDay);
         for (int days = 0; days < numberOfDays; days++) {
-            iterateDate = iterateDate.truncatedTo(ChronoUnit.DAYS);
+
             long availableCodes = submissionCodeRepository.countAllByTypeAndDateAvailableEquals(
                     CodeTypeEnum.LONG.getTypeCode(), iterateDate
             );

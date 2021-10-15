@@ -28,10 +28,7 @@ import javax.inject.Inject;
 import java.io.*;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.time.DateTimeException;
-import java.time.LocalDate;
-import java.time.OffsetDateTime;
-import java.time.ZoneId;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -520,13 +517,11 @@ public class FileService {
             throws SubmissionCodeServerException {
         List<String> listFile = new ArrayList<>();
 
-        OffsetDateTime fromWithoutHours = from.truncatedTo(ChronoUnit.DAYS);
-        OffsetDateTime toWithoutHours = to.truncatedTo(ChronoUnit.DAYS);
         OffsetDateTime validGenDate = OffsetDateTime.now();
 
-        while (fromWithoutHours.isBefore(toWithoutHours)) {
+        while (from.isBefore(to)) {
             List<CodeDetailedDto> codeSaves = this.generateService.generateLongCodesWithBulkMethod(
-                    fromWithoutHours,
+                    from,
                     codePerDays,
                     lotObject,
                     validGenDate
@@ -537,9 +532,9 @@ public class FileService {
                         .map(codeDetailedDto -> mapToSubmissionCodeDto(codeDetailedDto, lotObject.getId()))
                         .collect(Collectors.toList());
 
-                listFile.addAll((this.serializeCodesToCsv(collect, Arrays.asList(fromWithoutHours), tmpDirectory)));
+                listFile.addAll((this.serializeCodesToCsv(collect, Arrays.asList(from), tmpDirectory)));
             }
-            fromWithoutHours = fromWithoutHours.plusDays(1);
+            from = from.plusDays(1);
         }
         return listFile;
     }

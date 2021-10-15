@@ -47,6 +47,11 @@ public class ItDefinitionSteps extends SchedulerTestUtil {
         createFalsesCodesInDB(OffsetDateTime.now().minusMonths(3), 100);
     }
 
+    @Given("purge old codes")
+    public void purge_old_codes() throws SubmissionCodeServerException {
+        dailyGenerateSchedule.purgeUnusedCodes();
+    }
+
     @Given("purge sftp")
     public void purge_sftp() {
         purgeSftp();
@@ -216,8 +221,7 @@ public class ItDefinitionSteps extends SchedulerTestUtil {
             for (CsvRowDto row : csvRowDtoList) {
                 Assertions.assertTrue(row.getQrcode().matches("https://app.stopcovid.gouv.fr\\?code=(.{36})&type=1"));
                 Assertions.assertTrue(row.getCode().matches("(.{36})"));
-                Instant dateAvailable = Instant.now().truncatedTo(ChronoUnit.DAYS);
-                Assertions.assertEquals(dateAvailable, row.getDateAvailable());
+                Assertions.assertEquals(getMidnight().toInstant(), row.getDateAvailable());
                 Instant expectedEndValidityDate = OffsetDateTime.now(ZoneId.of(targetZoneId))
                         .truncatedTo(ChronoUnit.DAYS).plus(8, ChronoUnit.DAYS)
                         .minus(1, ChronoUnit.MINUTES).toInstant();
