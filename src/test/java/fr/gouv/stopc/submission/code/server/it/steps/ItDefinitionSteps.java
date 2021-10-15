@@ -31,6 +31,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+
 @Slf4j
 public class ItDefinitionSteps extends SchedulerTestUtil {
 
@@ -67,7 +69,7 @@ public class ItDefinitionSteps extends SchedulerTestUtil {
         Map<Integer, Integer> dayAndVolumeMap = Map.of(0, 300, 8, 40, 9, 0);
         configureScheduler(dayAndVolumeMap);
         LockAssert.TestHelper.makeAllAssertsPass(true);
-        Assertions.assertDoesNotThrow(() -> dailyGenerateSchedule.dailyProductionCodeScheduler());
+        assertDoesNotThrow(() -> dailyGenerateSchedule.dailyProductionCodeScheduler());
     }
 
     @Given("scheduler generate {int} code per days since J {int} and J {int}")
@@ -77,7 +79,7 @@ public class ItDefinitionSteps extends SchedulerTestUtil {
         Map<Integer, Integer> dayAndVolumeMap = Map.of(startDayNumber, numberOfCodes, endDayNumber, 0);
         configureScheduler(dayAndVolumeMap);
         LockAssert.TestHelper.makeAllAssertsPass(true);
-        Assertions.assertDoesNotThrow(() -> dailyGenerateSchedule.dailyProductionCodeScheduler());
+        assertDoesNotThrow(() -> dailyGenerateSchedule.dailyProductionCodeScheduler());
     }
 
     @Then("sftp contains {int} files")

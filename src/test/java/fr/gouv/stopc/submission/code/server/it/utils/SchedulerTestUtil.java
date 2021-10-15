@@ -16,10 +16,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.time.*;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import static java.time.temporal.ChronoUnit.DAYS;
 
 public class SchedulerTestUtil {
 
@@ -42,13 +43,10 @@ public class SchedulerTestUtil {
     GenerateService generateService;
 
     protected OffsetDateTime getMidnight() {
-        LocalTime midnight = LocalTime.MIDNIGHT;
-        LocalDate today = LocalDate.now(ZoneId.of("Europe/Paris"));
-        LocalDateTime todayMidnight = LocalDateTime.of(today, midnight);
-        ZonedDateTime zonedDateTimeParis = ZonedDateTime.of(todayMidnight, ZoneId.of("Europe/Paris"));
-
-        Instant todayAsInstant = zonedDateTimeParis.toInstant();
-        return todayAsInstant.atOffset(ZoneOffset.UTC);
+        return Instant.now()
+                .atZone(ZoneId.of("Europe/Paris"))
+                .truncatedTo(DAYS)
+                .toOffsetDateTime();
     }
 
     protected void assertFromStartDayDuringNumberOfDaysCorrespondingToNumberOfCodes(int startDay, int numberOfDays,
@@ -66,7 +64,7 @@ public class SchedulerTestUtil {
     }
 
     protected void configureScheduler(Map<Integer, Integer> production) {
-        OffsetDateTime todayOff = OffsetDateTime.now(ZoneId.of(targetZoneId)).truncatedTo(ChronoUnit.DAYS);
+        OffsetDateTime todayOff = OffsetDateTime.now(ZoneId.of(targetZoneId)).truncatedTo(DAYS);
         List<GenerationConfig> scheduling = new ArrayList<>();
         production.forEach((day, volume) -> {
             OffsetDateTime currentDate = todayOff.plusDays(day);

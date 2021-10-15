@@ -16,6 +16,8 @@ import java.time.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.time.temporal.ChronoUnit.DAYS;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -55,13 +57,10 @@ public class DailyGenerateSchedule {
     }
 
     protected OffsetDateTime getMidnight() {
-        LocalTime midnight = LocalTime.MIDNIGHT;
-        LocalDate today = LocalDate.now(ZoneId.of("Europe/Paris"));
-        LocalDateTime todayMidnight = LocalDateTime.of(today, midnight);
-        ZonedDateTime zonedDateTimeParis = ZonedDateTime.of(todayMidnight, ZoneId.of("Europe/Paris"));
-
-        Instant todayAsInstant = zonedDateTimeParis.toInstant();
-        return todayAsInstant.atOffset(ZoneOffset.UTC);
+        return Instant.now()
+                .atZone(ZoneId.of("Europe/Paris"))
+                .truncatedTo(DAYS)
+                .toOffsetDateTime();
     }
 
     /**
