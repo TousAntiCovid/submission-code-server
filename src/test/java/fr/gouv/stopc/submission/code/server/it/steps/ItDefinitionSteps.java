@@ -31,6 +31,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+
 @Slf4j
 public class ItDefinitionSteps extends SchedulerTestUtil {
 
@@ -45,6 +47,11 @@ public class ItDefinitionSteps extends SchedulerTestUtil {
     @Given("generate long code older than two months")
     public void generate_long_code_older_than_two_months() throws SubmissionCodeServerException {
         createFalsesCodesInDB(OffsetDateTime.now().minusMonths(3), 100);
+    }
+
+    @Given("purge old codes")
+    public void purge_old_codes() throws SubmissionCodeServerException {
+        dailyGenerateSchedule.purgeUnusedCodes();
     }
 
     @Given("purge sftp")
@@ -62,7 +69,7 @@ public class ItDefinitionSteps extends SchedulerTestUtil {
         Map<Integer, Integer> dayAndVolumeMap = Map.of(0, 300, 8, 40, 9, 0);
         configureScheduler(dayAndVolumeMap);
         LockAssert.TestHelper.makeAllAssertsPass(true);
-        Assertions.assertDoesNotThrow(() -> dailyGenerateSchedule.dailyProductionCodeScheduler());
+        assertDoesNotThrow(() -> dailyGenerateSchedule.dailyProductionCodeScheduler());
     }
 
     @Given("scheduler generate {int} code per days since J {int} and J {int}")
@@ -72,7 +79,7 @@ public class ItDefinitionSteps extends SchedulerTestUtil {
         Map<Integer, Integer> dayAndVolumeMap = Map.of(startDayNumber, numberOfCodes, endDayNumber, 0);
         configureScheduler(dayAndVolumeMap);
         LockAssert.TestHelper.makeAllAssertsPass(true);
-        Assertions.assertDoesNotThrow(() -> dailyGenerateSchedule.dailyProductionCodeScheduler());
+        assertDoesNotThrow(() -> dailyGenerateSchedule.dailyProductionCodeScheduler());
     }
 
     @Then("sftp contains {int} files")
@@ -216,8 +223,7 @@ public class ItDefinitionSteps extends SchedulerTestUtil {
             for (CsvRowDto row : csvRowDtoList) {
                 Assertions.assertTrue(row.getQrcode().matches("https://app.stopcovid.gouv.fr\\?code=(.{36})&type=1"));
                 Assertions.assertTrue(row.getCode().matches("(.{36})"));
-                Instant dateAvailable = Instant.now().truncatedTo(ChronoUnit.DAYS);
-                Assertions.assertEquals(dateAvailable, row.getDateAvailable());
+                Assertions.assertEquals(getMidnight().toInstant(), row.getDateAvailable());
                 Instant expectedEndValidityDate = OffsetDateTime.now(ZoneId.of(targetZoneId))
                         .truncatedTo(ChronoUnit.DAYS).plus(8, ChronoUnit.DAYS)
                         .minus(1, ChronoUnit.MINUTES).toInstant();
