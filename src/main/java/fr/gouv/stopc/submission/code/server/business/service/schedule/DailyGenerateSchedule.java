@@ -12,10 +12,11 @@ import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.time.OffsetDateTime;
-import java.time.temporal.ChronoUnit;
+import java.time.*;
 import java.util.ArrayList;
 import java.util.List;
+
+import static java.time.temporal.ChronoUnit.DAYS;
 
 @Slf4j
 @Service
@@ -55,17 +56,25 @@ public class DailyGenerateSchedule {
         return generationConfig.getScheduling();
     }
 
+    protected OffsetDateTime getMidnight() {
+        return Instant.now()
+                .atZone(ZoneId.of("Europe/Paris"))
+                .truncatedTo(DAYS)
+                .toOffsetDateTime();
+    }
+
     /**
      * Compute for each ten next days how many tar.gz we have to do after, generate
      * and save the result in a list of objects representing the requests.
      */
     private void computeAndGenerateRequestList() {
         log.info("SCHEDULER : Start computeAndGenerateRequestList");
-        OffsetDateTime currentDate = OffsetDateTime.now().truncatedTo(ChronoUnit.DAYS);
+        OffsetDateTime currentDate = getMidnight();
         generationRequestList = new ArrayList<>();
 
         for (int i = 0; i <= TEN_DAYS; i++) {
             final OffsetDateTime startDateTime = currentDate;
+
             Integer dailyProductionTarget = generationConfig.getDailyProductionTarget(startDateTime);
             var numberOfAvailableCodes = this.submissionCodeRepository
                     .countAllByTypeAndDateAvailableEquals(CodeTypeEnum.LONG.getTypeCode(), startDateTime);
@@ -137,7 +146,7 @@ public class DailyGenerateSchedule {
     /**
      * Purge unused codes no more valid since two months
      */
-    void purgeUnusedCodes() {
+    public void purgeUnusedCodes() {
         log.info("SCHEDULER : Start purge unused codes");
         OffsetDateTime dateEndValidityAfter = OffsetDateTime.now().minusMonths(2);
         submissionCodeRepository

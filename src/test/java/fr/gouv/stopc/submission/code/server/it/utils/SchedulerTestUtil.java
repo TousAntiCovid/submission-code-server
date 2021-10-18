@@ -15,12 +15,12 @@ import org.junit.jupiter.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
-import java.time.OffsetDateTime;
-import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
+import java.time.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import static java.time.temporal.ChronoUnit.DAYS;
 
 public class SchedulerTestUtil {
 
@@ -42,11 +42,19 @@ public class SchedulerTestUtil {
     @Autowired
     GenerateService generateService;
 
+    protected OffsetDateTime getMidnight() {
+        return Instant.now()
+                .atZone(ZoneId.of("Europe/Paris"))
+                .truncatedTo(DAYS)
+                .toOffsetDateTime();
+    }
+
     protected void assertFromStartDayDuringNumberOfDaysCorrespondingToNumberOfCodes(int startDay, int numberOfDays,
             int numberOfExpectedCodes) {
-        OffsetDateTime iterateDate = OffsetDateTime.now().plusDays(startDay);
+        OffsetDateTime currentDate = getMidnight();
+        OffsetDateTime iterateDate = currentDate.plusDays(startDay);
         for (int days = 0; days < numberOfDays; days++) {
-            iterateDate = iterateDate.truncatedTo(ChronoUnit.DAYS);
+
             long availableCodes = submissionCodeRepository.countAllByTypeAndDateAvailableEquals(
                     CodeTypeEnum.LONG.getTypeCode(), iterateDate
             );
@@ -56,7 +64,7 @@ public class SchedulerTestUtil {
     }
 
     protected void configureScheduler(Map<Integer, Integer> production) {
-        OffsetDateTime todayOff = OffsetDateTime.now(ZoneId.of(targetZoneId)).truncatedTo(ChronoUnit.DAYS);
+        OffsetDateTime todayOff = OffsetDateTime.now(ZoneId.of(targetZoneId)).truncatedTo(DAYS);
         List<GenerationConfig> scheduling = new ArrayList<>();
         production.forEach((day, volume) -> {
             OffsetDateTime currentDate = todayOff.plusDays(day);
