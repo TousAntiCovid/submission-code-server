@@ -8,7 +8,7 @@ import java.util.Optional;
 @Getter
 public enum CodeTypeEnum {
 
-    LONG("1", "UUIDv4", Pattern.LONG, 32),
+    LONG("1", "UUIDv4", Pattern.LONG, 36),
     SHORT("2", "6-alphanum", Pattern.SHORT, 6),
     TEST("3", "12-aphanum", Pattern.TEST, 12);
 
