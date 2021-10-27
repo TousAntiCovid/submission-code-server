@@ -51,8 +51,7 @@ public class VerifyServiceVerifyCodeMethodTest {
 
         Optional<CodeTypeEnum> typeToFound = CodeTypeEnum.searchMatchLength(code.length());
 
-        final boolean isPresent = typeToFound.isPresent();
-        assertTrue(isPresent);
+        assertTrue(typeToFound.isPresent());
     }
 
     @ParameterizedTest
@@ -68,8 +67,7 @@ public class VerifyServiceVerifyCodeMethodTest {
 
         Optional<CodeTypeEnum> typeToFound = CodeTypeEnum.searchMatchLength(code.length());
 
-        final boolean isPresent = typeToFound.isPresent();
-        assertFalse(isPresent);
+        assertFalse(typeToFound.isPresent());
     }
 
     @ParameterizedTest

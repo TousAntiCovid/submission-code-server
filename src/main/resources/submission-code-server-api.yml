@@ -54,9 +54,11 @@ paths:
         - name: type
           in: query
           required: false
-          description: If present, should respect regex ({1-3}1)
+          description: If present, should be between (1 to 3)
           schema:
-            type: string
+            type: integer
+            maximum: 3
+            minimum: 1
         - name: code
           in: query
           required: true
