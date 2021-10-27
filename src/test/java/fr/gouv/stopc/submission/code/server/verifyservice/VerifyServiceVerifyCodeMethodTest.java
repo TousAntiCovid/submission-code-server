@@ -95,7 +95,7 @@ public class VerifyServiceVerifyCodeMethodTest {
                 .thenReturn(true);
 
         final boolean isPresent = this.verifyService.verifyCode(code);
-        assertThat(isPresent).as("Le code " + code + " est valide.").isTrue();
+        assertThat(isPresent).as("The code " + code + " is valid.").isTrue();
     }
 
     @ParameterizedTest
@@ -122,7 +122,7 @@ public class VerifyServiceVerifyCodeMethodTest {
                 .thenReturn(true);
 
         final boolean isPresent = this.verifyService.verifyCode(code);
-        assertThat(isPresent).as("Le code " + code + " n'est pas valide.").isFalse();
+        assertThat(isPresent).as("The code " + code + " is invalid.").isFalse();
     }
 
     /**
