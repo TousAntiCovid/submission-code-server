@@ -39,7 +39,7 @@ public class VerifyController implements VerifyCodeApi {
      * @return VerifyDto A boolean representing the result status
      */
     @Override
-    public ResponseEntity<VerifyDto> verify(String code, Integer type) {
+    public ResponseEntity<VerifyDto> verify(String code, String type) {
         log.info("Receiving code : {}", code);
         boolean result = verifyServiceImpl.verifyCode(code);
         return ResponseEntity.ok(VerifyDto.builder().valid(result).build());

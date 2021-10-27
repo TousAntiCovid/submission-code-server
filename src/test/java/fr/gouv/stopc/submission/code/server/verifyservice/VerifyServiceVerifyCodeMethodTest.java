@@ -18,6 +18,7 @@ import org.mockito.Spy;
 import java.time.OffsetDateTime;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -51,7 +52,7 @@ public class VerifyServiceVerifyCodeMethodTest {
 
         Optional<CodeTypeEnum> typeToFound = CodeTypeEnum.searchMatchLength(code.length());
 
-        assertTrue(typeToFound.isPresent());
+        assertThat(typeToFound).isPresent();
     }
 
     @ParameterizedTest
@@ -67,7 +68,7 @@ public class VerifyServiceVerifyCodeMethodTest {
 
         Optional<CodeTypeEnum> typeToFound = CodeTypeEnum.searchMatchLength(code.length());
 
-        assertFalse(typeToFound.isPresent());
+        assertThat(typeToFound).isEmpty();
     }
 
     @ParameterizedTest
@@ -94,7 +95,7 @@ public class VerifyServiceVerifyCodeMethodTest {
                 .thenReturn(true);
 
         final boolean isPresent = this.verifyService.verifyCode(code);
-        assertTrue(isPresent);
+        assertThat(isPresent).as("Le code " + code + " est valide.").isTrue();
     }
 
     @ParameterizedTest
@@ -121,7 +122,7 @@ public class VerifyServiceVerifyCodeMethodTest {
                 .thenReturn(true);
 
         final boolean isPresent = this.verifyService.verifyCode(code);
-        assertFalse(isPresent);
+        assertThat(isPresent).as("Le code " + code + " n'est pas valide.").isFalse();
     }
 
     /**

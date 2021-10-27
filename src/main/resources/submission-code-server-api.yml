@@ -56,9 +56,7 @@ paths:
           required: false
           description: If present, should be between (1 to 3)
           schema:
-            type: integer
-            maximum: 3
-            minimum: 1
+            type: string
         - name: code
           in: query
           required: true
