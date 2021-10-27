@@ -34,10 +34,12 @@ public class VerifyController implements VerifyCodeApi {
      * @param code should respect regexp ([a-zA-Z0-9]{6}) |
      *             ([a-f0-9]{8}(-[a-f0-9]{4}){4}[a-f0-9]{8}) | ([a-zA-Z0-9]{12})
      *             (required) The code value to verify
+     * @param type (optional) The type of the provided code If present, should be
+     *             between (1 to 3)
      * @return VerifyDto A boolean representing the result status
      */
     @Override
-    public ResponseEntity<VerifyDto> verify(String code) {
+    public ResponseEntity<VerifyDto> verify(String code, String type) {
         log.info("Receiving code : {}", code);
         boolean result = verifyServiceImpl.verifyCode(code);
         return ResponseEntity.ok(VerifyDto.builder().valid(result).build());
