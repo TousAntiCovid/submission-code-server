@@ -85,41 +85,48 @@ public class SFTPService {
     }
 
     public void transferFileSFTP(ByteArrayOutputStream file) throws SubmissionCodeServerException {
-
-        log.info("Transferring zip file to SFTP");
-
-        ByteArrayInputStream inputStream = new ByteArrayInputStream(file.toByteArray());
-
-        log.info("SFTP: connection is about to be created");
-        ChannelSftp channelSftp = createConnection();
-        log.info("SFTP: connexion created");
-
-        log.info("SFTP: connection is about to be connected");
-
-        log.info("SFTP: connected");
-
-        OffsetDateTime date = OffsetDateTime.now(ZoneId.of(targetZoneId));
-        String dateFile = date.format(DateTimeFormatter.ofPattern(DATEFORMATFILE));
-        String fileNameZip = String.format(zipFilenameFormat, dateFile);
-
-        log.info("SFTP: is about to pushed the zip file.");
         try {
-            channelSftp.put(inputStream, fileNameZip);
-        } catch (SftpException e) {
-            channelSftp.exit();
-            log.error(SubmissionCodeServerException.ExceptionEnum.SFTP_FILE_PUSHING_FAILED_ERROR.getMessage(), e);
-            throw new SubmissionCodeServerException(
-                    SubmissionCodeServerException.ExceptionEnum.SFTP_FILE_PUSHING_FAILED_ERROR,
-                    e
+            log.info("Transferring zip file to SFTP");
+
+            ByteArrayInputStream inputStream = new ByteArrayInputStream(file.toByteArray());
+
+            log.info("SFTP: connection is about to be created");
+            ChannelSftp channelSftp = createConnection();
+            log.info("SFTP: connexion created");
+
+            log.info("SFTP: connection is about to be connected");
+
+            log.info("SFTP: connected");
+
+            OffsetDateTime date = OffsetDateTime.now(ZoneId.of(targetZoneId));
+            String dateFile = date.format(DateTimeFormatter.ofPattern(DATEFORMATFILE));
+            String fileNameZip = String.format(zipFilenameFormat, dateFile);
+
+            log.info("SFTP: is about to pushed the zip file.");
+            try {
+                channelSftp.put(inputStream, fileNameZip);
+            } catch (SftpException e) {
+                channelSftp.exit();
+                log.error(SubmissionCodeServerException.ExceptionEnum.SFTP_FILE_PUSHING_FAILED_ERROR.getMessage(), e);
+                throw new SubmissionCodeServerException(
+                        SubmissionCodeServerException.ExceptionEnum.SFTP_FILE_PUSHING_FAILED_ERROR,
+                        e
+                );
+            }
+            log.info("SFTP: files have been pushed");
+
+            this.createDigestThenTransferToSFTP(
+                    file, channelSftp, ALGORITHM_SHA256, digestFileNameFormatSHA256, dateFile
             );
+
+            log.info("SFTP: connection is about to be closed");
+            channelSftp.exit();
+            channelSftp.getSession().disconnect();
+            log.info("SFTP: connection closed");
+        } catch (JSchException e) {
+            log.error(SubmissionCodeServerException.ExceptionEnum.UNQUALIFIED_ERROR.getMessage(), e);
+            throw new SubmissionCodeServerException(SubmissionCodeServerException.ExceptionEnum.UNQUALIFIED_ERROR, e);
         }
-        log.info("SFTP: files have been pushed");
-
-        this.createDigestThenTransferToSFTP(file, channelSftp, ALGORITHM_SHA256, digestFileNameFormatSHA256, dateFile);
-
-        log.info("SFTP: connection is about to be closed");
-        channelSftp.exit();
-        log.info("SFTP: connection closed");
     }
 
     /**
