@@ -96,16 +96,12 @@ public class SFTPService {
             channelSftp = createConnection();
             log.info("SFTP: connexion created");
 
-            log.info("SFTP: connection is about to be connected");
-
-            log.info("SFTP: connected");
-
             OffsetDateTime date = OffsetDateTime.now(ZoneId.of(targetZoneId));
             String dateFile = date.format(DateTimeFormatter.ofPattern(DATEFORMATFILE));
             String fileNameZip = String.format(zipFilenameFormat, dateFile);
 
             log.info("SFTP: is about to pushed the zip file.");
-            sendZipToSftp(channelSftp, inputStream, fileNameZip);
+            pushStreamToSftp(channelSftp, inputStream, fileNameZip);
             log.info("SFTP: files have been pushed");
 
             this.createDigestThenTransferToSFTP(
@@ -121,11 +117,10 @@ public class SFTPService {
         }
     }
 
-    public void sendZipToSftp(ChannelSftp channelSftp, InputStream inputStream, String fileNameZip) {
+    public void pushStreamToSftp(ChannelSftp channelSftp, InputStream inputStream, String fileNameZip) {
         try {
             channelSftp.put(inputStream, fileNameZip);
         } catch (SftpException e) {
-            closeConnection(channelSftp);
             throw new SubmissionCodeServerException(
                     SubmissionCodeServerException.ExceptionEnum.SFTP_FILE_PUSHING_FAILED_ERROR,
                     e
