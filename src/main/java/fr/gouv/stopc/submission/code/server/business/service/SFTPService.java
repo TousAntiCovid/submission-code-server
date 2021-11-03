@@ -137,7 +137,7 @@ public class SFTPService {
                 log.info("SFTP: connection closed");
             }
         } catch (JSchException e) {
-            throw new SubmissionCodeServerException(SubmissionCodeServerException.ExceptionEnum.UNQUALIFIED_ERROR, e);
+            throw new RuntimeException("Unable to close JschSession", e);
         }
     }
 
