@@ -12,6 +12,8 @@ import javax.xml.bind.DatatypeConverter;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -85,41 +87,58 @@ public class SFTPService {
     }
 
     public void transferFileSFTP(ByteArrayOutputStream file) throws SubmissionCodeServerException {
-
+        ChannelSftp channelSftp = null;
         log.info("Transferring zip file to SFTP");
 
-        ByteArrayInputStream inputStream = new ByteArrayInputStream(file.toByteArray());
+        try (ByteArrayInputStream inputStream = new ByteArrayInputStream(file.toByteArray())) {
 
-        log.info("SFTP: connection is about to be created");
-        ChannelSftp channelSftp = createConnection();
-        log.info("SFTP: connexion created");
+            log.info("SFTP: connection is about to be created");
+            channelSftp = createConnection();
+            log.info("SFTP: connexion created");
 
-        log.info("SFTP: connection is about to be connected");
+            OffsetDateTime date = OffsetDateTime.now(ZoneId.of(targetZoneId));
+            String dateFile = date.format(DateTimeFormatter.ofPattern(DATEFORMATFILE));
+            String fileNameZip = String.format(zipFilenameFormat, dateFile);
 
-        log.info("SFTP: connected");
+            log.info("SFTP: is about to pushed the zip file.");
+            pushStreamToSftp(channelSftp, inputStream, fileNameZip);
+            log.info("SFTP: files have been pushed");
 
-        OffsetDateTime date = OffsetDateTime.now(ZoneId.of(targetZoneId));
-        String dateFile = date.format(DateTimeFormatter.ofPattern(DATEFORMATFILE));
-        String fileNameZip = String.format(zipFilenameFormat, dateFile);
+            this.createDigestThenTransferToSFTP(
+                    file, channelSftp, ALGORITHM_SHA256, digestFileNameFormatSHA256, dateFile
+            );
+        } catch (IOException e) {
+            throw new SubmissionCodeServerException(
+                    SubmissionCodeServerException.ExceptionEnum.UNQUALIFIED_ERROR,
+                    e
+            );
+        } finally {
+            closeConnection(channelSftp);
+        }
+    }
 
-        log.info("SFTP: is about to pushed the zip file.");
+    public void pushStreamToSftp(ChannelSftp channelSftp, InputStream inputStream, String fileNameZip) {
         try {
             channelSftp.put(inputStream, fileNameZip);
         } catch (SftpException e) {
-            channelSftp.exit();
-            log.error(SubmissionCodeServerException.ExceptionEnum.SFTP_FILE_PUSHING_FAILED_ERROR.getMessage(), e);
             throw new SubmissionCodeServerException(
                     SubmissionCodeServerException.ExceptionEnum.SFTP_FILE_PUSHING_FAILED_ERROR,
                     e
             );
         }
-        log.info("SFTP: files have been pushed");
+    }
 
-        this.createDigestThenTransferToSFTP(file, channelSftp, ALGORITHM_SHA256, digestFileNameFormatSHA256, dateFile);
-
-        log.info("SFTP: connection is about to be closed");
-        channelSftp.exit();
-        log.info("SFTP: connection closed");
+    public void closeConnection(ChannelSftp channelSftp) {
+        try {
+            if (null != channelSftp) {
+                log.info("SFTP: connection is about to be closed");
+                channelSftp.exit();
+                channelSftp.getSession().disconnect();
+                log.info("SFTP: connection closed");
+            }
+        } catch (JSchException e) {
+            throw new RuntimeException("Unable to close JschSession", e);
+        }
     }
 
     /**
@@ -174,15 +193,11 @@ public class SFTPService {
 
             return sftp;
         } catch (JSchException jshe) {
-            log.error(
-                    SubmissionCodeServerException.ExceptionEnum.JSCH_SESSION_CREATION_FAILED_ERROR.getMessage(), jshe
-            );
             throw new SubmissionCodeServerException(
                     SubmissionCodeServerException.ExceptionEnum.JSCH_SESSION_CREATION_FAILED_ERROR,
                     jshe
             );
         } catch (SftpException e) {
-            log.error(SubmissionCodeServerException.ExceptionEnum.SFTP_WORKING_DIRECTORY_ERROR.getMessage(), e);
             throw new SubmissionCodeServerException(
                     SubmissionCodeServerException.ExceptionEnum.SFTP_WORKING_DIRECTORY_ERROR,
                     e
