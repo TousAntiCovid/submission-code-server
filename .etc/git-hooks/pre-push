@@ -32,6 +32,7 @@ Calibrachoa Tac <99999-Calibrachoa.tac@users.noreply.gitlab.inria.fr>
 Jenkins Tac <99999-Jenkins.tac@users.noreply.gitlab.inria.fr>
 Figue Orange <12540-x-FOrang@users.noreply.gitlab.inria.fr>
 Jamalac Orange <14492-x-JaOrang@users.noreply.gitlab.inria.fr>
+Renovate Bot <tac-renovate-bot-request@inria.fr>
 "
 
 remote="$1"

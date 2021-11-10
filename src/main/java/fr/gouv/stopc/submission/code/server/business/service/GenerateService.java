@@ -9,6 +9,7 @@ import fr.gouv.stopc.submission.code.server.data.entity.SubmissionCode;
 import fr.gouv.stopc.submission.code.server.domain.enums.CodeTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.IterableUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -30,6 +31,8 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class GenerateService {
+
+    private static final int TEST_CODE_LENGTH = 12;
 
     private final LongCodeService longCodeService;
 
@@ -83,6 +86,45 @@ public class GenerateService {
         this.shortCodeService = shortCodeService;
         this.longCodeService = longCodeService;
         this.submissionCodeService = submissionCodeService;
+    }
+
+    private SubmissionCodeDto generateSubmissionCodeDtoForTestCode() {
+        OffsetDateTime validGenDate = OffsetDateTime.now();
+        OffsetDateTime validUntil = OffsetDateTime.now().truncatedTo(ChronoUnit.DAYS).plusDays(3);
+
+        return SubmissionCodeDto.builder()
+                .code(RandomStringUtils.randomAlphanumeric(TEST_CODE_LENGTH))
+                .type(CodeTypeEnum.TEST.getTypeCode())
+                .dateAvailable(OffsetDateTime.now())
+                .dateEndValidity(validUntil)
+                .dateGeneration(validGenDate)
+                .used(false)
+                .build();
+    }
+
+    public CodeSimpleDto generateTestCode() throws SubmissionCodeServerException {
+        CodeSimpleDto codeSimpleDto = null;
+        final SubmissionCodeDto submissionCodeDto = generateSubmissionCodeDtoForTestCode();
+
+        final Optional<SubmissionCode> submissionCodeOptional = this.submissionCodeService
+                .saveCode(submissionCodeDto);
+
+        if (!submissionCodeOptional.isPresent()) {
+            throw new SubmissionCodeServerException(
+                    SubmissionCodeServerException.ExceptionEnum.DB_SAVE_OPTIONAL_EMPTY
+            );
+        }
+
+        final SubmissionCode submissionCodeEntity = submissionCodeOptional.get();
+
+        codeSimpleDto = CodeSimpleDto.builder()
+                .code(submissionCodeEntity.getCode())
+                .dateGenerate(submissionCodeEntity.getDateGeneration().format(DateTimeFormatter.ISO_INSTANT))
+                .validFrom(submissionCodeEntity.getDateAvailable().format(DateTimeFormatter.ISO_INSTANT))
+                .validUntil(submissionCodeEntity.getDateEndValidity().format(DateTimeFormatter.ISO_INSTANT))
+                .build();
+
+        return codeSimpleDto;
     }
 
     public CodeSimpleDto generateShortCode()
@@ -198,6 +240,12 @@ public class GenerateService {
                         .type(cte.getTypeCode())
                         .dateAvailable(validFrom)
                         .dateEndValidity(this.getExpirationDateForShortCodeStartingFrom(validFrom));
+            case TEST:
+                return SubmissionCodeDto.builder()
+                        .code(RandomStringUtils.randomAlphanumeric(TEST_CODE_LENGTH))
+                        .type(CodeTypeEnum.TEST.getType())
+                        .dateAvailable(OffsetDateTime.now())
+                        .dateEndValidity(OffsetDateTime.now().truncatedTo(ChronoUnit.DAYS).plusDays(3));
             default:
                 throw new SubmissionCodeServerException(
                         SubmissionCodeServerException.ExceptionEnum.INVALID_CODE_TYPE_ERROR

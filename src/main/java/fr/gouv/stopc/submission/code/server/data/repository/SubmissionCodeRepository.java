@@ -11,13 +11,10 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
-import java.util.List;
 
 public interface SubmissionCodeRepository extends PagingAndSortingRepository<SubmissionCode, Long> {
 
-    SubmissionCode findByCodeAndType(String code, String type);
-
-    List<SubmissionCode> findAllByLotkeyIdAndTypeEquals(long lot, String type);
+    SubmissionCode findByCode(String code);
 
     /**
      * count number of codes in db for the given lot identifier.
@@ -40,8 +37,8 @@ public interface SubmissionCodeRepository extends PagingAndSortingRepository<Sub
 
     @Transactional
     @Modifying
-    @Query("DELETE FROM SubmissionCode s where s.type = :type and s.used = false and s.dateEndValidity < :dateEndValidity")
-    void deleteAllByTypeAndUsedFalseAndDateEndValidityBefore(String type, OffsetDateTime dateEndValidity);
+    @Query("DELETE FROM SubmissionCode s where s.used = false and s.dateEndValidity < :dateEndValidity")
+    void deleteAllByUsedFalseAndDateEndValidityBefore(OffsetDateTime dateEndValidity);
 
     /**
      * The method serches the used codes from fromDate until dateTo of type
