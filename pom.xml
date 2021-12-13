@@ -23,11 +23,13 @@
     <properties>
         <java.version>11</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding
-    >UTF-8</project.reporting.outputEncoding>
+        <project.reporting.outputEncoding>
+            UTF-8
+        </project.reporting.outputEncoding>
         <org.testcontainers>1.16.0</org.testcontainers>
         <cucumber.version>6.11.0</cucumber.version>
         <cucumber-reporting.version>5.6.0</cucumber-reporting.version>
+        <log4j2.version>2.15.0</log4j2.version>
     </properties>
 
     <dependencies>
