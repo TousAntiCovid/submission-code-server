@@ -139,14 +139,12 @@ public class FileService {
                     SubmissionCodeServerException.ExceptionEnum.PARSE_STR_DATE_ERROR
             );
         }
-
-        if (!isDateValid(dateTimeFrom, dateTimeTo)) {
-            log.error(SubmissionCodeServerException.ExceptionEnum.INVALID_DATE.getMessage());
-            throw new SubmissionCodeServerException(
-                    SubmissionCodeServerException.ExceptionEnum.INVALID_DATE
-            );
-        }
-
+        /*
+         * if (!isDateValid(dateTimeFrom, dateTimeTo)) {
+         * log.error(SubmissionCodeServerException.ExceptionEnum.INVALID_DATE.getMessage
+         * ()); throw new SubmissionCodeServerException(
+         * SubmissionCodeServerException.ExceptionEnum.INVALID_DATE ); }
+         */
         // STEP 1 - create codes
         // STEP 2 parsing codes to csv dataByFilename
         File tmpDirectory = new File(System.getProperty("java.io.tmpdir") + directoryTmpCsv);
