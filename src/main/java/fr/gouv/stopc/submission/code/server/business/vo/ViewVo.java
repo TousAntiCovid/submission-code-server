@@ -1,7 +1,6 @@
 package fr.gouv.stopc.submission.code.server.business.vo;
 
 import fr.gouv.stopc.submission.code.server.domain.annotations.CodePerDay;
-import fr.gouv.stopc.submission.code.server.domain.annotations.PresentOrFutureTruncateDay;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,11 +25,11 @@ public class ViewVo {
     public static class CodeGenerationRequestBody {
 
         @NotNull
-        @PresentOrFutureTruncateDay
+        // @PresentOrFutureTruncateDay
         private OffsetDateTime from;
 
         @NotNull
-        @PresentOrFutureTruncateDay
+        // @PresentOrFutureTruncateDay
         private OffsetDateTime to;
 
         @NotNull
