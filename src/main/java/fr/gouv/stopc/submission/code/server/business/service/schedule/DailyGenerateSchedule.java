@@ -56,8 +56,9 @@ public class DailyGenerateSchedule {
         return generationConfig.getScheduling();
     }
 
-    protected OffsetDateTime getMidnight() {
+    protected OffsetDateTime getMidnight(int days) {
         return Instant.now()
+                .plus(days, DAYS)
                 .atZone(ZoneId.of("Europe/Paris"))
                 .truncatedTo(DAYS)
                 .toOffsetDateTime();
@@ -69,11 +70,10 @@ public class DailyGenerateSchedule {
      */
     private void computeAndGenerateRequestList() {
         log.info("SCHEDULER : Start computeAndGenerateRequestList");
-        OffsetDateTime currentDate = getMidnight();
         generationRequestList = new ArrayList<>();
 
         for (int i = 0; i <= TEN_DAYS; i++) {
-            final OffsetDateTime startDateTime = currentDate;
+            final OffsetDateTime startDateTime = getMidnight(i);
 
             Integer dailyProductionTarget = generationConfig.getDailyProductionTarget(startDateTime);
             var numberOfAvailableCodes = this.submissionCodeRepository
@@ -97,7 +97,6 @@ public class DailyGenerateSchedule {
                 updateOrCreateRequest(null, fragmentRemainingToGenerate.intValue(), startDateTime, endDateTime);
             }
 
-            currentDate = currentDate.plusDays(1);
         }
     }
 
