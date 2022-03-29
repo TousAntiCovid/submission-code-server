@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project
+  xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"
+>
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.5.13</version>
+    </parent>
+
+    <groupId>fr.gouv.stopc</groupId>
+    <artifactId>submission-code-server-parent</artifactId>
+    <packaging>pom</packaging>
+    <version>0-SNAPSHOT</version>
+
+    <modules>
+        <module>submission-code-server-ws-rest-v1</module>
+        <module>submission-code-server-ws-rest-v2</module>
+    </modules>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>com.rudikershaw.gitbuildhook</groupId>
+                <artifactId>git-build-hook-maven-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <gitConfig>
+                        <core.hooksPath>.etc/git-hooks</core.hooksPath>
+                    </gitConfig>
+                </configuration>
+                <executions>
+                    <execution>
+                        <inherited>false</inherited>
+                        <goals>
+                            <goal>configure</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>2.11.1</version>
+                <configuration>
+                    <java>
+                        <importOrder>
+                            <file>.etc/eclipse.importorder</file>
+                        </importOrder>
+                        <removeUnusedImports />
+                        <eclipse>
+                            <file>.etc/eclipse-formatter-java.xml</file>
+                        </eclipse>
+                    </java>
+                    <kotlin>
+                        <!-- default config for now, as spotless does not support custom ktlin config yet -> see https://github.com/diffplug/spotless/issues/142-->
+                        <ktlint>
+                            <version>0.41.0</version>
+                        </ktlint>
+                    </kotlin>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <configuration>
+                    <rules>
+                        <requireReleaseDeps>
+                            <message>No Snapshots Allowed!</message>
+                        </requireReleaseDeps>
+                    </rules>
+                    <fail>false</fail>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>enforce-no-snapshots</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.6</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>post-unit-test</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.owasp</groupId>
+                <artifactId>dependency-check-maven</artifactId>
+                <version>6.3.1</version>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.sonarsource.scanner.maven</groupId>
+                <artifactId>sonar-maven-plugin</artifactId>
+                <version>3.9.0.2155</version>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>release</id>
+            <activation>
+                <property>
+                    <name>git.tag</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-enforcer-plugin</artifactId>
+                        <configuration>
+                            <fail>true</fail>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+    <distributionManagement>
+        <repository>
+            <id>gitlab-maven</id>
+            <url>
+                https://gitlab.inria.fr/api/v4/projects/stopcovid19%2Fsubmission-code-server/packages/maven
+            </url>
+        </repository>
+        <snapshotRepository>
+            <id>gitlab-maven</id>
+            <url>
+                https://gitlab.inria.fr/api/v4/projects/stopcovid19%2Fsubmission-code-server/packages/maven
+            </url>
+        </snapshotRepository>
+    </distributionManagement>
+
+    <repositories>
+        <repository>
+            <id>gitlab-maven</id>
+            <url>
+                https://gitlab.inria.fr/api/v4/projects/stopcovid19%2Fsubmission-code-server/packages/maven
+            </url>
+        </repository>
+    </repositories>
+
+    <scm>
+        <connection>
+            scm:git:git@gitlab.inria.fr:stopcovid19/submission-code-server.git
+        </connection>
+        <developerConnection>
+            scm:git:git@gitlab.inria.fr:stopcovid19/submission-code-server.git
+        </developerConnection>
+        <url>https://gitlab.inria.fr/stopcovid19/submission-code-server</url>
+        <tag>HEAD</tag>
+    </scm>
+
+</project>
