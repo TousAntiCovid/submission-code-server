@@ -148,7 +148,7 @@ public class DailyGenerateSchedule {
      */
     public void purgeUnusedCodes() {
         log.info("SCHEDULER : Start purge unused codes");
-        OffsetDateTime dateEndValidityAfter = OffsetDateTime.now().minusMonths(2);
+        OffsetDateTime dateEndValidityAfter = OffsetDateTime.now().minusDays(2);
         submissionCodeRepository
                 .deleteAllByUsedFalseAndDateEndValidityBefore(
                         dateEndValidityAfter
