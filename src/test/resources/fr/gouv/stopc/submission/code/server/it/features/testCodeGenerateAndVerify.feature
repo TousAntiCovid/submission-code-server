@@ -2,7 +2,7 @@ Feature: Test code generation
 
   Scenario: Generate a "test" submission code
     When I request a "test" submission code
-    Then I received a 12 characters code valid until now plus 3 days
+    Then I received a 12 characters code valid until now plus 15 days
 
   Scenario: I Can verify a "test" submission code
     Given A "test" submission code has been generated

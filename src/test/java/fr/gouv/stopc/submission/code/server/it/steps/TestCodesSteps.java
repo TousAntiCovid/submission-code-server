@@ -33,13 +33,13 @@ public class TestCodesSteps {
         Assertions.assertNotNull(codeSimpleDto);
     }
 
-    @Then("I received a 12 characters code valid until now plus 3 days")
+    @Then("I received a 12 characters code valid until now plus 15 days")
     public void the_generated_code_is_a_well_formatted_code() {
         assertThat(codeSimpleDto.getCode())
                 .matches("([a-zA-Z0-9]{12})");
 
         Instant inThreeDays = Instant.now().truncatedTo(ChronoUnit.DAYS)
-                .plus(3, ChronoUnit.DAYS);
+                .plus(15, ChronoUnit.DAYS);
         Instant validUntil = Instant.parse(codeSimpleDto.getValidUntil());
         assertThat(inThreeDays).isEqualTo(validUntil);
     }
