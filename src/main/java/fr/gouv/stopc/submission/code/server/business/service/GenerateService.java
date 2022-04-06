@@ -69,6 +69,9 @@ public class GenerateService {
     @Value("${generation.code.shortcode.validity}")
     private long timeValidityShortCode;
 
+    @Value("${generation.code.testcode.validity}")
+    private long timeValidityTestCode;
+
     /**
      * Default constructor
      * 
@@ -90,7 +93,7 @@ public class GenerateService {
 
     private SubmissionCodeDto generateSubmissionCodeDtoForTestCode() {
         OffsetDateTime validGenDate = OffsetDateTime.now();
-        OffsetDateTime validUntil = OffsetDateTime.now().truncatedTo(ChronoUnit.DAYS).plusDays(3);
+        OffsetDateTime validUntil = OffsetDateTime.now().truncatedTo(ChronoUnit.DAYS).plusDays(timeValidityTestCode);
 
         return SubmissionCodeDto.builder()
                 .code(RandomStringUtils.randomAlphanumeric(TEST_CODE_LENGTH))
