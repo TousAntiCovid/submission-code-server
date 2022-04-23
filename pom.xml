@@ -160,7 +160,7 @@
         <dependency>
             <groupId>net.javacrumbs.shedlock</groupId>
             <artifactId>shedlock-provider-jdbc-template</artifactId>
-            <version>4.27.0</version>
+            <version>4.34.0</version>
         </dependency>
     </dependencies>
 
