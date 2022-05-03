@@ -18,8 +18,7 @@ paths:
       tags:
         - Submission Code
       summary: Generate a code to declare themself ill
-      description:
-        One can generate either a short or a test code.
+      description: One can generate either a short or a test code.
         * a short code is a 6 alphanumeric characters code valid 1 hour
         * a test  code is a 12 alphanumeric characters code valid 3 days
       parameters:
@@ -98,7 +97,7 @@ paths:
                 valid but expired code:
                   value:
                     valid: false
-                'invalid code format (ex: z/zzz)':
+                "invalid code format (ex: z/zzz)":
                   value:
                     valid: false
         400:
@@ -229,7 +228,7 @@ components:
     CodeType:
       type: string
       description: A type of submission code
-      enum: [ short, test, long ]
+      enum: [short, test, long]
 
     SubmissionCodeGenerationResponse:
       type: object
@@ -272,7 +271,7 @@ components:
         status:
           type: string
           description: The state of the batch generation
-          enum: [ RUNNING, SUCCESS, FAILED ]
+          enum: [RUNNING, SUCCESS, FAILED]
       required:
         - status
 

@@ -49,13 +49,4 @@ class KpiService(private val submissionCodeRepository: SubmissionCodeRepository)
             }
             .toList()
     }
-
-    data class SingleDayKpi(
-        val date: LocalDate,
-        val nbShortCodesUsed: Long,
-        val nbLongCodesUsed: Long,
-        val nbShortExpiredCodes: Long,
-        val nbLongExpiredCodes: Long,
-        val nbShortCodesGenerated: Long
-    )
 }
