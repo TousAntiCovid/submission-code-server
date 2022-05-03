@@ -7,6 +7,8 @@ import org.springframework.test.context.TestExecutionListener
 
 class RestAssuredManager : TestExecutionListener {
 
+    override fun beforeTestClass(testContext: TestContext) = beforeTestMethod(testContext)
+
     override fun beforeTestMethod(testContext: TestContext) {
         RestAssured.port = testContext.applicationContext
             .environment

@@ -1,6 +1,7 @@
 package fr.gouv.stopc.submissioncode.controller
 
 import fr.gouv.stopc.submissioncode.test.IntegrationTest
+import fr.gouv.stopc.submissioncode.test.PostgresqlManager.Companion.debugSubmissionCodes
 import fr.gouv.stopc.submissioncode.test.PostgresqlManager.Companion.givenTableSubmissionCodeContainsCode
 import fr.gouv.stopc.submissioncode.test.When
 import io.restassured.RestAssured.given
@@ -9,7 +10,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.http.HttpStatus.OK
-import java.time.LocalDateTime
+import java.time.Instant
 
 @IntegrationTest
 class VerifyControllerTest {
@@ -19,10 +20,11 @@ class VerifyControllerTest {
         givenTableSubmissionCodeContainsCode("1", "0000000a-0000-0000-0000-000000000000")
         givenTableSubmissionCodeContainsCode("2", "AAAAAA")
         givenTableSubmissionCodeContainsCode("3", "BBBBBBBBBBBB")
-        val expiredInstant = LocalDateTime.now().minusSeconds(1)
+        val expiredInstant = Instant.now().minusSeconds(1)
         givenTableSubmissionCodeContainsCode("1", "00000000-1111-1111-1111-111111111111", expiresOn = expiredInstant)
         givenTableSubmissionCodeContainsCode("2", "EXP000", expiresOn = expiredInstant)
         givenTableSubmissionCodeContainsCode("3", "EXP000000000", expiresOn = expiredInstant)
+        debugSubmissionCodes()
     }
 
     @ParameterizedTest
@@ -65,7 +67,7 @@ class VerifyControllerTest {
             "",
             "    ",
             "a",
-            "00000000-1111-1111-1111-11111111",
+            "00000000-1111-1111-1111-111111111111",
             "AAA000",
             "BBBBBB000000"
         ]

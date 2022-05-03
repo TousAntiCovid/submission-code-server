@@ -5,7 +5,8 @@ import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.test.context.TestContext
 import org.springframework.test.context.TestExecutionListener
 import org.testcontainers.containers.PostgreSQLContainer
-import java.time.LocalDateTime
+import java.time.Instant
+import java.time.OffsetDateTime
 
 class PostgresqlManager : TestExecutionListener {
 
@@ -15,6 +16,7 @@ class PostgresqlManager : TestExecutionListener {
 
         init {
             PostgreSQLContainer<Nothing>("postgres:9.6").apply {
+                setCommand("postgres -c log_statement=all")
                 start()
                 System.setProperty("spring.datasource.url", jdbcUrl)
                 System.setProperty("spring.datasource.username", username)
@@ -25,9 +27,9 @@ class PostgresqlManager : TestExecutionListener {
         fun givenTableSubmissionCodeContainsCode(
             type: String,
             code: String,
-            generatedOn: LocalDateTime = LocalDateTime.now(),
-            availableFrom: LocalDateTime = LocalDateTime.now(),
-            expiresOn: LocalDateTime = LocalDateTime.now().plusMinutes(5)
+            generatedOn: Instant = Instant.now(),
+            availableFrom: Instant = Instant.now(),
+            expiresOn: Instant = OffsetDateTime.now().plusMinutes(5).toInstant()
         ) {
             JDBC_TEMPLATE.execute(
                 """
@@ -35,6 +37,23 @@ class PostgresqlManager : TestExecutionListener {
                     ('$type', '$code', '$generatedOn', '$availableFrom', '$expiresOn', false)
                 """.trimIndent()
             )
+        }
+
+        fun debugSubmissionCodes() {
+            JDBC_TEMPLATE.queryForList("select * from submission_code").forEach {
+                println(
+                    String.format(
+                        "| %1\$s | %2\$s | %3\$s | %4\$s | %5\$s | %6\$s | %7\$36s |",
+                        it["type_code"],
+                        it["date_generation"],
+                        it["date_available"],
+                        it["date_end_validity"],
+                        it["used"],
+                        it["date_used"],
+                        it["code"]
+                    )
+                )
+            }
         }
     }
 

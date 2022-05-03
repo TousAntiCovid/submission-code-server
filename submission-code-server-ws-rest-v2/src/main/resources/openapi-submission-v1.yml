@@ -1,0 +1,316 @@
+openapi: 3.0.0
+info:
+  title: Submission Code Server API
+  version: "1"
+  description: |
+    Submission Code Server API Spec.
+    Submission codes are _one-time-codes_ to declare themself ill.
+    NOTE: This API is protected and used only by a trusted back-end server over a secure private connection.
+  termsOfService: https://gitlab.inria.fr/stopcovid19/submission-code-server
+  contact:
+    email: stopcovid@inria.fr
+  license:
+    name: Custom (see repository's LICENSE.md)
+paths:
+  /generate/{codeType}:
+    get:
+      operationId: generate
+      tags:
+        - Submission Code
+      summary: Generate a code to declare themself ill
+      description:
+        One can generate either a short or a test code.
+        * a short code is a 6 alphanumeric characters code valid 1 hour
+        * a test  code is a 12 alphanumeric characters code valid 3 days
+      parameters:
+        - in: path
+          name: codeType
+          description: type of the requested code, `long` is unsupported
+          schema:
+            $ref: "#/components/schemas/CodeType"
+          required: true
+      responses:
+        200:
+          description: The generated code
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmissionCodeGenerationResponse"
+              examples:
+                short:
+                  value:
+                    code: AS3F5Z
+                    dateGenerate: 2022-01-11T18:28:30Z
+                    validFrom: 2022-01-11T18:28:31Z
+                    validUntil: 2022-01-11T19:28:31Z
+                test:
+                  value:
+                    code: BxTjcmac07Mg
+                    dateGenerate: 2022-01-11T18:28:30Z
+                    validFrom: 2022-01-11T18:28:31Z
+                    validUntil: 2022-01-14T00:00:00Z
+        400:
+          $ref: "openapi-errors-v1.yml#/components/responses/BadRequest"
+        401:
+          $ref: "openapi-errors-v1.yml#/components/responses/Unauthorized"
+        403:
+          $ref: "openapi-errors-v1.yml#/components/responses/Forbidden"
+        500:
+          $ref: "openapi-errors-v1.yml#/components/responses/InternalServerError"
+
+  /verify:
+    get:
+      operationId: verify
+      tags:
+        - Submission Code
+      summary: Verify a code and prevent further use
+      description: Check the validity of a submission code (originally provided by the app).
+      parameters:
+        - name: type
+          in: query
+          required: false
+          description: Deprecated field
+          schema:
+            type: integer
+        - name: code
+          in: query
+          required: true
+          description: |
+            The submission code to validate. A submission code can be either:
+            * a 6 alphanumeric string `[a-zA-Z0-9]{6}`
+            * a 12 alphanumeric string `[a-zA-Z0-9]{12}`
+            * a 36 alphanumeric UUID `[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}`
+
+            See example response for invalid code format.
+          schema:
+            type: string
+      responses:
+        200:
+          description: Returns the submission code validation result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmissionCodeValidationResponse"
+              examples:
+                valid code:
+                  value:
+                    valid: true
+                valid but expired code:
+                  value:
+                    valid: false
+                'invalid code format (ex: z/zzz)':
+                  value:
+                    valid: false
+        400:
+          $ref: "openapi-errors-v1.yml#/components/responses/BadRequest"
+        401:
+          $ref: "openapi-errors-v1.yml#/components/responses/Unauthorized"
+        403:
+          $ref: "openapi-errors-v1.yml#/components/responses/Forbidden"
+        500:
+          $ref: "openapi-errors-v1.yml#/components/responses/InternalServerError"
+
+  /batch-generations:
+    post:
+      operationId: start-batch-generation
+      tags:
+        - Batch code generation
+      summary: Start a batch generation of submission codes
+      description: Generate codes for the next days
+      parameters:
+        - name: startDate
+          description: default value is the current date
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          example: 2022-21-01
+        - name: days
+          description: default value is 1 day
+          in: query
+          required: false
+          schema:
+            type: integer
+          example: 10
+        - name: codeCountPerDay
+          description: the amount of code to generate per day
+          in: query
+          required: true
+          schema:
+            type: integer
+          example: 100000
+      responses:
+        201:
+          description: Batch request is accepted and started
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+              description: The location to fetch to watch batch progress
+        400:
+          $ref: "openapi-errors-v1.yml#/components/responses/BadRequest"
+        401:
+          $ref: "openapi-errors-v1.yml#/components/responses/Unauthorized"
+        403:
+          $ref: "openapi-errors-v1.yml#/components/responses/Forbidden"
+        500:
+          $ref: "openapi-errors-v1.yml#/components/responses/InternalServerError"
+
+  /batch-generations/{id}:
+    get:
+      operationId: watch-batch-generation
+      tags:
+        - Batch code generation
+      summary: Fetch the status of a batch generation
+      description: Provides a way to watch batch generation progress
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        201:
+          description: Batch request is accepted and started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BatchGenerationResponse"
+        400:
+          $ref: "openapi-errors-v1.yml#/components/responses/BadRequest"
+        401:
+          $ref: "openapi-errors-v1.yml#/components/responses/Unauthorized"
+        403:
+          $ref: "openapi-errors-v1.yml#/components/responses/Forbidden"
+        500:
+          $ref: "openapi-errors-v1.yml#/components/responses/InternalServerError"
+
+  /kpi:
+    get:
+      operationId: kpi
+      tags:
+        - Kpi
+      summary: Get KPIs
+      description: Get KPIs for the given period
+      parameters:
+        - name: fromDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: toDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        200:
+          description: Returns the KPI list for date range
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KpisResponse"
+        400:
+          $ref: "openapi-errors-v1.yml#/components/responses/BadRequest"
+        401:
+          $ref: "openapi-errors-v1.yml#/components/responses/Unauthorized"
+        403:
+          $ref: "openapi-errors-v1.yml#/components/responses/Forbidden"
+        500:
+          $ref: "openapi-errors-v1.yml#/components/responses/InternalServerError"
+
+components:
+  schemas:
+    CodeType:
+      type: string
+      description: A type of submission code
+      enum: [ short, test, long ]
+
+    SubmissionCodeGenerationResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          description: The submission code value
+          example: AS3F5Z
+        validFrom:
+          type: string
+          format: date-time
+          description: Submission code must not be used before this date
+        validUntil:
+          type: string
+          format: date-time
+          description: Submission code must not be used after this date
+        dateGenerate:
+          type: string
+          format: date-time
+          description: Submission code mgeneration date
+      description: A submission code and its type as well as validity information
+      required:
+        - code
+        - validFrom
+        - validUntil
+        - dateGenerate
+
+    SubmissionCodeValidationResponse:
+      type: object
+      properties:
+        valid:
+          type: boolean
+          description: True if the code is valid, false if invalid or expired
+      required:
+        - valid
+
+    BatchGenerationResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          description: The state of the batch generation
+          enum: [ RUNNING, SUCCESS, FAILED ]
+      required:
+        - status
+
+    KpisResponse:
+      type: array
+      items:
+        $ref: "#/components/schemas/Kpi"
+
+    Kpi:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        nbShortCodesUsed:
+          type: integer
+          format: int64
+          example: 23
+        nbLongCodesUsed:
+          type: integer
+          format: int64
+          example: 55
+        nbLongExpiredCodes:
+          type: integer
+          format: int64
+          example: 2145
+        nbShortExpiredCodes:
+          type: integer
+          format: int64
+          example: 30
+        nbShortCodesGenerated:
+          type: integer
+          format: int64
+          example: 53
+      required:
+        - date
+        - nbShortCodesUsed
+        - nbLongCodesUsed
+        - nbLongExpiredCodes
+        - nbShortExpiredCodes
+        - nbShortCodesGenerated
