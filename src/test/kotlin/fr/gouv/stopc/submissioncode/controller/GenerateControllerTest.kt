@@ -12,6 +12,8 @@ import org.hamcrest.Matchers.notNullValue
 import org.hamcrest.Matchers.nullValue
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus.BAD_REQUEST
+import org.springframework.http.HttpStatus.OK
 import java.time.Instant.now
 import java.time.temporal.ChronoUnit.DAYS
 import java.time.temporal.ChronoUnit.HOURS
@@ -26,6 +28,7 @@ class GenerateControllerTest(@Autowired val submissionCodeRepository: Submission
             .get("/api/v1/generate/short")
 
             .then()
+            .statusCode(OK.value())
             .body("code", matchesPattern("[A-Z0-9]{6}"))
             .body("validFrom", isoDateTimeWithin(5, SECONDS, now()))
             .body("validUntil", isoDateTimeWithin(5, SECONDS, now().plus(1, HOURS)))
@@ -65,6 +68,7 @@ class GenerateControllerTest(@Autowired val submissionCodeRepository: Submission
             .get("/api/v1/generate/test")
 
             .then()
+            .statusCode(OK.value())
             .body("code", matchesPattern("[a-zA-Z0-9]{12}"))
             .body("validFrom", isoDateTimeWithin(5, SECONDS, now()))
             .body("validUntil", isoDateTimeWithin(5, SECONDS, now().plus(15, DAYS).truncatedTo(DAYS)))
@@ -84,5 +88,14 @@ class GenerateControllerTest(@Autowired val submissionCodeRepository: Submission
         assertThat(generatedCode.dateUse, nullValue())
         assertThat(generatedCode.used, equalTo(false))
         // assertThat(generatedCode.lotkey, nullValue())
+    }
+
+    @Test
+    fun cant_generate_a_long_code() {
+        When()
+            .get("/api/v1/generate/long")
+
+            .then()
+            .statusCode(BAD_REQUEST.value())
     }
 }

@@ -9,6 +9,7 @@ import fr.gouv.stopc.submissioncode.api.model.SubmissionCodeGenerationResponse
 import fr.gouv.stopc.submissioncode.api.model.SubmissionCodeValidationResponse
 import fr.gouv.stopc.submissioncode.service.SubmissionCodeService
 import org.springframework.http.ResponseEntity
+import org.springframework.validation.BindException
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.time.ZoneOffset.UTC
@@ -21,7 +22,8 @@ class SubmissionCodeController(private val submissionCodeService: SubmissionCode
         val generatedCode = when (codeType) {
             short -> submissionCodeService.generateShortCode()
             test -> submissionCodeService.generateTestCode()
-            long -> throw IllegalArgumentException("'long' code generation is unsupported")
+            long -> throw BindException(object {}, "params")
+                .apply { reject("codeType", "'long' code generation is unsupported") }
         }
         return ResponseEntity.ok(
             SubmissionCodeGenerationResponse(

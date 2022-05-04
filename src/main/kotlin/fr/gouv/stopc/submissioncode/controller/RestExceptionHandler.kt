@@ -8,6 +8,7 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageNotReadableException
+import org.springframework.validation.BindException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
@@ -33,6 +34,21 @@ class RestExceptionHandler(private val servletRequest: HttpServletRequest) : Res
         val globalErrors =
             ex.globalErrors.map { ErrorResponseErrors("", it.code, it.defaultMessage) }
         return badRequestAndLogErrors(fieldErrors + globalErrors)
+    }
+
+    override fun handleBindException(
+        ex: BindException,
+        headers: HttpHeaders,
+        status: HttpStatus,
+        request: WebRequest
+    ): ResponseEntity<Any> {
+        return badRequestAndLogErrors(
+            ex.fieldErrors.map {
+                ErrorResponseErrors(it.field, it.code, it.defaultMessage)
+            } + ex.globalErrors.map {
+                ErrorResponseErrors("", it.code, it.defaultMessage)
+            }
+        )
     }
 
     @ExceptionHandler

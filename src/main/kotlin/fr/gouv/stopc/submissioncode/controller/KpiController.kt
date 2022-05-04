@@ -9,8 +9,8 @@ import org.springframework.http.ResponseEntity
 import org.springframework.validation.BindException
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.time.Duration
 import java.time.LocalDate
-import java.time.Period
 
 @RestController
 @RequestMapping("/internal/api/v1")
@@ -18,14 +18,15 @@ class KpiController(val kpiService: KpiService) : KpiApi {
 
     override fun kpi(@DateTimeFormat(iso = DATE) fromDate: LocalDate, @DateTimeFormat(iso = DATE) toDate: LocalDate): ResponseEntity<List<Kpi>> {
         val validation = BindException(object {}, "params")
-        if (Period.between(fromDate, toDate).days > 10) {
+        val period = Duration.between(fromDate.atStartOfDay(), toDate.atStartOfDay())
+        if (period.toDays() < 0) {
+            validation.reject("INCONSISTENT_BOUNDS", "The 'fromDate' should be before 'toDate'")
+        }
+        if (period.toDays() > 100) {
             validation.reject(
                 "PERIOD_TOO_LARGE",
-                "The period between 'fromDate' and 'toDate' must be less than 10 days"
+                "The period between 'fromDate' and 'toDate' must be less than 100 days"
             )
-        }
-        if (Period.between(fromDate, toDate).days < 0) {
-            validation.reject("INCONSISTENT_BOUNDS", "The 'fromDate' should be before 'toDate'")
         }
         if (validation.hasErrors()) {
             throw validation
