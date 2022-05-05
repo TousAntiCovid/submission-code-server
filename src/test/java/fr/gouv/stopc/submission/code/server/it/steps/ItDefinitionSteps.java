@@ -12,7 +12,6 @@ import io.cucumber.java.Before;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import lombok.extern.slf4j.Slf4j;
-import net.javacrumbs.shedlock.core.LockAssert;
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
@@ -68,7 +67,6 @@ public class ItDefinitionSteps extends SchedulerTestUtil {
     public void scheduler_generate_codes_and_stop_after_the_first_batch_of_j8() {
         Map<Integer, Integer> dayAndVolumeMap = Map.of(0, 300, 8, 40, 9, 0);
         configureScheduler(dayAndVolumeMap);
-        LockAssert.TestHelper.makeAllAssertsPass(true);
         assertDoesNotThrow(() -> dailyGenerateSchedule.dailyProductionCodeScheduler());
     }
 
@@ -78,7 +76,6 @@ public class ItDefinitionSteps extends SchedulerTestUtil {
         endDayNumber++;
         Map<Integer, Integer> dayAndVolumeMap = Map.of(startDayNumber, numberOfCodes, endDayNumber, 0);
         configureScheduler(dayAndVolumeMap);
-        LockAssert.TestHelper.makeAllAssertsPass(true);
         assertDoesNotThrow(() -> dailyGenerateSchedule.dailyProductionCodeScheduler());
     }
 
