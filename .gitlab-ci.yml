@@ -3,6 +3,18 @@ include:
     ref: master
     file: gitlab/gitlab-ci-java-template.yml
 
+build:
+  before_script:
+    - cd legacy-submission-code-server
+
+quality:
+  before_script:
+    - cd legacy-submission-code-server
+
+owasp:
+  before_script:
+    - cd legacy-submission-code-server
+
 deploy-int:
   stage: deploy
   variables:
