@@ -7,9 +7,6 @@ import fr.gouv.stopc.submission.code.server.data.repository.SubmissionCodeReposi
 import fr.gouv.stopc.submission.code.server.domain.enums.CodeTypeEnum;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.javacrumbs.shedlock.core.LockAssert;
-import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.*;
@@ -33,11 +30,8 @@ public class DailyGenerateSchedule {
 
     private List<GenerationRequest> generationRequestList;
 
-    @Scheduled(cron = "${submission.code.server.cron.schedule}", zone = "UTC")
-    @SchedulerLock(name = "dailyProductionCodeScheduler")
     public void dailyProductionCodeScheduler() {
-        LockAssert.assertLocked();
-        log.info("SCHEDULER : Start dailyProductionCodeScheduler");
+        log.info("Start dailyProductionCodeScheduler");
 
         computeAndGenerateRequestList();
 
@@ -49,11 +43,7 @@ public class DailyGenerateSchedule {
 
         purgeUnusedCodes();
 
-        log.info("SCHEDULER : End dailyProductionCodeScheduler");
-    }
-
-    public List<GenerationConfigProperties.GenerationConfig> getScheduling() {
-        return generationConfig.getScheduling();
+        log.info("End dailyProductionCodeScheduler");
     }
 
     protected OffsetDateTime getMidnight() {
