@@ -84,6 +84,12 @@
             <artifactId>commons-text</artifactId>
             <version>${commons-text.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>nimbus-jose-jwt</artifactId>
+            <version>9.22</version>
+        </dependency>
+
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
