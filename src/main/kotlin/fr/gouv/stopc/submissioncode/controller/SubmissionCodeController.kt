@@ -14,7 +14,9 @@ import java.time.ZoneOffset.UTC
 
 @RestController
 @RequestMapping("/api/v1")
-class SubmissionCodeController(private val submissionCodeService: SubmissionCodeService) : SubmissionCodeApi {
+class SubmissionCodeController(
+    private val submissionCodeService: SubmissionCodeService
+) : SubmissionCodeApi {
 
     override fun generate(codeType: CodeType): ResponseEntity<SubmissionCodeGenerationResponse> {
         val generatedCode = when (codeType) {
