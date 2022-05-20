@@ -5,6 +5,7 @@ import fr.gouv.stopc.submissioncode.test.When
 import org.hamcrest.Matchers.equalTo
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus.BAD_REQUEST
 import org.springframework.http.HttpStatus.OK
 import org.springframework.jdbc.core.JdbcTemplate
 
@@ -92,5 +93,39 @@ class KpiControllerTest {
             .body("[1].nbLongCodesUsed", equalTo(4))
             .body("[1].nbLongExpiredCodes", equalTo(5))
             .body("size()", equalTo(2))
+    }
+
+    @Test
+    fun cant_fetch_more_than_100_days_of_kpis() {
+        When()
+            .get("/internal/api/v1/kpi?fromDate={from}&toDate={to}", "2021-01-01", "2021-04-12")
+
+            .then()
+            .statusCode(BAD_REQUEST.value())
+            .body("status", equalTo(400))
+            .body("error", equalTo("Bad Request"))
+            .body("message", equalTo("Request body contains invalid attributes"))
+            .body("path", equalTo("/internal/api/v1/kpi"))
+            .body("errors[0].field", equalTo(""))
+            .body("errors[0].code", equalTo("PERIOD_TOO_LARGE"))
+            .body("errors[0].message", equalTo("The period between 'fromDate' and 'toDate' must be less than 100 days"))
+            .body("errors.size()", equalTo(1))
+    }
+
+    @Test
+    fun cant_fetch_kpis_when_end_is_before_start() {
+        When()
+            .get("/internal/api/v1/kpi?fromDate={from}&toDate={to}", "2021-11-01", "2021-10-31")
+
+            .then()
+            .statusCode(BAD_REQUEST.value())
+            .body("status", equalTo(400))
+            .body("error", equalTo("Bad Request"))
+            .body("message", equalTo("Request body contains invalid attributes"))
+            .body("path", equalTo("/internal/api/v1/kpi"))
+            .body("errors[0].field", equalTo(""))
+            .body("errors[0].code", equalTo("INCONSISTENT_BOUNDS"))
+            .body("errors[0].message", equalTo("The 'fromDate' should be before 'toDate'"))
+            .body("errors.size()", equalTo(1))
     }
 }

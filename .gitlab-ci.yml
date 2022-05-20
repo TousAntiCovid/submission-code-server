@@ -3,11 +3,12 @@ include:
     ref: master
     file: gitlab/gitlab-ci-java-template.yml
 
-build-v2:
+build-v1:
   image: maven:3.8.3-adoptopenjdk-11
   stage: build
+  before_script:
+    - cd legacy-submission-code-server
   script:
-    - mvn -B -s .mvn/settings-ci.xml -f legacy-submission-code-server/pom.xml -Dspring-boot.repackage.skip=true $CI_MAVEN_OPTS install
     - mvn -B -s .mvn/settings-ci.xml $CI_MAVEN_OPTS deploy
   artifacts:
     paths:
@@ -15,23 +16,6 @@ build-v2:
     reports:
       junit:
         - "**/target/*-reports/TEST-*.xml"
-  tags:
-    - ci.inria.fr
-    - medium
-
-build:
-  before_script:
-    - cd legacy-submission-code-server
-
-quality:
-  variables:
-  before_script:
-    - cd legacy-submission-code-server
-    - sed -i 's/>legacy-submission/>submission/g' pom.xml
-
-owasp:
-  before_script:
-    - cd legacy-submission-code-server
 
 deploy-int:
   stage: deploy
