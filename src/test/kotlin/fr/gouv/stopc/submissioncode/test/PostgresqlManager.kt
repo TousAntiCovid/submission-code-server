@@ -5,7 +5,8 @@ import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.test.context.TestContext
 import org.springframework.test.context.TestExecutionListener
 import org.testcontainers.containers.PostgreSQLContainer
-import java.time.LocalDateTime
+import java.time.Instant
+import java.time.temporal.ChronoUnit.MINUTES
 
 class PostgresqlManager : TestExecutionListener {
 
@@ -25,9 +26,9 @@ class PostgresqlManager : TestExecutionListener {
         fun givenTableSubmissionCodeContainsCode(
             type: String,
             code: String,
-            generatedOn: LocalDateTime = LocalDateTime.now(),
-            availableFrom: LocalDateTime = LocalDateTime.now(),
-            expiresOn: LocalDateTime = LocalDateTime.now().plusMinutes(5)
+            generatedOn: Instant = Instant.now(),
+            availableFrom: Instant = Instant.now(),
+            expiresOn: Instant = Instant.now().plus(5, MINUTES)
         ) {
             JDBC_TEMPLATE.execute(
                 """
