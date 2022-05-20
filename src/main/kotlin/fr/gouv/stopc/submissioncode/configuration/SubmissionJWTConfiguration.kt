@@ -7,5 +7,5 @@ import org.springframework.context.annotation.Configuration
 @ConfigurationProperties(prefix = "submission.code.server")
 class SubmissionJWTConfiguration {
 
-    val mapOfKidAndPublicKey: MutableMap<String, String> = mutableMapOf()
+    val publicKeys: MutableMap<String, String> = mutableMapOf()
 }

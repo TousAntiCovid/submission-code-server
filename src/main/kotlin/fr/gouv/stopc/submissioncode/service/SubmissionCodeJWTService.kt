@@ -37,7 +37,7 @@ class SubmissionCodeJWTService(
         val isValid = jwtInstant.isBefore(now) &&
             jwtInstant.plus(7, ChronoUnit.DAYS).isAfter(now) &&
             submissionCodeJWTRepository.findByJti(jwtJti) == null &&
-            !(signedJwt.header.keyID.isNullOrEmpty() || submissionJWTConfiguration.mapOfKidAndPublicKey[signedJwt.header.keyID].isNullOrEmpty()) &&
+            !(signedJwt.header.keyID.isNullOrEmpty() || submissionJWTConfiguration.publicKeys[signedJwt.header.keyID].isNullOrEmpty()) &&
             verifySignature(signedJwt)
 
         if (isValid) {
@@ -53,7 +53,7 @@ class SubmissionCodeJWTService(
 
     private fun verifySignature(signedJwt: SignedJWT): Boolean {
 
-        val encodedPublicKey = submissionJWTConfiguration.mapOfKidAndPublicKey[signedJwt.header.keyID] ?: return false
+        val encodedPublicKey = submissionJWTConfiguration.publicKeys[signedJwt.header.keyID] ?: return false
         val decodedPublicKey = Base64.getMimeDecoder().decode(encodedPublicKey)
 
         val publicKey = KeyFactory.getInstance("EC")
