@@ -109,47 +109,6 @@ paths:
         500:
           $ref: "openapi-errors-v1.yml#/components/responses/InternalServerError"
 
-  /verifyJwt:
-    get:
-      operationId: verifyJwt
-      tags:
-        - Submission Code
-      summary: Verify a JWT and prevent further use
-      description: Check the validity of a JWT
-      parameters:
-        - name: jwt
-          in: query
-          required: true
-          description: |
-            The JWT to validate
-          schema:
-            type: string
-      responses:
-        200:
-          description: Returns the JWT validation result
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SubmissionCodeValidationResponse"
-              examples:
-                valid JWT:
-                  value:
-                    valid: true
-                valid but expired JWT:
-                  value:
-                    valid: false
-                "invalid JWT signature":
-                  value:
-                    valid: false
-        400:
-          $ref: "openapi-errors-v1.yml#/components/responses/BadRequest"
-        401:
-          $ref: "openapi-errors-v1.yml#/components/responses/Unauthorized"
-        403:
-          $ref: "openapi-errors-v1.yml#/components/responses/Forbidden"
-        500:
-          $ref: "openapi-errors-v1.yml#/components/responses/InternalServerError"
-
   /batch-generations:
     post:
       operationId: start-batch-generation

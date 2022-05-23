@@ -64,13 +64,13 @@ class JWTManager : TestExecutionListener {
         }
 
         fun givenValidJwt(
-            date: Date = Date.from(Instant.now()),
+            issuedAt: Instant = Instant.now(),
             jti: String = "TousAntiCovidJti",
             kid: String = "TousAntiCovidKID",
             privateKey: ECPrivateKey = defaultEcKey.toECPrivateKey()
         ): String {
 
-            val jwtClaim = generateJwtClaims(date, jti)
+            val jwtClaim = generateJwtClaims(Date.from(issuedAt), jti)
             val jwtHeader = generateJwtHeader(kid)
 
             val jwt = SignedJWT(jwtHeader, jwtClaim)
