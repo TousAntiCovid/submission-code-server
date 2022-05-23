@@ -13,7 +13,8 @@ CREATE SEQUENCE hibernate_sequence
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
-    NO MAXVALUE CACHE 1;
+    NO MAXVALUE
+    CACHE 1;
 
 --
 -- Name: lot_keys; Type: TABLE; Schema: public; Owner: test
@@ -22,8 +23,8 @@ CREATE SEQUENCE hibernate_sequence
 CREATE TABLE lot_keys
 (
     id              bigint DEFAULT nextval('hibernate_sequence'::regclass) NOT NULL,
-    date_execution  timestamp without time zone NOT NULL,
-    number_of_codes bigint DEFAULT 0                                       NOT NULL
+    date_execution  timestamp without time zone                                   NOT NULL,
+    number_of_codes bigint DEFAULT 0                                              NOT NULL
 );
 
 --
@@ -33,10 +34,10 @@ CREATE TABLE lot_keys
 CREATE TABLE seq_fichier
 (
     id       bigint DEFAULT nextval('hibernate_sequence'::regclass) NOT NULL,
-    annee    integer                                                NOT NULL,
-    jour     integer                                                NOT NULL,
-    mois     integer                                                NOT NULL,
-    sequence integer                                                NOT NULL
+    annee    integer                                                       NOT NULL,
+    jour     integer                                                       NOT NULL,
+    mois     integer                                                       NOT NULL,
+    sequence integer                                                       NOT NULL
 );
 
 --
@@ -46,20 +47,14 @@ CREATE TABLE seq_fichier
 CREATE TABLE submission_code
 (
     id                bigint DEFAULT nextval('hibernate_sequence'::regclass) NOT NULL,
-    code              character varying(255)                                 NOT NULL,
-    date_available    timestamp without time zone NOT NULL,
-    date_end_validity timestamp without time zone NOT NULL,
-    date_generation   timestamp without time zone NOT NULL,
+    code              character varying(255)                                        NOT NULL,
+    date_available    timestamp without time zone                                   NOT NULL,
+    date_end_validity timestamp without time zone                                   NOT NULL,
+    date_generation   timestamp without time zone                                   NOT NULL,
     date_use          timestamp without time zone,
-    type_code         character varying(255)                                 NOT NULL,
-    used              boolean                                                NOT NULL,
+    type_code         character varying(255)                                        NOT NULL,
+    used              boolean                                                       NOT NULL,
     lotkey_id         bigint
-);
-
-CREATE TABLE jwt
-(
-    id  bigint DEFAULT nextval('hibernate_sequence'::regclass) NOT NULL,
-    jti character varying(255)                                 NOT NULL
 );
 
 --
@@ -85,9 +80,6 @@ ALTER TABLE ONLY seq_fichier
 ALTER TABLE ONLY submission_code
     ADD CONSTRAINT submission_code_pkey PRIMARY KEY (id);
 
-
-ALTER TABLE ONLY jwt
-    ADD CONSTRAINT jwt_pkey PRIMARY KEY (id);
 
 --
 -- Name: submission_code uk_neb13efe0uryoy16dkr526b6c; Type: CONSTRAINT; Schema: public; Owner: test
@@ -116,9 +108,7 @@ CREATE INDEX type_code_idx ON submission_code USING btree (type_code);
 --
 
 ALTER TABLE ONLY submission_code
-    ADD CONSTRAINT fkd56txfmmdc7cvuq1mtlltdm50 FOREIGN KEY (lotkey_id) REFERENCES lot_keys (id) ON
-DELETE
-CASCADE;
+    ADD CONSTRAINT fkd56txfmmdc7cvuq1mtlltdm50 FOREIGN KEY (lotkey_id) REFERENCES lot_keys (id) ON DELETE CASCADE;
 
 
 --
