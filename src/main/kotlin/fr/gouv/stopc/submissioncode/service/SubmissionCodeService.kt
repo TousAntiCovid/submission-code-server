@@ -7,7 +7,7 @@ import com.nimbusds.jwt.SignedJWT
 import fr.gouv.stopc.submissioncode.configuration.SubmissionJWTConfiguration
 import fr.gouv.stopc.submissioncode.repository.SubmissionCodeJWTRepository
 import fr.gouv.stopc.submissioncode.repository.SubmissionCodeRepository
-import fr.gouv.stopc.submissioncode.repository.model.JWT
+import fr.gouv.stopc.submissioncode.repository.model.JtiUsed
 import fr.gouv.stopc.submissioncode.repository.model.SubmissionCode
 import org.apache.commons.text.RandomStringGenerator
 import org.springframework.stereotype.Service
@@ -122,7 +122,7 @@ class SubmissionCodeService(
 
         if (isValid) {
             submissionCodeJWTRepository.save(
-                JWT(
+                JtiUsed(
                     jti = jwtJti
                 )
             )

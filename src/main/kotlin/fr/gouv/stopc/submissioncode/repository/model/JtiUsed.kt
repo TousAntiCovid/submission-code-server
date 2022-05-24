@@ -8,8 +8,8 @@ import javax.persistence.Id
 import javax.persistence.Table
 
 @Entity
-@Table(name = "jwt")
-data class JWT(
+@Table(name = "jwt_used")
+data class JtiUsed(
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
