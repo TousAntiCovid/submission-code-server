@@ -128,6 +128,10 @@
         <testSourceDirectory>src/test/kotlin</testSourceDirectory>
         <plugins>
             <plugin>
+                <groupId>pl.project13.maven</groupId>
+                <artifactId>git-commit-id-plugin</artifactId>
+            </plugin>
+            <plugin>
                 <groupId>com.rudikershaw.gitbuildhook</groupId>
                 <artifactId>git-build-hook-maven-plugin</artifactId>
                 <version>3.1.0</version>
