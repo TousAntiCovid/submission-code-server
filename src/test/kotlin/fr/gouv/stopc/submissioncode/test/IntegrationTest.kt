@@ -12,7 +12,7 @@ import kotlin.annotation.AnnotationRetention.RUNTIME
 import kotlin.annotation.AnnotationTarget.ANNOTATION_CLASS
 import kotlin.annotation.AnnotationTarget.CLASS
 
-@ActiveProfiles("dev", "test")
+@ActiveProfiles("dev")
 @SpringBootTest(webEnvironment = RANDOM_PORT, classes = [Application::class])
 @TestExecutionListeners(
     listeners = [RestAssuredManager::class, PostgresqlManager::class],

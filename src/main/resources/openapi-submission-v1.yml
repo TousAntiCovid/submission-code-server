@@ -151,7 +151,7 @@ components:
     CodeType:
       type: string
       description: A type of submission code
-      enum: [short, test, long]
+      enum: [short, test]
 
     SubmissionCodeGenerationResponse:
       type: object

@@ -3,7 +3,7 @@ package fr.gouv.stopc.submissioncode.controller
 import com.fasterxml.jackson.databind.exc.MismatchedInputException
 import fr.gouv.stopc.submissioncode.api.model.ErrorResponse
 import fr.gouv.stopc.submissioncode.api.model.ErrorResponseErrors
-import org.slf4j.LoggerFactory
+import org.slf4j.LoggerFactory.getLogger
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -21,20 +21,14 @@ import javax.validation.ConstraintViolationException
 @RestControllerAdvice
 class RestExceptionHandler(private val servletRequest: HttpServletRequest) : ResponseEntityExceptionHandler() {
 
-    private val log = LoggerFactory.getLogger(RestExceptionHandler::class.java)
+    private val log = getLogger(RestExceptionHandler::class.java)
 
     override fun handleMethodArgumentNotValid(
         ex: MethodArgumentNotValidException,
         headers: HttpHeaders,
         status: HttpStatus,
         request: WebRequest
-    ): ResponseEntity<Any> {
-        val fieldErrors =
-            ex.fieldErrors.map { ErrorResponseErrors(it.field, it.code, it.defaultMessage) }
-        val globalErrors =
-            ex.globalErrors.map { ErrorResponseErrors("", it.code, it.defaultMessage) }
-        return badRequestAndLogErrors(fieldErrors + globalErrors)
-    }
+    ): ResponseEntity<Any> = handleBindException(ex, headers, status, request)
 
     override fun handleBindException(
         ex: BindException,

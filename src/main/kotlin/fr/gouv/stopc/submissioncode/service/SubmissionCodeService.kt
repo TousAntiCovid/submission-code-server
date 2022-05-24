@@ -3,7 +3,8 @@ package fr.gouv.stopc.submissioncode.service
 import fr.gouv.stopc.submissioncode.configuration.SubmissionProperties
 import fr.gouv.stopc.submissioncode.repository.SubmissionCodeRepository
 import fr.gouv.stopc.submissioncode.repository.model.SubmissionCode
-import org.slf4j.LoggerFactory
+import fr.gouv.stopc.submissioncode.repository.model.SubmissionCode.Type.SHORT
+import fr.gouv.stopc.submissioncode.repository.model.SubmissionCode.Type.TEST
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.retry.annotation.Backoff
 import org.springframework.retry.annotation.Recover
@@ -20,7 +21,6 @@ class SubmissionCodeService(
     private val random: RandomGenerator,
     private val submissionProperties: SubmissionProperties
 ) {
-    private val log = LoggerFactory.getLogger(SubmissionCodeService::class.java)
 
     @Retryable(
         value = [DataIntegrityViolationException::class],
@@ -37,7 +37,7 @@ class SubmissionCodeService(
                 dateGeneration = now,
                 dateAvailable = now,
                 dateEndValidity = now.plus(submissionProperties.shortCodeLifetime),
-                type = SubmissionCode.Type.SHORT.dbValue,
+                type = SHORT.dbValue,
                 used = false
             )
         )
@@ -58,7 +58,7 @@ class SubmissionCodeService(
                 dateGeneration = now,
                 dateAvailable = now,
                 dateEndValidity = now.plus(submissionProperties.testCodeLifetime).truncatedTo(DAYS),
-                type = SubmissionCode.Type.TEST.dbValue,
+                type = TEST.dbValue,
                 used = false
             )
         )

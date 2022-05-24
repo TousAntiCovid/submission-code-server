@@ -15,10 +15,6 @@ data class SubmissionCode(
     @GeneratedValue(strategy = GenerationType.AUTO)
     val id: Long = 0,
 
-    // @ManyToOne(fetch = FetchType.LAZY, cascade = [CascadeType.ALL])
-    // @OnDelete(action = OnDeleteAction.CASCADE)
-    // val lotkey: Lot? = null,
-
     @Column(name = "code")
     val code: String,
 
