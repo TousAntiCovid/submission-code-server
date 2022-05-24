@@ -20,8 +20,8 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.security.KeyFactory
 import java.security.spec.X509EncodedKeySpec
+import java.text.ParseException
 import java.time.Instant
-import java.time.temporal.ChronoUnit
 import java.time.temporal.ChronoUnit.DAYS
 import java.util.Base64
 
@@ -34,6 +34,21 @@ class SubmissionCodeService(
     private val submissionJWTConfiguration: SubmissionJWTConfiguration,
     private val submissionProperties: SubmissionProperties
 ) {
+
+    private val signatureVerifiers: MutableMap<String, ECDSAVerifier> = mutableMapOf()
+
+    init {
+        submissionJWTConfiguration.publicKeys.forEach { (kid, key) ->
+            val decodedPublicKey = Base64.getMimeDecoder().decode(key)
+
+            val publicKey = KeyFactory.getInstance("EC")
+                .generatePublic(X509EncodedKeySpec(decodedPublicKey)) as java.security.interfaces.ECPublicKey
+
+            val key = ECKey.Builder(Curve.P_256, publicKey).build()
+            val verifier = ECDSAVerifier(key)
+            signatureVerifiers[kid] = verifier
+        }
+    }
 
     @Retryable(
         value = [DataIntegrityViolationException::class],
@@ -84,10 +99,10 @@ class SubmissionCodeService(
 
     fun validateAndUse(code: String): Boolean {
 
-        if (code.length == 6 || code.length == 12 || code.length == 38) {
-            return validateCode(code)
+        return if (code.length == 6 || code.length == 12 || code.length == 36) {
+            validateCode(code)
         } else {
-            return validateJwt(code)
+            validateJwt(code)
         }
     }
 
@@ -99,21 +114,22 @@ class SubmissionCodeService(
 
     private fun validateJwt(jwt: String): Boolean {
 
-        val signedJwt = SignedJWT.parse(jwt)
-        val signedJwtPayload = signedJwt.payload.toJSONObject()
+        val signedJwt = try {
+            SignedJWT.parse(jwt)
+        } catch (e: ParseException) {
+            return false
+        }
 
-        val jwtJti = signedJwtPayload["jti"].toString()
-        val jwtDate = signedJwtPayload["iat"].toString()
-
-        val jwtInstant = Instant.ofEpochSecond(jwtDate.toLong())
+        val jwtJti = signedJwt.jwtClaimsSet.jwtid
+        val jwtIatAsInstant = signedJwt.jwtClaimsSet.issueTime.toInstant()
 
         val now = Instant.now()
 
-        val isValid = jwtInstant.isBefore(now) &&
-            jwtInstant.plus(7, ChronoUnit.DAYS).isAfter(now) &&
-            submissionCodeJWTRepository.findByJti(jwtJti) == null &&
+        val isValid = jwtIatAsInstant.isBefore(now) &&
+            jwtIatAsInstant.plus(7, DAYS).isAfter(now) &&
+            !submissionCodeJWTRepository.existsByJti(jwtJti) &&
             !(signedJwt.header.keyID.isNullOrEmpty() || submissionJWTConfiguration.publicKeys[signedJwt.header.keyID].isNullOrEmpty()) &&
-            verifySignature(signedJwt)
+            signedJwt.verify(signatureVerifiers[signedJwt.header.keyID])
 
         if (isValid) {
             submissionCodeJWTRepository.save(
@@ -124,19 +140,5 @@ class SubmissionCodeService(
         }
 
         return isValid
-    }
-
-    private fun verifySignature(signedJwt: SignedJWT): Boolean {
-
-        val encodedPublicKey = submissionJWTConfiguration.publicKeys[signedJwt.header.keyID] ?: return false
-        val decodedPublicKey = Base64.getMimeDecoder().decode(encodedPublicKey)
-
-        val publicKey = KeyFactory.getInstance("EC")
-            .generatePublic(X509EncodedKeySpec(decodedPublicKey)) as java.security.interfaces.ECPublicKey
-
-        val key = ECKey.Builder(Curve.P_256, publicKey).build()
-        val verifier = ECDSAVerifier(key)
-
-        return signedJwt.verify(verifier)
     }
 }

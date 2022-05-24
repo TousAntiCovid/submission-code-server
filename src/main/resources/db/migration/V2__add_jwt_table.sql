@@ -4,11 +4,8 @@
 
 CREATE TABLE jwt
 (
-    id  bigint DEFAULT nextval('hibernate_sequence'::regclass) NOT NULL,
-    jti character varying(255)                                 NOT NULL
+    id  bigint DEFAULT nextval('hibernate_sequence'::regclass) NOT NULL PRIMARY KEY,
+    jti character varying(255)                                 NOT NULL UNIQUE
 );
 
-
-ALTER TABLE ONLY jwt
-    ADD CONSTRAINT jwt_pkey PRIMARY KEY (id);
-
+CREATE INDEX jti_idx ON jwt USING btree (jti);

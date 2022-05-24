@@ -7,5 +7,5 @@ import org.springframework.stereotype.Repository
 @Repository
 interface SubmissionCodeJWTRepository : PagingAndSortingRepository<JWT, Long> {
 
-    fun findByJti(jti: String): JWT?
+    fun existsByJti(jti: String): Boolean
 }
