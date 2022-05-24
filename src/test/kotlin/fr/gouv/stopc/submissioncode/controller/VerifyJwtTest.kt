@@ -8,6 +8,8 @@ import fr.gouv.stopc.submissioncode.test.When
 import io.restassured.RestAssured.given
 import org.hamcrest.Matchers.equalTo
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.http.HttpStatus.OK
 import java.time.Instant
 import java.time.temporal.ChronoUnit.DAYS
@@ -124,6 +126,26 @@ class VerifyJwtTest {
 
         When()
             .get("/api/v1/verify?code={jwt}", jwtWithWrongKdi)
+
+            .then()
+            .statusCode(OK.value())
+            .body("valid", equalTo(false))
+    }
+
+    @ParameterizedTest
+    @ValueSource(
+        strings = [
+            "",
+            " ",
+            "a",
+            "aaaaaaaaa",
+            "aaaaaaaa.aaaaaaaa",
+            "aaaaaaaaaa.aaaaaaaaa.aaaaaaaaa"
+        ]
+    )
+    fun reject_a_string_that_is_not_a_JWT(incorrectString: String) {
+        When()
+            .get("/api/v1/verify?code={jwt}", incorrectString)
 
             .then()
             .statusCode(OK.value())
