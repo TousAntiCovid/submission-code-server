@@ -3,6 +3,7 @@ package fr.gouv.stopc.submissioncode.controller
 import com.nimbusds.jose.jwk.Curve
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator
 import fr.gouv.stopc.submissioncode.test.IntegrationTest
+import fr.gouv.stopc.submissioncode.test.JWTManager.Companion.givenJwtWithIncorrectIat
 import fr.gouv.stopc.submissioncode.test.JWTManager.Companion.givenValidJwt
 import fr.gouv.stopc.submissioncode.test.When
 import io.restassured.RestAssured.given
@@ -30,6 +31,26 @@ class VerifyJwtTest {
             .body("valid", equalTo(true))
     }
 
+    @ParameterizedTest
+    @ValueSource(
+        strings = [
+            "",
+            " ",
+            "a",
+            "aaaaaaaaa",
+            "aaaaaaaa.aaaaaaaa",
+            "aaaaaaaaaa.aaaaaaaaa.aaaaaaaaa"
+        ]
+    )
+    fun reject_a_string_that_is_not_a_JWT(incorrectString: String) {
+        When()
+            .get("/api/v1/verify?code={jwt}", incorrectString)
+
+            .then()
+            .statusCode(OK.value())
+            .body("valid", equalTo(false))
+    }
+
     @Test
     fun reject_a_JWT_with_invalid_signature() {
 
@@ -41,6 +62,27 @@ class VerifyJwtTest {
 
         When()
             .get("/api/v1/verify?code={jwt}", jwtWithInvalidSignature)
+
+            .then()
+            .statusCode(OK.value())
+            .body("valid", equalTo(false))
+    }
+
+    @ParameterizedTest
+    @ValueSource(
+        strings = [
+            "",
+            " ",
+            "a",
+            "123456"
+        ]
+    )
+    fun reject_a_JWT_with_incorrect_iat(incorrectIat: String) {
+
+        val jwtWithIncorrectIat = givenJwtWithIncorrectIat(incorrectIat)
+
+        When()
+            .get("/api/v1/verify?code={jwt}", jwtWithIncorrectIat)
 
             .then()
             .statusCode(OK.value())
@@ -73,6 +115,25 @@ class VerifyJwtTest {
             .body("valid", equalTo(false))
     }
 
+    @ParameterizedTest
+    @ValueSource(
+        strings = [
+            "",
+            " ",
+        ]
+    )
+    fun reject_a_JWT_with_jti_missing(jti: String) {
+
+        val jwtWithMissingKdi = givenValidJwt(jti = jti)
+
+        When()
+            .get("/api/v1/verify?code={jwt}", jwtWithMissingKdi)
+
+            .then()
+            .statusCode(OK.value())
+            .body("valid", equalTo(false))
+    }
+
     @Test
     fun reject_a_JWT_with_jti_already_used() {
 
@@ -93,10 +154,16 @@ class VerifyJwtTest {
             .body("valid", equalTo(false))
     }
 
-    @Test
-    fun reject_a_JWT_with_kid_missing() {
+    @ParameterizedTest
+    @ValueSource(
+        strings = [
+            "",
+            " ",
+        ]
+    )
+    fun reject_a_JWT_with_kid_missing(kid: String) {
 
-        val jwtWithMissingKdi = givenValidJwt(kid = "")
+        val jwtWithMissingKdi = givenValidJwt(kid = kid)
 
         When()
             .get("/api/v1/verify?code={jwt}", jwtWithMissingKdi)
@@ -126,26 +193,6 @@ class VerifyJwtTest {
 
         When()
             .get("/api/v1/verify?code={jwt}", jwtWithWrongKdi)
-
-            .then()
-            .statusCode(OK.value())
-            .body("valid", equalTo(false))
-    }
-
-    @ParameterizedTest
-    @ValueSource(
-        strings = [
-            "",
-            " ",
-            "a",
-            "aaaaaaaaa",
-            "aaaaaaaa.aaaaaaaa",
-            "aaaaaaaaaa.aaaaaaaaa.aaaaaaaaa"
-        ]
-    )
-    fun reject_a_string_that_is_not_a_JWT(incorrectString: String) {
-        When()
-            .get("/api/v1/verify?code={jwt}", incorrectString)
 
             .then()
             .statusCode(OK.value())

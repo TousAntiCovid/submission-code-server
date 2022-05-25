@@ -16,6 +16,7 @@ import java.security.interfaces.ECPrivateKey
 import java.time.Instant
 import java.util.Base64
 import java.util.Date
+import java.util.UUID
 
 @Slf4j
 class JWTManager : TestExecutionListener {
@@ -61,6 +62,19 @@ class JWTManager : TestExecutionListener {
                 .keyID(kid)
                 .type(JOSEObjectType.JWT)
                 .build()
+        }
+
+        fun givenJwtWithIncorrectIat(iat: String): String {
+            val jwtClaim = JWTClaimsSet.Builder()
+                .claim("iat", iat)
+                .claim("iss", "SIDEP")
+                .claim("jti", UUID.randomUUID().toString())
+                .build()
+            val jwtHeader = generateJwtHeader("TousAntiCovidKID")
+            val jwt = SignedJWT(jwtHeader, jwtClaim)
+            jwt.sign(ECDSASigner(defaultEcKey.toECPrivateKey()))
+
+            return jwt.serialize()
         }
 
         fun givenValidJwt(

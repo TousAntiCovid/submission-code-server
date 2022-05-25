@@ -10,6 +10,7 @@ import fr.gouv.stopc.submissioncode.repository.SubmissionCodeRepository
 import fr.gouv.stopc.submissioncode.repository.model.JtiUsed
 import fr.gouv.stopc.submissioncode.repository.model.SubmissionCode
 import org.apache.commons.text.RandomStringGenerator
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.security.KeyFactory
@@ -29,20 +30,8 @@ class SubmissionCodeService(
     private val submissionJWTConfiguration: SubmissionJWTConfiguration
 ) {
 
-    private val signatureVerifiers: MutableMap<String, ECDSAVerifier> = mutableMapOf()
-
-    init {
-        submissionJWTConfiguration.publicKeys.forEach { (kid, key) ->
-            val decodedPublicKey = Base64.getMimeDecoder().decode(key)
-
-            val publicKey = KeyFactory.getInstance("EC")
-                .generatePublic(X509EncodedKeySpec(decodedPublicKey)) as java.security.interfaces.ECPublicKey
-
-            val key = ECKey.Builder(Curve.P_256, publicKey).build()
-            val verifier = ECDSAVerifier(key)
-            signatureVerifiers[kid] = verifier
-        }
-    }
+    private val signatureVerifiers: Map<String, ECDSAVerifier> =
+        submissionJWTConfiguration.publicKeys.mapValues { generateVerifier(it.value) }
 
     fun generateShortCode(): SubmissionCode {
         for (i in 0..10) {
@@ -109,25 +98,46 @@ class SubmissionCodeService(
             return false
         }
 
-        val jwtJti = signedJwt.jwtClaimsSet.jwtid
-        val jwtIatAsInstant = signedJwt.jwtClaimsSet.issueTime.toInstant()
+        val jwtKid = signedJwt.header.keyID.ifBlank { return false }
+
+        if (jwtKid.isNullOrBlank() ||
+            submissionJWTConfiguration.publicKeys[jwtKid].isNullOrBlank() ||
+            !signedJwt.verify(signatureVerifiers[jwtKid])
+        ) {
+            return false
+        }
+
+        val jwtIatAsInstant = try {
+            signedJwt.jwtClaimsSet.issueTime.toInstant()
+        } catch (e: ParseException) {
+            return false
+        }
+        val jwtJti = if (signedJwt.jwtClaimsSet.jwtid.isNullOrBlank()) return false else signedJwt.jwtClaimsSet.jwtid
 
         val now = Instant.now()
 
         val isValid = jwtIatAsInstant.isBefore(now) &&
             jwtIatAsInstant.plus(7, DAYS).isAfter(now) &&
-            !submissionCodeJWTRepository.existsByJti(jwtJti) &&
-            !(signedJwt.header.keyID.isNullOrEmpty() || submissionJWTConfiguration.publicKeys[signedJwt.header.keyID].isNullOrEmpty()) &&
-            signedJwt.verify(signatureVerifiers[signedJwt.header.keyID])
+            !submissionCodeJWTRepository.existsByJti(jwtJti)
 
         if (isValid) {
-            submissionCodeJWTRepository.save(
-                JtiUsed(
-                    jti = jwtJti
-                )
-            )
+            try {
+                submissionCodeJWTRepository.save(JtiUsed(jti = jwtJti))
+            } catch (e: DataIntegrityViolationException) {
+                return false
+            }
         }
 
         return isValid
+    }
+
+    private fun generateVerifier(publicKey: String): ECDSAVerifier {
+        val decodedPublicKey = Base64.getMimeDecoder().decode(publicKey)
+
+        val ecPublicKey = KeyFactory.getInstance("EC")
+            .generatePublic(X509EncodedKeySpec(decodedPublicKey)) as java.security.interfaces.ECPublicKey
+
+        val ecKey = ECKey.Builder(Curve.P_256, ecPublicKey).build()
+        return ECDSAVerifier(ecKey)
     }
 }
