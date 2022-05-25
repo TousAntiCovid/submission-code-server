@@ -71,13 +71,7 @@ class SubmissionCodeService(
 
     fun validateAndUse(code: String): Boolean {
         val now = Instant.now()
-        val unusedCode = submissionCodeRepository.findUnusedActiveCode(code, now) ?: return false
-        submissionCodeRepository.save(
-            unusedCode.copy(
-                used = true,
-                dateUse = now
-            )
-        )
-        return true
+        val updatedEntities = submissionCodeRepository.verifyAndUse(code, now)
+        return updatedEntities == 1
     }
 }
