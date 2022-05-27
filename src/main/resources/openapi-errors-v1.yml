@@ -42,6 +42,23 @@ components:
             path: /api/v1/resource
             timestamp: "2021-06-01T11:28:23.603Z"
   schemas:
+    ErrorDetails:
+      type: object
+      description: details about the error
+      properties:
+        field:
+          type: string
+          description: the field name having an error
+        code:
+          type: string
+          description: an error code
+        message:
+          type: string
+          description: an error message
+      required:
+        - field
+        - code
+        - message
     ErrorResponse:
       type: object
       properties:
@@ -64,18 +81,7 @@ components:
         errors:
           type: array
           items:
-            type: object
-            description: details about the error
-            properties:
-              field:
-                type: string
-                description: the field name having an error
-              code:
-                type: string
-                description: an error code
-              message:
-                type: string
-                description: an error message
+            $ref: "#/components/schemas/ErrorDetails"
           minLength: 1
       required:
         - status

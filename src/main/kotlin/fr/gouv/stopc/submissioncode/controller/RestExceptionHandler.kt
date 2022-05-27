@@ -1,8 +1,8 @@
 package fr.gouv.stopc.submissioncode.controller
 
 import com.fasterxml.jackson.databind.exc.MismatchedInputException
+import fr.gouv.stopc.submissioncode.api.model.ErrorDetails
 import fr.gouv.stopc.submissioncode.api.model.ErrorResponse
-import fr.gouv.stopc.submissioncode.api.model.ErrorResponseErrors
 import org.slf4j.LoggerFactory.getLogger
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -38,9 +38,9 @@ class RestExceptionHandler(private val servletRequest: HttpServletRequest) : Res
     ): ResponseEntity<Any> {
         return badRequestAndLogErrors(
             ex.fieldErrors.map {
-                ErrorResponseErrors(it.field, it.code, it.defaultMessage)
+                ErrorDetails(it.field, it.code ?: "", it.defaultMessage ?: "")
             } + ex.globalErrors.map {
-                ErrorResponseErrors("", it.code, it.defaultMessage)
+                ErrorDetails("", it.code ?: "", it.defaultMessage ?: "")
             }
         )
     }
@@ -48,9 +48,9 @@ class RestExceptionHandler(private val servletRequest: HttpServletRequest) : Res
     @ExceptionHandler
     fun handle(ex: ConstraintViolationException): ResponseEntity<Any> {
         val errors = ex.constraintViolations.map {
-            ErrorResponseErrors(
+            ErrorDetails(
                 field = it.propertyPath.toString(),
-                code = it.constraintDescriptor.annotation.annotationClass.simpleName,
+                code = it.constraintDescriptor.annotation.annotationClass.java.simpleName,
                 message = it.message
             )
         }
@@ -65,25 +65,25 @@ class RestExceptionHandler(private val servletRequest: HttpServletRequest) : Res
     ): ResponseEntity<Any> {
         val cause = ex.cause
         val error = if (cause is MismatchedInputException) {
-            ErrorResponseErrors(
+            ErrorDetails(
                 field = cause.path
                     .map { if (it.fieldName != null) ".${it.fieldName}" else "[${it.index}]" }
                     .joinToString("")
                     .removePrefix("."),
                 code = "HttpMessageNotReadable",
-                message = ex.rootCause!!.message
+                message = ex.rootCause?.message ?: ""
             )
         } else {
-            ErrorResponseErrors(
+            ErrorDetails(
                 field = "",
-                code = ex::class.simpleName,
-                message = ex.message
+                code = ex::class.java.simpleName,
+                message = ex.message ?: ""
             )
         }
         return badRequestAndLogErrors(listOf(error))
     }
 
-    private fun badRequestAndLogErrors(errors: List<ErrorResponseErrors>): ResponseEntity<Any> {
+    private fun badRequestAndLogErrors(errors: List<ErrorDetails>): ResponseEntity<Any> {
         val errorResponseBody = ErrorResponse(
             status = HttpStatus.BAD_REQUEST.value(),
             error = HttpStatus.BAD_REQUEST.reasonPhrase,
