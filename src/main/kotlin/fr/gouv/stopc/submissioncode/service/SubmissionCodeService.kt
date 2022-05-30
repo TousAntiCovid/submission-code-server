@@ -29,7 +29,7 @@ import java.util.Base64
 @Transactional
 class SubmissionCodeService(
     private val submissionCodeRepository: SubmissionCodeRepository,
-    private val randomUppercaseString: RandomStringGenerator,
+    private val random: RandomGenerator,
     private val submissionCodeJWTRepository: SubmissionCodeJWTRepository,
     private val submissionJWTConfiguration: SubmissionJWTConfiguration,
     private val submissionProperties: SubmissionProperties

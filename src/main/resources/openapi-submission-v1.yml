@@ -83,7 +83,7 @@ paths:
             See example response for invalid code format.
           schema:
             type: string
-            pattern: ^([a-zA-Z0-9]{6}|[a-zA-Z0-9]{12}|[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12})$
+      #            pattern: ^([a-zA-Z0-9]{6}|[a-zA-Z0-9]{12}|[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12})$
       responses:
         200:
           description: Returns the submission code validation result
