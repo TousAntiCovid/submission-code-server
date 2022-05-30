@@ -1,0 +1,85 @@
+components:
+  responses:
+    BadRequest:
+      description: Bad request, parameters or body are invalid
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            validation error:
+              value:
+                status: 400
+                error: Bad Request
+                message: Request body contains invalid attributes
+                timestamp: "2021-06-01T11:28:23.603Z"
+                path: /api/v1/resource
+                errors:
+                  - field: fieldName
+                    code: NotNull
+                    message: The field 'fieldName' must not be null
+            malformed json body:
+              value:
+                status: 400
+                error: Bad Request
+                message: Unreadable JSON body
+                path: /api/v1/resource
+                timestamp: "2021-06-01T11:28:23.603Z"
+    Unauthorized:
+      description: Unauthorized, the request lacks valid authentication credentials
+    Forbidden:
+      description: Forbidden, access is denied
+    InternalServerError:
+      description: InternalServerError, an unexpected error occurred
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            status: 400
+            error: Internal Server Error
+            message: No message available
+            path: /api/v1/resource
+            timestamp: "2021-06-01T11:28:23.603Z"
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          description: the http status code
+        error:
+          type: string
+          description: the error reason
+        message:
+          type: string
+          description: a detailed error message
+        timestamp:
+          type: string
+          format: date-time
+          description: the error timestamp
+        path:
+          type: string
+          description: the original request path
+        errors:
+          type: array
+          items:
+            type: object
+            description: details about the error
+            properties:
+              field:
+                type: string
+                description: the field name having an error
+              code:
+                type: string
+                description: an error code
+              message:
+                type: string
+                description: an error message
+          minLength: 1
+      required:
+        - status
+        - error
+        - message
+        - timestamp
+        - path

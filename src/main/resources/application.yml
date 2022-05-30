@@ -1,0 +1,10 @@
+spring:
+  jpa:
+    open-in-view: false
+    # database columns are TIMESTAMP WITHOUT TIMEZONE, this make sure we send date-time values with time offset 0
+    properties.hibernate.jdbc.time_zone: UTC
+
+submission:
+  long-code-lifetime: 10d
+  short-code-lifetime: 1h
+  test-code-lifetime: 15d
