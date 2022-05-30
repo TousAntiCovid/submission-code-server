@@ -64,13 +64,47 @@ class JWTManager : TestExecutionListener {
                 .build()
         }
 
-        fun givenJwtWithIncorrectIat(iat: String): String {
+        fun givenJwtWithIncorrectFields(iat: Any? = Date.from(Instant.now()), jti: Any? = UUID.randomUUID()): String {
             val jwtClaim = JWTClaimsSet.Builder()
                 .claim("iat", iat)
-                .claim("iss", "SIDEP")
-                .claim("jti", UUID.randomUUID().toString())
+                .claim("jti", jti)
                 .build()
             val jwtHeader = generateJwtHeader("TousAntiCovidKID")
+            val jwt = SignedJWT(jwtHeader, jwtClaim)
+            jwt.sign(ECDSASigner(defaultEcKey.toECPrivateKey()))
+
+            return jwt.serialize()
+        }
+
+        fun givenJwtWithMissingIat(): String {
+            val jwtClaim = JWTClaimsSet.Builder()
+                .jwtID("TousAntiCovidJti")
+                .issuer("SIDEP")
+                .build()
+            val jwtHeader = generateJwtHeader("TousAntiCovidKID")
+            val jwt = SignedJWT(jwtHeader, jwtClaim)
+            jwt.sign(ECDSASigner(defaultEcKey.toECPrivateKey()))
+
+            return jwt.serialize()
+        }
+
+        fun givenJwtWithMissingJti(): String {
+            val jwtClaim = JWTClaimsSet.Builder()
+                .issueTime(Date.from(Instant.now()))
+                .issuer("SIDEP")
+                .build()
+            val jwtHeader = generateJwtHeader("TousAntiCovidKID")
+            val jwt = SignedJWT(jwtHeader, jwtClaim)
+            jwt.sign(ECDSASigner(defaultEcKey.toECPrivateKey()))
+
+            return jwt.serialize()
+        }
+
+        fun givenJwtWithMissingKid(): String {
+            val jwtClaim = generateJwtClaims(Date.from(Instant.now()), "TousAntiCovidJti")
+            val jwtHeader = JWSHeader.Builder(JWSAlgorithm.ES256)
+                .type(JOSEObjectType.JWT)
+                .build()
             val jwt = SignedJWT(jwtHeader, jwtClaim)
             jwt.sign(ECDSASigner(defaultEcKey.toECPrivateKey()))
 
