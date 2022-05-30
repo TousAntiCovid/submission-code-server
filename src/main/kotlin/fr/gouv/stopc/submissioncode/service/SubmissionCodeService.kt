@@ -108,22 +108,25 @@ class SubmissionCodeService(
             return false
         }
 
-        val jwtKid = signedJwt.header.keyID.ifBlank { return false }
+        val signedJwtClaimset = try {
+            signedJwt.jwtClaimsSet
+        } catch (e: ParseException) {
+            return false
+        }
+
+        val jwtKid = signedJwt.header.keyID
 
         if (jwtKid.isNullOrBlank() ||
+            signedJwtClaimset.jwtid.isNullOrBlank() ||
+            signedJwtClaimset.issueTime == null ||
             submissionJWTConfiguration.publicKeys[jwtKid].isNullOrBlank() ||
             !signedJwt.verify(signatureVerifiers[jwtKid])
         ) {
             return false
         }
 
-        val jwtIatAsInstant = try {
-            signedJwt.jwtClaimsSet.issueTime.toInstant()
-        } catch (e: ParseException) {
-            return false
-        }
-        val jwtJti = if (signedJwt.jwtClaimsSet.jwtid.isNullOrBlank()) return false else signedJwt.jwtClaimsSet.jwtid
-
+        val jwtIatAsInstant = signedJwtClaimset.issueTime.toInstant()
+        val jwtJti = signedJwtClaimset.jwtid
         val now = Instant.now()
 
         val isValid = jwtIatAsInstant.isBefore(now) &&

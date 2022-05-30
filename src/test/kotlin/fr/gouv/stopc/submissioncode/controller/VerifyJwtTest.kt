@@ -3,13 +3,17 @@ package fr.gouv.stopc.submissioncode.controller
 import com.nimbusds.jose.jwk.Curve
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator
 import fr.gouv.stopc.submissioncode.test.IntegrationTest
-import fr.gouv.stopc.submissioncode.test.JWTManager.Companion.givenJwtWithIncorrectIat
+import fr.gouv.stopc.submissioncode.test.JWTManager.Companion.givenJwtWithIncorrectFields
+import fr.gouv.stopc.submissioncode.test.JWTManager.Companion.givenJwtWithMissingIat
+import fr.gouv.stopc.submissioncode.test.JWTManager.Companion.givenJwtWithMissingJti
+import fr.gouv.stopc.submissioncode.test.JWTManager.Companion.givenJwtWithMissingKid
 import fr.gouv.stopc.submissioncode.test.JWTManager.Companion.givenValidJwt
 import fr.gouv.stopc.submissioncode.test.When
 import io.restassured.RestAssured.given
 import org.hamcrest.Matchers.equalTo
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.NullSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.http.HttpStatus.OK
 import java.time.Instant
@@ -69,6 +73,7 @@ class VerifyJwtTest {
     }
 
     @ParameterizedTest
+    @NullSource
     @ValueSource(
         strings = [
             "",
@@ -77,12 +82,25 @@ class VerifyJwtTest {
             "123456"
         ]
     )
-    fun reject_a_JWT_with_incorrect_iat(incorrectIat: String) {
+    fun reject_a_JWT_with_incorrect_iat(incorrectIat: String?) {
 
-        val jwtWithIncorrectIat = givenJwtWithIncorrectIat(incorrectIat)
+        val jwtWithIncorrectIat = givenJwtWithIncorrectFields(incorrectIat)
 
         When()
             .get("/api/v1/verify?code={jwt}", jwtWithIncorrectIat)
+
+            .then()
+            .statusCode(OK.value())
+            .body("valid", equalTo(false))
+    }
+
+    @Test
+    fun reject_a_JWT_with_missing_iat() {
+
+        val jwtWithMissingIat = givenJwtWithMissingIat()
+
+        When()
+            .get("/api/v1/verify?code={jwt}", jwtWithMissingIat)
 
             .then()
             .statusCode(OK.value())
@@ -122,12 +140,38 @@ class VerifyJwtTest {
             " ",
         ]
     )
-    fun reject_a_JWT_with_jti_missing(jti: String) {
+    fun reject_a_JWT_with_blank_jti(jti: String) {
 
-        val jwtWithMissingKdi = givenValidJwt(jti = jti)
+        val jwtWithBlankJti = givenValidJwt(jti = jti)
 
         When()
-            .get("/api/v1/verify?code={jwt}", jwtWithMissingKdi)
+            .get("/api/v1/verify?code={jwt}", jwtWithBlankJti)
+
+            .then()
+            .statusCode(OK.value())
+            .body("valid", equalTo(false))
+    }
+
+    @Test
+    fun reject_a_JWT_with_missing_jti() {
+
+        val jwtWithMissingJti = givenJwtWithMissingJti()
+
+        When()
+            .get("/api/v1/verify?code={jwt}", jwtWithMissingJti)
+
+            .then()
+            .statusCode(OK.value())
+            .body("valid", equalTo(false))
+    }
+
+    @Test
+    fun reject_a_JWT_with_incorrect_jti() {
+
+        val jwtWithIncorrectJti = givenJwtWithIncorrectFields(jti = 123456789)
+
+        When()
+            .get("/api/v1/verify?code={jwt}", jwtWithIncorrectJti)
 
             .then()
             .statusCode(OK.value())
@@ -161,12 +205,25 @@ class VerifyJwtTest {
             " ",
         ]
     )
-    fun reject_a_JWT_with_kid_missing(kid: String) {
+    fun reject_a_JWT_with_blank_kid(kid: String) {
 
-        val jwtWithMissingKdi = givenValidJwt(kid = kid)
+        val jwtWithBlankKid = givenValidJwt(kid = kid)
 
         When()
-            .get("/api/v1/verify?code={jwt}", jwtWithMissingKdi)
+            .get("/api/v1/verify?code={jwt}", jwtWithBlankKid)
+
+            .then()
+            .statusCode(OK.value())
+            .body("valid", equalTo(false))
+    }
+
+    @Test
+    fun reject_a_JWT_with_missing_kid() {
+
+        val jwtWithMissingKid = givenJwtWithMissingKid()
+
+        When()
+            .get("/api/v1/verify?code={jwt}", jwtWithMissingKid)
 
             .then()
             .statusCode(OK.value())
