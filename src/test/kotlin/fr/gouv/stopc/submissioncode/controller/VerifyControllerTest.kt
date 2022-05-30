@@ -8,7 +8,6 @@ import org.hamcrest.Matchers.equalTo
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
-import org.springframework.http.HttpStatus.BAD_REQUEST
 import org.springframework.http.HttpStatus.OK
 import java.time.Instant
 
@@ -74,10 +73,8 @@ class VerifyControllerTest {
             .get("/api/v1/verify?code={code}", validCodeButWrongCase)
 
             .then()
-            .statusCode(BAD_REQUEST.value())
-            .body("status", equalTo(400))
-            .body("error", equalTo("Bad Request"))
-            .body("path", equalTo("/api/v1/verify"))
+            .statusCode(OK.value())
+            .body("valid", equalTo(false))
     }
 
     @ParameterizedTest
