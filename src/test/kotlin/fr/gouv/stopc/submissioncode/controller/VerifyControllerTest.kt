@@ -149,8 +149,8 @@ class VerifyControllerTest {
         private fun generateInvalidJwt(): Stream<Arguments> {
             return Stream.of(
                 Arguments.of(
-                    "reject a JWT issued more than 7 days in the past",
-                    givenJwt(issuedAt = Instant.now().minus(7, ChronoUnit.DAYS))
+                    "reject a JWT issued more than 10 days in the past",
+                    givenJwt(issuedAt = Instant.now().minus(10, ChronoUnit.DAYS))
                 ),
                 Arguments.of(
                     "reject a JWT issued in the future",
