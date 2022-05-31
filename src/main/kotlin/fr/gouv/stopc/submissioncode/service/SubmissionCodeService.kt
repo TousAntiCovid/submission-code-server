@@ -4,7 +4,6 @@ import com.nimbusds.jose.crypto.ECDSAVerifier
 import com.nimbusds.jose.jwk.Curve
 import com.nimbusds.jose.jwk.ECKey
 import com.nimbusds.jwt.SignedJWT
-import fr.gouv.stopc.submissioncode.configuration.SubmissionJWTConfiguration
 import fr.gouv.stopc.submissioncode.configuration.SubmissionProperties
 import fr.gouv.stopc.submissioncode.repository.SubmissionCodeJWTRepository
 import fr.gouv.stopc.submissioncode.repository.SubmissionCodeRepository
@@ -31,12 +30,11 @@ class SubmissionCodeService(
     private val submissionCodeRepository: SubmissionCodeRepository,
     private val random: RandomGenerator,
     private val submissionCodeJWTRepository: SubmissionCodeJWTRepository,
-    private val submissionJWTConfiguration: SubmissionJWTConfiguration,
     private val submissionProperties: SubmissionProperties
 ) {
 
     private val signatureVerifiers: Map<String, ECDSAVerifier> =
-        submissionJWTConfiguration.publicKeys.mapValues { generateVerifier(it.value) }
+        submissionProperties.publicKeys.mapValues { generateVerifier(it.value) }
 
     @Retryable(
         value = [DataIntegrityViolationException::class],
@@ -119,7 +117,7 @@ class SubmissionCodeService(
         if (jwtKid.isNullOrBlank() ||
             signedJwtClaimset.jwtid.isNullOrBlank() ||
             signedJwtClaimset.issueTime == null ||
-            submissionJWTConfiguration.publicKeys[jwtKid].isNullOrBlank() ||
+            submissionProperties.publicKeys[jwtKid].isNullOrBlank() ||
             !signedJwt.verify(signatureVerifiers[jwtKid])
         ) {
             return false

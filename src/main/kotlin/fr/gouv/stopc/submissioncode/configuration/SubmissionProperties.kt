@@ -12,5 +12,7 @@ data class SubmissionProperties(
 
     val shortCodeLifetime: Duration,
 
-    val testCodeLifetime: Duration
+    val testCodeLifetime: Duration,
+
+    val publicKeys: MutableMap<String, String> = mutableMapOf()
 )
