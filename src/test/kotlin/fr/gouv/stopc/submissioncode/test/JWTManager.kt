@@ -43,11 +43,11 @@ class JWTManager : TestExecutionListener {
                     .encodeToString(anotherEcKey.toECPublicKey().encoded)
 
                 System.setProperty(
-                    "submission.publicKeys.TousAntiCovidKID",
+                    "submission.jwtPublicKeys.TousAntiCovidKID",
                     tacPublicECKey
                 )
                 System.setProperty(
-                    "submission.publicKeys.AnotherKID",
+                    "submission.jwtPublicKeys.AnotherKID",
                     anotherPublicEcKey
                 )
             } catch (e: NoSuchAlgorithmException) {
