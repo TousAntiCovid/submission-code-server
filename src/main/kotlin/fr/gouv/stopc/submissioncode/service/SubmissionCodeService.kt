@@ -128,7 +128,7 @@ class SubmissionCodeService(
         val now = Instant.now()
 
         val isValid = jwtIatAsInstant.isBefore(now) &&
-            jwtIatAsInstant.plus(10, DAYS).isAfter(now) &&
+            jwtIatAsInstant.plus(submissionProperties.jwtCodeLifetime).isAfter(now) &&
             !submissionCodeJWTRepository.existsByJti(jwtJti)
 
         if (isValid) {

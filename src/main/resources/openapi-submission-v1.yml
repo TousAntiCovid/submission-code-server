@@ -75,21 +75,25 @@ paths:
           in: query
           required: true
           description: |
-            The submission code or the JWT to validate. A submission code can be either:
+            The submission code to validate. A submission code can be either:
             * a 6 alphanumeric string `[a-zA-Z0-9]{6}`
             * a 12 alphanumeric string `[a-zA-Z0-9]{12}`
             * a 36 alphanumeric UUID `[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}`
+            * a serialized JWT
+
+            A JWT has three parts : a header, a payload and a signature
+            header {
+              "alg": "ES256",
+              "kid": "D99DA442",
+              "typ": "JWT"
+            }
+            payload {
+              "iat": "2022-01-01T00:00:00Z",
+              "iss": "SIDEP",
+              "jti": "123456789ABCDEF"
+            }
 
             See example response for invalid code format.
-
-            A JWT looks as follow :
-
-            eyJraWQiOiJUb3VzQW50aUNvdmlkS0lEIiwidHlwIjoiSldUIiwiYWxnIjoiRVMyNTYifQ.eyJpc3MiOiJTSURFUCIsImlhdCI6MTY1NDAwNz
-            Y0MiwianRpIjoiVG91c0FudGlDb3ZpZEp0aSJ9.YOu45HdydivLRt0o6QzAa7V54oHwpnLxEh2bTp2HGj_SFqqiJnlylWiXgUooyscjcRpp5fbrBZ3c89Qzujskvg
-
-            It can be divided in three parts : a header, a payload and a signature
-            The header must contains a kid field, which is the ID of the public key associated to the private key used to sign the JWT. It will be used to verify the signature
-            The payload must contains a iat field, which is the date the JWT was issued, and a jti field, which is the unique ID of the JWT.
           schema:
             type: string
       responses:

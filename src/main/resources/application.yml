@@ -8,3 +8,4 @@ submission:
   long-code-lifetime: 10d
   short-code-lifetime: 1h
   test-code-lifetime: 15d
+  jwt-code-lifetime: 10d

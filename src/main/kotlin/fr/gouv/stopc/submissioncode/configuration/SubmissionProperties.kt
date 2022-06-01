@@ -14,5 +14,7 @@ data class SubmissionProperties(
 
     val testCodeLifetime: Duration,
 
-    val publicKeys: MutableMap<String, String> = mutableMapOf()
+    val jwtCodeLifetime: Duration,
+
+    val publicKeys: Map<String, String>
 )
