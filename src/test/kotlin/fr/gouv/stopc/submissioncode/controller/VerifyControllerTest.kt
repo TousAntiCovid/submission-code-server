@@ -14,6 +14,7 @@ import fr.gouv.stopc.submissioncode.test.When
 import io.restassured.RestAssured.given
 import org.hamcrest.Matchers.equalTo
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -149,15 +150,15 @@ class VerifyControllerTest {
         private fun generateInvalidJwt(): Stream<Arguments> {
             return Stream.of(
                 Arguments.of(
-                    "reject a JWT issued more than 10 days in the past",
+                    "the JWT is issued more than 10 days in the past",
                     givenJwt(issuedAt = Instant.now().minus(10, ChronoUnit.DAYS))
                 ),
                 Arguments.of(
-                    "reject a JWT issued in the future",
+                    "the JWT is issued in the future",
                     givenJwt(issuedAt = Instant.now().plus(1, ChronoUnit.MINUTES))
                 ),
                 Arguments.of(
-                    "reject a JWT with an iat field as an empty string instead of a Date",
+                    "the JWT has an iat field as an empty string instead of a Date",
                     givenJwtBuilder(
                         claimsBuilder = JWTClaimsSet.Builder()
                             .claim("iat", "")
@@ -165,7 +166,7 @@ class VerifyControllerTest {
                     )
                 ),
                 Arguments.of(
-                    "reject a JWT with an iat field as a blank string instead of a Date",
+                    "the JWT has an iat field as a blank string instead of a Date",
                     givenJwtBuilder(
                         claimsBuilder = JWTClaimsSet.Builder()
                             .claim("iat", " ")
@@ -173,7 +174,7 @@ class VerifyControllerTest {
                     )
                 ),
                 Arguments.of(
-                    "reject a JWT with an iat field as a string instead of a Date",
+                    "the JWT has an iat field as a string instead of a Date",
                     givenJwtBuilder(
                         claimsBuilder = JWTClaimsSet.Builder()
                             .claim("iat", "123456")
@@ -181,29 +182,29 @@ class VerifyControllerTest {
                     )
                 ),
                 Arguments.of(
-                    "reject a JWT with missing iat field",
+                    "the iat field is missing",
                     givenJwtBuilder(
                         claimsBuilder = JWTClaimsSet.Builder()
                             .jwtID("TousAntiCovidJti")
                     )
                 ),
                 Arguments.of(
-                    "reject a JWT with an empty jti field",
+                    "the JWT has an empty jti field",
                     givenJwt(jti = "")
                 ),
                 Arguments.of(
-                    "reject a JWT with a blank jti field",
+                    "the JWT has a blank jti field",
                     givenJwt(jti = " ")
                 ),
                 Arguments.of(
-                    "reject a JWT with missing jti field",
+                    "the jti field is missing",
                     givenJwtBuilder(
                         claimsBuilder = JWTClaimsSet.Builder()
                             .issueTime(Date.from(Instant.now()))
                     )
                 ),
                 Arguments.of(
-                    "reject a JWT with jti field as a number instead of a string",
+                    "the JWT has a jti field as a number instead of a string",
                     givenJwtBuilder(
                         claimsBuilder = JWTClaimsSet.Builder()
                             .claim("jti", 1234)
@@ -211,26 +212,26 @@ class VerifyControllerTest {
                     )
                 ),
                 Arguments.of(
-                    "reject a JWT with an empty kid field ",
+                    "the JWT has an empty kid field ",
                     givenJwt(kid = "")
                 ),
                 Arguments.of(
-                    "reject a JWT with a blank kid field ",
+                    "the JWT has a blank kid field ",
                     givenJwt(kid = " ")
                 ),
                 Arguments.of(
-                    "reject a JWT with missing kid field ",
+                    "the kid field is missing",
                     givenJwtBuilder(
                         headerBuilder = JWSHeader.Builder(JWSAlgorithm.ES256)
                             .type(JOSEObjectType.JWT)
                     )
                 ),
                 Arguments.of(
-                    "reject a JWT with unknown kid value",
+                    "the JWT has an unknown kid value",
                     givenJwt(kid = "test")
                 ),
                 Arguments.of(
-                    "reject a JWT with a kid value associate to a wrong key",
+                    "the JWT has a kid value associate to a wrong key",
                     givenJwt(kid = "AnotherKID")
                 ),
             )
@@ -266,7 +267,8 @@ class VerifyControllerTest {
                 .body("valid", equalTo(false))
         }
 
-        @ParameterizedTest(name = "{0}")
+        @DisplayName("A valid JWT must have a iat field as a Date, a unique jti field as a string, a kid field as a string which value is associated to a public key corresponding to the private key used to signed the JWT and is valid for 10 days ")
+        @ParameterizedTest(name = "but {0}, so the JWT is not valid and the response is false")
         @MethodSource("generateInvalidJwt")
         fun reject_JWT_with_invalid_value_or_structure(title: String, serializedJwt: String) {
 
