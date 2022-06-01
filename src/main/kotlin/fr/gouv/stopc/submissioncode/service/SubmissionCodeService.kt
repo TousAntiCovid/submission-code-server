@@ -1,8 +1,6 @@
 package fr.gouv.stopc.submissioncode.service
 
 import com.nimbusds.jose.crypto.ECDSAVerifier
-import com.nimbusds.jose.jwk.Curve
-import com.nimbusds.jose.jwk.ECKey
 import com.nimbusds.jwt.SignedJWT
 import fr.gouv.stopc.submissioncode.configuration.SubmissionProperties
 import fr.gouv.stopc.submissioncode.repository.SubmissionCodeJWTRepository
@@ -34,7 +32,7 @@ class SubmissionCodeService(
 ) {
 
     private val signatureVerifiers: Map<String, ECDSAVerifier> =
-        submissionProperties.publicKeys.mapValues { generateVerifier(it.value) }
+        submissionProperties.jwtPublicKeys.mapValues { generateVerifier(it.value) }
 
     @Retryable(
         value = [DataIntegrityViolationException::class],
@@ -117,7 +115,7 @@ class SubmissionCodeService(
         if (jwtKid.isNullOrBlank() ||
             signedJwtClaimset.jwtid.isNullOrBlank() ||
             signedJwtClaimset.issueTime == null ||
-            submissionProperties.publicKeys[jwtKid].isNullOrBlank() ||
+            submissionProperties.jwtPublicKeys[jwtKid].isNullOrBlank() ||
             !signedJwt.verify(signatureVerifiers[jwtKid])
         ) {
             return false
@@ -148,7 +146,6 @@ class SubmissionCodeService(
         val ecPublicKey = KeyFactory.getInstance("EC")
             .generatePublic(X509EncodedKeySpec(decodedPublicKey)) as java.security.interfaces.ECPublicKey
 
-        val ecKey = ECKey.Builder(Curve.P_256, ecPublicKey).build()
-        return ECDSAVerifier(ecKey)
+        return ECDSAVerifier(ecPublicKey)
     }
 }

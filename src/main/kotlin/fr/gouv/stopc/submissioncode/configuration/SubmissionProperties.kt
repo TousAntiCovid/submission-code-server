@@ -16,5 +16,5 @@ data class SubmissionProperties(
 
     val jwtCodeLifetime: Duration,
 
-    val publicKeys: Map<String, String>
+    val jwtPublicKeys: Map<String, String>
 )
