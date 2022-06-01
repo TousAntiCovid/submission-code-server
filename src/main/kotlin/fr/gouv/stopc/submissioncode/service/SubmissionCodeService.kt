@@ -1,11 +1,11 @@
 package fr.gouv.stopc.submissioncode.service
 
-import com.nimbusds.jose.crypto.ECDSAVerifier
+import com.nimbusds.jose.JWSVerifier
 import com.nimbusds.jwt.SignedJWT
 import fr.gouv.stopc.submissioncode.configuration.SubmissionProperties
-import fr.gouv.stopc.submissioncode.repository.SubmissionCodeJWTRepository
+import fr.gouv.stopc.submissioncode.repository.JwtRepository
 import fr.gouv.stopc.submissioncode.repository.SubmissionCodeRepository
-import fr.gouv.stopc.submissioncode.repository.model.JtiUsed
+import fr.gouv.stopc.submissioncode.repository.model.JwtUsed
 import fr.gouv.stopc.submissioncode.repository.model.SubmissionCode
 import fr.gouv.stopc.submissioncode.repository.model.SubmissionCode.Type.SHORT
 import fr.gouv.stopc.submissioncode.repository.model.SubmissionCode.Type.TEST
@@ -15,24 +15,19 @@ import org.springframework.retry.annotation.Recover
 import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.security.KeyFactory
-import java.security.spec.X509EncodedKeySpec
 import java.text.ParseException
 import java.time.Instant
 import java.time.temporal.ChronoUnit.DAYS
-import java.util.Base64
 
 @Service
 @Transactional
 class SubmissionCodeService(
-    private val submissionCodeRepository: SubmissionCodeRepository,
     private val random: RandomGenerator,
-    private val submissionCodeJWTRepository: SubmissionCodeJWTRepository,
-    private val submissionProperties: SubmissionProperties
+    private val submissionProperties: SubmissionProperties,
+    private val jwtSignatureVerifiers: Map<String, JWSVerifier>,
+    private val submissionCodeRepository: SubmissionCodeRepository,
+    private val jwtRepository: JwtRepository
 ) {
-
-    private val signatureVerifiers: Map<String, ECDSAVerifier> =
-        submissionProperties.jwtPublicKeys.mapValues { generateVerifier(it.value) }
 
     @Retryable(
         value = [DataIntegrityViolationException::class],
@@ -104,7 +99,7 @@ class SubmissionCodeService(
             return false
         }
 
-        val signedJwtClaimset = try {
+        val jwtClaims = try {
             signedJwt.jwtClaimsSet
         } catch (e: ParseException) {
             return false
@@ -113,39 +108,29 @@ class SubmissionCodeService(
         val jwtKid = signedJwt.header.keyID
 
         if (jwtKid.isNullOrBlank() ||
-            signedJwtClaimset.jwtid.isNullOrBlank() ||
-            signedJwtClaimset.issueTime == null ||
+            jwtClaims.jwtid.isNullOrBlank() ||
+            jwtClaims.issueTime == null ||
             submissionProperties.jwtPublicKeys[jwtKid].isNullOrBlank() ||
-            !signedJwt.verify(signatureVerifiers[jwtKid])
+            !signedJwt.verify(jwtSignatureVerifiers[jwtKid])
         ) {
             return false
         }
 
-        val jwtIatAsInstant = signedJwtClaimset.issueTime.toInstant()
-        val jwtJti = signedJwtClaimset.jwtid
+        val iat = jwtClaims.issueTime.toInstant()
+        val exp = iat.plus(submissionProperties.jwtCodeLifetime)
+        val jti = jwtClaims.jwtid
         val now = Instant.now()
 
-        val isValid = jwtIatAsInstant.isBefore(now) &&
-            jwtIatAsInstant.plus(submissionProperties.jwtCodeLifetime).isAfter(now) &&
-            !submissionCodeJWTRepository.existsByJti(jwtJti)
+        val isValid = now in iat..exp && !jwtRepository.existsByJti(jti)
 
         if (isValid) {
             try {
-                submissionCodeJWTRepository.save(JtiUsed(jti = jwtJti))
+                jwtRepository.save(JwtUsed(jti = jti))
             } catch (e: DataIntegrityViolationException) {
                 return false
             }
         }
 
         return isValid
-    }
-
-    private fun generateVerifier(publicKey: String): ECDSAVerifier {
-        val decodedPublicKey = Base64.getMimeDecoder().decode(publicKey)
-
-        val ecPublicKey = KeyFactory.getInstance("EC")
-            .generatePublic(X509EncodedKeySpec(decodedPublicKey)) as java.security.interfaces.ECPublicKey
-
-        return ECDSAVerifier(ecPublicKey)
     }
 }

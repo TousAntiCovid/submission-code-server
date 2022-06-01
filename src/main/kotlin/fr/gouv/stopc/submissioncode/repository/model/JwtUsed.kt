@@ -9,7 +9,7 @@ import javax.persistence.Table
 
 @Entity
 @Table(name = "jwt_used")
-data class JtiUsed(
+data class JwtUsed(
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
