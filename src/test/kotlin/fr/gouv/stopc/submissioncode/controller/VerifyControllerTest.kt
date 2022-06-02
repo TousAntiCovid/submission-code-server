@@ -1,14 +1,9 @@
 package fr.gouv.stopc.submissioncode.controller
 
-import com.nimbusds.jose.JOSEObjectType
-import com.nimbusds.jose.JWSAlgorithm
-import com.nimbusds.jose.JWSHeader
 import com.nimbusds.jose.jwk.Curve
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator
-import com.nimbusds.jwt.JWTClaimsSet
 import fr.gouv.stopc.submissioncode.test.IntegrationTest
 import fr.gouv.stopc.submissioncode.test.JWTManager.Companion.givenJwt
-import fr.gouv.stopc.submissioncode.test.JWTManager.Companion.givenJwtBuilder
 import fr.gouv.stopc.submissioncode.test.PostgresqlManager.Companion.givenTableSubmissionCodeContainsCode
 import fr.gouv.stopc.submissioncode.test.When
 import io.restassured.RestAssured.given
@@ -25,9 +20,8 @@ import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.http.HttpStatus.OK
 import java.time.Instant
-import java.time.temporal.ChronoUnit
-import java.util.Date
-import java.util.UUID
+import java.time.temporal.ChronoUnit.DAYS
+import java.time.temporal.ChronoUnit.MINUTES
 import java.util.stream.Stream
 
 @IntegrationTest
@@ -127,18 +121,13 @@ class VerifyControllerTest {
         ]
     )
     fun a_code_can_be_used_only_once(validCode: String) {
-        // given a code has been used
-        given()
-            .get("/api/v1/verify?code={code}", validCode)
-            .then()
-            .statusCode(OK.value())
-            .body("valid", equalTo(true))
-
-        // the next time it is used it should be invalid
-        When()
+        given() // a code has been used
             .get("/api/v1/verify?code={code}", validCode)
 
-            .then()
+        When() // it is used one more time
+            .get("/api/v1/verify?code={code}", validCode)
+
+            .then() // it should be rejected
             .statusCode(OK.value())
             .body("valid", equalTo(false))
     }
@@ -147,95 +136,68 @@ class VerifyControllerTest {
     @Nested
     inner class JwtTest {
 
-        private fun generateInvalidJwt(): Stream<Arguments> {
-            return Stream.of(
-                Arguments.of(
-                    "the JWT is issued more than 10 days in the past",
-                    givenJwt(issuedAt = Instant.now().minus(10, ChronoUnit.DAYS))
-                ),
-                Arguments.of(
-                    "the JWT is issued in the future",
-                    givenJwt(issuedAt = Instant.now().plus(1, ChronoUnit.MINUTES))
-                ),
-                Arguments.of(
-                    "the JWT has an iat field as an empty string instead of a Date",
-                    givenJwtBuilder(
-                        claimsBuilder = JWTClaimsSet.Builder()
-                            .claim("iat", "")
-                            .claim("jti", UUID.randomUUID())
-                    )
-                ),
-                Arguments.of(
-                    "the JWT has an iat field as a blank string instead of a Date",
-                    givenJwtBuilder(
-                        claimsBuilder = JWTClaimsSet.Builder()
-                            .claim("iat", " ")
-                            .claim("jti", UUID.randomUUID())
-                    )
-                ),
-                Arguments.of(
-                    "the JWT has an iat field as a string instead of a Date",
-                    givenJwtBuilder(
-                        claimsBuilder = JWTClaimsSet.Builder()
-                            .claim("iat", "123456")
-                            .claim("jti", UUID.randomUUID())
-                    )
-                ),
-                Arguments.of(
-                    "the iat field is missing",
-                    givenJwtBuilder(
-                        claimsBuilder = JWTClaimsSet.Builder()
-                            .jwtID("TousAntiCovidJti")
-                    )
-                ),
-                Arguments.of(
-                    "the JWT has an empty jti field",
-                    givenJwt(jti = "")
-                ),
-                Arguments.of(
-                    "the JWT has a blank jti field",
-                    givenJwt(jti = " ")
-                ),
-                Arguments.of(
-                    "the jti field is missing",
-                    givenJwtBuilder(
-                        claimsBuilder = JWTClaimsSet.Builder()
-                            .issueTime(Date.from(Instant.now()))
-                    )
-                ),
-                Arguments.of(
-                    "the JWT has a jti field as a number instead of a string",
-                    givenJwtBuilder(
-                        claimsBuilder = JWTClaimsSet.Builder()
-                            .claim("jti", 1234)
-                            .issueTime(Date.from(Instant.now()))
-                    )
-                ),
-                Arguments.of(
-                    "the JWT has an empty kid field ",
-                    givenJwt(kid = "")
-                ),
-                Arguments.of(
-                    "the JWT has a blank kid field ",
-                    givenJwt(kid = " ")
-                ),
-                Arguments.of(
-                    "the kid field is missing",
-                    givenJwtBuilder(
-                        headerBuilder = JWSHeader.Builder(JWSAlgorithm.ES256)
-                            .type(JOSEObjectType.JWT)
-                    )
-                ),
-                Arguments.of(
-                    "the JWT has an unknown kid value",
-                    givenJwt(kid = "test")
-                ),
-                Arguments.of(
-                    "the JWT has a kid value associate to a wrong key",
-                    givenJwt(kid = "AnotherKID")
-                ),
-            )
-        }
+        private fun generateInvalidJwt() = Stream.of(
+            Arguments.of(
+                "the JWT is issued more than 10 days in the past",
+                givenJwt(iat = Instant.now().minus(10, DAYS).epochSecond)
+            ),
+            Arguments.of(
+                "the JWT is issued in the future",
+                givenJwt(iat = Instant.now().plus(1, MINUTES).epochSecond)
+            ),
+            Arguments.of(
+                "the JWT iat field is an empty string instead of a numeric Date",
+                givenJwt(iat = "")
+            ),
+            Arguments.of(
+                "the JWT has an iat field as a blank string instead of a numeric Date",
+                givenJwt(iat = " ")
+            ),
+            Arguments.of(
+                "the JWT has an iat field as a string instead of a numeric Date",
+                givenJwt(iat = "123456")
+            ),
+            Arguments.of(
+                "the iat field is missing",
+                givenJwt(iat = null)
+            ),
+            Arguments.of(
+                "the JWT has an empty jti field",
+                givenJwt(jti = "")
+            ),
+            Arguments.of(
+                "the JWT has a blank jti field",
+                givenJwt(jti = " ")
+            ),
+            Arguments.of(
+                "the jti field is missing",
+                givenJwt(jti = null)
+            ),
+            Arguments.of(
+                "the JWT has a jti field as a number instead of a string",
+                givenJwt(jti = 1234)
+            ),
+            Arguments.of(
+                "the JWT has an empty kid field ",
+                givenJwt(kid = "")
+            ),
+            Arguments.of(
+                "the JWT has a blank kid field ",
+                givenJwt(kid = " ")
+            ),
+            Arguments.of(
+                "the kid field is missing",
+                givenJwt(kid = null)
+            ),
+            Arguments.of(
+                "the JWT has an unknown kid value",
+                givenJwt(kid = "test")
+            ),
+            Arguments.of(
+                "the JWT has a kid value associate to a wrong key",
+                givenJwt(kid = "AnotherKID")
+            ),
+        )
 
         @Test
         fun validate_a_valid_JWT() {
@@ -285,17 +247,13 @@ class VerifyControllerTest {
 
             val validJwt = givenJwt()
 
-            given()
+            given() // jwt is used once
                 .get("/api/v1/verify?code={jwt}", validJwt)
 
-                .then()
-                .statusCode(OK.value())
-                .body("valid", equalTo(true))
-
-            When()
+            When() // jwt is used one more time
                 .get("/api/v1/verify?code={jwt}", validJwt)
 
-                .then()
+                .then() // it should be rejected
                 .statusCode(OK.value())
                 .body("valid", equalTo(false))
         }
