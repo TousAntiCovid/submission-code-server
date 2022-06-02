@@ -65,7 +65,7 @@ paths:
       summary: Verify a code and prevent further use
       description: Check the validity of a submission code (originally provided by the app).
       parameters:
-        - name: type
+        - name: deprecatedCodeType
           in: query
           required: false
           description: Deprecated field

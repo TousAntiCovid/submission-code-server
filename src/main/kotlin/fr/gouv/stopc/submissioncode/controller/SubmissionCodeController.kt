@@ -33,7 +33,7 @@ class SubmissionCodeController(
         )
     }
 
-    override fun verify(code: String, deprecatedParameter: Int?): ResponseEntity<SubmissionCodeValidationResponse> {
+    override fun verify(code: String, deprecatedCodeType: Int?): ResponseEntity<SubmissionCodeValidationResponse> {
         return ResponseEntity.ok(
             SubmissionCodeValidationResponse(submissionCodeService.validateAndUse(code))
         )
