@@ -110,8 +110,8 @@ class SubmissionCodeService(
         if (jwtKid.isNullOrBlank() ||
             jwtClaims.jwtid.isNullOrBlank() ||
             jwtClaims.issueTime == null ||
-            submissionProperties.jwtPublicKeys[jwtKid].isNullOrBlank() ||
-            !signedJwt.verify(jwtSignatureVerifiers[jwtKid])
+            submissionProperties.jwtPublicKeys[jwtKid.lowercase()].isNullOrBlank() ||
+            !signedJwt.verify(jwtSignatureVerifiers[jwtKid.lowercase()])
         ) {
             return false
         }

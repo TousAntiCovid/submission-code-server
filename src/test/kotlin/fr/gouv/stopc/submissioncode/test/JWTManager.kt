@@ -43,12 +43,16 @@ class JWTManager : TestExecutionListener {
                     .encodeToString(anotherEcKey.toECPublicKey().encoded)
 
                 System.setProperty(
-                    "submission.jwtPublicKeys.TousAntiCovidKID",
+                    "submission.jwtPublicKeys.tousanticovidkid",
                     tacPublicECKey
                 )
                 System.setProperty(
-                    "submission.jwtPublicKeys.AnotherKID",
+                    "submission.jwtPublicKeys.anotherkid",
                     anotherPublicEcKey
+                )
+                System.setProperty(
+                    "submission.jwtPublicKeys.D99DA4422914F5E8",
+                    "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEosj0ewm2rrYCaDtkcw9aL+c5y8jX8MRTBDr+QagGvqYoSfeaT1p+nmn30VhRsfPj3pH6qyZTltgatLdvlsv4QA=="
                 )
             } catch (e: NoSuchAlgorithmException) {
                 throw RuntimeException(e)

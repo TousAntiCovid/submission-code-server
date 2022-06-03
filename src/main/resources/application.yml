@@ -9,3 +9,6 @@ submission:
   short-code-lifetime: 1h
   test-code-lifetime: 15d
   jwt-code-lifetime: 10d
+#  jwt-public-keys:
+#    TousAntiCovidKID: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEFAEBsL5TSxx3JUdxB2YRGqvjysNahFfkBAYR+v688vGhv7J93rfg+gXEL4aOPTtPNmooeX8fGzBl31fOLAzdKw==
+#    AnotherKID: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE9Gu/QSsxHrR9jQf3mWKufSVR2QQG/FL1BDGeyMQyF6RjMM/sFbnB3hxik3H13z3gTQHRUsFVkImRH1KllxzRig==
