@@ -65,7 +65,7 @@ paths:
       summary: Verify a code and prevent further use
       description: Check the validity of a submission code (originally provided by the app).
       parameters:
-        - name: type
+        - name: deprecatedCodeType
           in: query
           required: false
           description: Deprecated field
@@ -79,11 +79,23 @@ paths:
             * a 6 alphanumeric string `[a-zA-Z0-9]{6}`
             * a 12 alphanumeric string `[a-zA-Z0-9]{12}`
             * a 36 alphanumeric UUID `[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}`
+            * a serialized JWT
+
+            A JWT has three parts : a header, a payload and a signature
+            header {
+              "alg": "ES256",
+              "kid": "D99DA442",
+              "typ": "JWT"
+            }
+            payload {
+              "iat": "2022-01-01T00:00:00Z",
+              "iss": "SIDEP",
+              "jti": "123456789ABCDEF"
+            }
 
             See example response for invalid code format.
           schema:
             type: string
-            pattern: ^([a-zA-Z0-9]{6}|[a-zA-Z0-9]{12}|[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12})$
       responses:
         200:
           description: Returns the submission code validation result

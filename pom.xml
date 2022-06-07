@@ -25,7 +25,7 @@
         <commons-text.version>1.9</commons-text.version>
         <hamcrest-date.version>2.0.8</hamcrest-date.version>
         <spring-cloud.version>2021.0.2</spring-cloud.version>
-        <testcontainers.version>1.17.1</testcontainers.version>
+        <testcontainers.version>1.17.2</testcontainers.version>
     </properties>
 
     <dependencyManagement>
@@ -88,6 +88,12 @@
             <artifactId>commons-text</artifactId>
             <version>${commons-text.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>nimbus-jose-jwt</artifactId>
+            <version>9.22</version>
+        </dependency>
+
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -134,7 +140,7 @@
             <plugin>
                 <groupId>com.rudikershaw.gitbuildhook</groupId>
                 <artifactId>git-build-hook-maven-plugin</artifactId>
-                <version>3.1.0</version>
+                <version>3.2.0</version>
                 <configuration>
                     <gitConfig>
                         <core.hooksPath>.etc/git-hooks</core.hooksPath>
@@ -271,7 +277,7 @@
             <plugin>
                 <groupId>org.owasp</groupId>
                 <artifactId>dependency-check-maven</artifactId>
-                <version>6.3.1</version>
+                <version>6.5.3</version>
             </plugin>
             <plugin>
                 <groupId>org.sonarsource.scanner.maven</groupId>

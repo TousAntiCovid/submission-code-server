@@ -1,16 +1,28 @@
 package fr.gouv.stopc.submissioncode.controller
 
+import com.nimbusds.jose.jwk.Curve
+import com.nimbusds.jose.jwk.gen.ECKeyGenerator
 import fr.gouv.stopc.submissioncode.test.IntegrationTest
+import fr.gouv.stopc.submissioncode.test.JWTManager.Companion.givenJwt
 import fr.gouv.stopc.submissioncode.test.PostgresqlManager.Companion.givenTableSubmissionCodeContainsCode
 import fr.gouv.stopc.submissioncode.test.When
 import io.restassured.RestAssured.given
 import org.hamcrest.Matchers.equalTo
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.ValueSource
-import org.springframework.http.HttpStatus.BAD_REQUEST
 import org.springframework.http.HttpStatus.OK
 import java.time.Instant
+import java.time.temporal.ChronoUnit.DAYS
+import java.time.temporal.ChronoUnit.MINUTES
+import java.util.stream.Stream
 
 @IntegrationTest
 class VerifyControllerTest {
@@ -66,29 +78,15 @@ class VerifyControllerTest {
             "",
             "    ",
             "a",
-            "bbbbbbbbbbbbbbbb"
-        ]
-    )
-    fun codes_with_invalid_length_are_rejected(validCodeButWrongCase: String) {
-        When()
-            .get("/api/v1/verify?code={code}", validCodeButWrongCase)
-
-            .then()
-            .statusCode(BAD_REQUEST.value())
-            .body("status", equalTo(400))
-            .body("error", equalTo("Bad Request"))
-            .body("path", equalTo("/api/v1/verify"))
-    }
-
-    @ParameterizedTest
-    @ValueSource(
-        strings = [
+            "bbbbbbbbbbbbbbbb",
             "00000000-1111-1111-1111-111111111111",
             "AAA000",
-            "BBBBBB000000"
+            "BBBBBB000000",
+            "aaaaaaaa.aaaaaaaa",
+            "aaaaaaaaaa.aaaaaaaaa.aaaaaaaaa"
         ]
     )
-    fun can_detect_a_short_code_doesnt_exist(unexistingCode: String) {
+    fun can_detect_a_short_code_doesnt_exist_and_is_not_a_valid_JWT(unexistingCode: String) {
         When()
             .get("/api/v1/verify?code={code}", unexistingCode)
 
@@ -123,19 +121,141 @@ class VerifyControllerTest {
         ]
     )
     fun a_code_can_be_used_only_once(validCode: String) {
-        // given a code has been used
-        given()
-            .get("/api/v1/verify?code={code}", validCode)
-            .then()
-            .statusCode(OK.value())
-            .body("valid", equalTo(true))
-
-        // the next time it is used it should be invalid
-        When()
+        given() // a code has been used
             .get("/api/v1/verify?code={code}", validCode)
 
-            .then()
+        When() // it is used one more time
+            .get("/api/v1/verify?code={code}", validCode)
+
+            .then() // it should be rejected
             .statusCode(OK.value())
             .body("valid", equalTo(false))
+    }
+
+    @TestInstance(PER_CLASS)
+    @Nested
+    inner class JwtTest {
+
+        private fun generateInvalidJwt() = Stream.of(
+            Arguments.of(
+                "the JWT is issued more than 10 days in the past",
+                givenJwt(iat = Instant.now().minus(10, DAYS).epochSecond)
+            ),
+            Arguments.of(
+                "the JWT is issued in the future",
+                givenJwt(iat = Instant.now().plus(1, MINUTES).epochSecond)
+            ),
+            Arguments.of(
+                "the JWT iat field is an empty string instead of a numeric Date",
+                givenJwt(iat = "")
+            ),
+            Arguments.of(
+                "the JWT has an iat field as a blank string instead of a numeric Date",
+                givenJwt(iat = " ")
+            ),
+            Arguments.of(
+                "the JWT has an iat field as a string instead of a numeric Date",
+                givenJwt(iat = "123456")
+            ),
+            Arguments.of(
+                "the iat field is missing",
+                givenJwt(iat = null)
+            ),
+            Arguments.of(
+                "the JWT has an empty jti field",
+                givenJwt(jti = "")
+            ),
+            Arguments.of(
+                "the JWT has a blank jti field",
+                givenJwt(jti = " ")
+            ),
+            Arguments.of(
+                "the jti field is missing",
+                givenJwt(jti = null)
+            ),
+            Arguments.of(
+                "the JWT has a jti field as a number instead of a string",
+                givenJwt(jti = 1234)
+            ),
+            Arguments.of(
+                "the JWT has an empty kid field ",
+                givenJwt(kid = "")
+            ),
+            Arguments.of(
+                "the JWT has a blank kid field ",
+                givenJwt(kid = " ")
+            ),
+            Arguments.of(
+                "the kid field is missing",
+                givenJwt(kid = null)
+            ),
+            Arguments.of(
+                "the JWT has an unknown kid value",
+                givenJwt(kid = "test")
+            ),
+            Arguments.of(
+                "the JWT has a kid value associate to a wrong key",
+                givenJwt(kid = "AnotherKID")
+            ),
+        )
+
+        @Test
+        fun validate_a_valid_JWT() {
+
+            val validJwt = givenJwt()
+
+            When()
+                .get("/api/v1/verify?code={jwt}", validJwt)
+
+                .then()
+                .statusCode(OK.value())
+                .body("valid", equalTo(true))
+        }
+
+        @Test
+        fun reject_a_JWT_sign_with_unknown_private_key() {
+
+            val unknownKeys = ECKeyGenerator(Curve.P_256)
+                .keyID("unknownKey")
+                .generate()
+
+            val jwtWithUnknownSignature = givenJwt(privateKey = unknownKeys.toECPrivateKey())
+
+            When()
+                .get("/api/v1/verify?code={jwt}", jwtWithUnknownSignature)
+
+                .then()
+                .statusCode(OK.value())
+                .body("valid", equalTo(false))
+        }
+
+        @DisplayName("A valid JWT must have a iat field as a Date, a unique jti field as a string, a kid field as a string which value is associated to a public key corresponding to the private key used to signed the JWT and is valid for 10 days ")
+        @ParameterizedTest(name = "but {0}, so the JWT is not valid and the response is false")
+        @MethodSource("generateInvalidJwt")
+        fun reject_JWT_with_invalid_value_or_structure(title: String, serializedJwt: String) {
+
+            When()
+                .get("/api/v1/verify?code={jwt}", serializedJwt)
+
+                .then()
+                .statusCode(OK.value())
+                .body("valid", equalTo(false))
+        }
+
+        @Test
+        fun reject_a_JWT_with_jti_already_used() {
+
+            val validJwt = givenJwt()
+
+            given() // jwt is used once
+                .get("/api/v1/verify?code={jwt}", validJwt)
+
+            When() // jwt is used one more time
+                .get("/api/v1/verify?code={jwt}", validJwt)
+
+                .then() // it should be rejected
+                .statusCode(OK.value())
+                .body("valid", equalTo(false))
+        }
     }
 }
