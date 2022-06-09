@@ -37,6 +37,15 @@ class PostgresqlManager : TestExecutionListener {
                 """.trimIndent()
             )
         }
+
+        fun givenTableJwtUsedContainsJwt(jti: String, dateUse: Instant) {
+            JDBC_TEMPLATE.execute(
+                """
+                    insert into jwt_used(jti, date_use) values
+                    ('$jti', '$dateUse')
+                """.trimIndent()
+            )
+        }
     }
 
     override fun beforeTestMethod(testContext: TestContext) {

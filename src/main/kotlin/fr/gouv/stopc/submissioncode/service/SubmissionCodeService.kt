@@ -13,6 +13,7 @@ import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.retry.annotation.Backoff
 import org.springframework.retry.annotation.Recover
 import org.springframework.retry.annotation.Retryable
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.text.ParseException
@@ -125,12 +126,17 @@ class SubmissionCodeService(
 
         if (isValid) {
             try {
-                jwtRepository.save(JwtUsed(jti = jti))
+                jwtRepository.save(JwtUsed(jti = jti, dateUse = now))
             } catch (e: DataIntegrityViolationException) {
                 return false
             }
         }
 
         return isValid
+    }
+
+    @Scheduled(cron = "0 0 0 * * *")
+    fun purgeOldJwtUsed() {
+        jwtRepository.deleteJwtUsedByDateUse(Instant.now().plus(submissionProperties.jwtRetentionTime))
     }
 }

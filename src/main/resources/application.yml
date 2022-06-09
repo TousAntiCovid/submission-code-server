@@ -9,3 +9,4 @@ submission:
   short-code-lifetime: 1h
   test-code-lifetime: 15d
   jwt-code-lifetime: 10d
+  jwt-retention-time: 30d
