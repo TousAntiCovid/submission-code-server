@@ -7,6 +7,7 @@ import fr.gouv.stopc.submissioncode.repository.JwtRepository
 import fr.gouv.stopc.submissioncode.repository.SubmissionCodeRepository
 import fr.gouv.stopc.submissioncode.repository.model.JwtUsed
 import fr.gouv.stopc.submissioncode.repository.model.SubmissionCode
+import fr.gouv.stopc.submissioncode.repository.model.SubmissionCode.Type.LONG
 import fr.gouv.stopc.submissioncode.repository.model.SubmissionCode.Type.SHORT
 import fr.gouv.stopc.submissioncode.repository.model.SubmissionCode.Type.TEST
 import org.springframework.dao.DataIntegrityViolationException
@@ -26,7 +27,8 @@ class SubmissionCodeService(
     private val submissionProperties: SubmissionProperties,
     private val jwtSignatureVerifiers: Map<String, JWSVerifier>,
     private val submissionCodeRepository: SubmissionCodeRepository,
-    private val jwtRepository: JwtRepository
+    private val jwtRepository: JwtRepository,
+    private val metricsService: MetricsService
 ) {
 
     @Retryable(
@@ -88,7 +90,15 @@ class SubmissionCodeService(
     private fun validateCode(code: String): Boolean {
         val now = Instant.now()
         val updatedEntities = submissionCodeRepository.verifyAndUse(code, now)
-        return updatedEntities == 1
+        val codeType = when (code.length) {
+            6 -> SHORT.name
+            12 -> TEST.name
+            36 -> LONG.name
+            else -> ""
+        }
+        val valid = updatedEntities == 1
+        metricsService.countCodeUsedAndValid(codeType, valid)
+        return valid
     }
 
     private fun validateJwt(jwt: String): Boolean {
