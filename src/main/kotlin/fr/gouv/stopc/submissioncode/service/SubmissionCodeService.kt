@@ -138,7 +138,7 @@ class SubmissionCodeService(
 
         if (isValid) {
             try {
-                jwtRepository.save(JwtUsed(jti = jti))
+                jwtRepository.save(JwtUsed(jti = jti, dateUse = now))
                 metricsService.countJwtUsed(true)
             } catch (e: DataIntegrityViolationException) {
                 metricsService.countJwtUsed(false)

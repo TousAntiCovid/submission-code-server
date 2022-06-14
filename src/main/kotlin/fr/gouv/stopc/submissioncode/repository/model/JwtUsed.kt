@@ -1,5 +1,6 @@
 package fr.gouv.stopc.submissioncode.repository.model
 
+import java.time.Instant
 import javax.persistence.Column
 import javax.persistence.Entity
 import javax.persistence.GeneratedValue
@@ -16,6 +17,9 @@ data class JwtUsed(
     val id: Long = 0,
 
     @Column(name = "jti")
-    val jti: String
+    val jti: String,
+
+    @Column(name = "date_use")
+    val dateUse: Instant
 
 )

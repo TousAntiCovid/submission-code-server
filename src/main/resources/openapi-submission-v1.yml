@@ -231,6 +231,22 @@ components:
           type: integer
           format: int64
           example: 53
+        nbTestCodesUsed:
+          type: integer
+          format: int64
+          example: 52
+        nbTestExpiredCodes:
+          type: integer
+          format: int64
+          example: 40
+        nbTestCodesGenerated:
+          type: integer
+          format: int64
+          example: 60
+        nbJwtUsed:
+          type: integer
+          format: int64
+          example: 45
       required:
         - date
         - nbShortCodesUsed
@@ -238,3 +254,6 @@ components:
         - nbLongExpiredCodes
         - nbShortExpiredCodes
         - nbShortCodesGenerated
+        - nbTestCodesUsed
+        - nbTestExpiredCodes
+        - nbTestCodesGenerated

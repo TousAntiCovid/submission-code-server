@@ -1,6 +1,7 @@
 package fr.gouv.stopc.submissioncode.service
 
 import fr.gouv.stopc.submissioncode.api.model.Kpi
+import fr.gouv.stopc.submissioncode.repository.JwtRepository
 import fr.gouv.stopc.submissioncode.repository.SubmissionCodeRepository
 import fr.gouv.stopc.submissioncode.repository.model.SubmissionCode
 import org.springframework.stereotype.Service
@@ -11,7 +12,7 @@ import kotlin.streams.toList
 
 @Service
 @Transactional(readOnly = true)
-class KpiService(private val submissionCodeRepository: SubmissionCodeRepository) {
+class KpiService(private val submissionCodeRepository: SubmissionCodeRepository, private val jwtRepository: JwtRepository) {
 
     fun computeKpi(startDate: LocalDate, endDate: LocalDate): List<Kpi> {
         return startDate.datesUntil(endDate.plusDays(1))
@@ -30,6 +31,15 @@ class KpiService(private val submissionCodeRepository: SubmissionCodeRepository)
                         startOfDay,
                         endOfDay
                     ),
+                    nbTestCodesUsed = submissionCodeRepository.countByTypeAndUsedBetween(
+                        SubmissionCode.Type.TEST.dbValue,
+                        startOfDay,
+                        endOfDay
+                    ),
+                    nbJwtUsed = jwtRepository.countByUsedBetween(
+                        startOfDay,
+                        endOfDay
+                    ),
                     nbShortExpiredCodes = submissionCodeRepository.countByTypeAndExpired(
                         SubmissionCode.Type.SHORT.dbValue,
                         startOfDay,
@@ -40,11 +50,21 @@ class KpiService(private val submissionCodeRepository: SubmissionCodeRepository)
                         startOfDay,
                         endOfDay
                     ),
+                    nbTestExpiredCodes = submissionCodeRepository.countByTypeAndExpired(
+                        SubmissionCode.Type.TEST.dbValue,
+                        startOfDay,
+                        endOfDay
+                    ),
                     nbShortCodesGenerated = submissionCodeRepository.countByTypeNewlyGenerated(
                         SubmissionCode.Type.SHORT.dbValue,
                         startOfDay,
                         endOfDay
-                    )
+                    ),
+                    nbTestCodesGenerated = submissionCodeRepository.countByTypeNewlyGenerated(
+                        SubmissionCode.Type.TEST.dbValue,
+                        startOfDay,
+                        endOfDay
+                    ),
                 )
             }
             .toList()
