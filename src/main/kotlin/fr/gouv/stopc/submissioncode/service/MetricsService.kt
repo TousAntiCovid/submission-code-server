@@ -13,7 +13,9 @@ class MetricsService(
     private val codesCounters: Map<String, MutableMap<Boolean, Counter>> =
         Type.values().map(Type::name).associateWith { mutableMapOf() }
 
-    fun countCodeUsedAndValid(codeType: String, valid: Boolean) {
+    private val jwtCounters: MutableMap<Boolean, Counter> = mutableMapOf()
+
+    fun countCodeUsed(codeType: String, valid: Boolean) {
         val counter = codesCounters[codeType]!!.getOrPut(valid) {
             Counter.builder("submission.verify.code")
                 .description("Submission code count per verify")
@@ -21,6 +23,17 @@ class MetricsService(
                 .tag("valid", "$valid")
                 .register(meterRegistry)
         }
+        counter.increment()
+    }
+
+    fun countJwtUsed(valid: Boolean) {
+        val counter = jwtCounters.getOrPut(valid) {
+            Counter.builder("submission.verify.jwt")
+                .description("Submission jwt count per verify")
+                .tag("valid", "$valid")
+                .register(meterRegistry)
+        }
+
         counter.increment()
     }
 }

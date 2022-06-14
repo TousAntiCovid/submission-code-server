@@ -97,7 +97,7 @@ class SubmissionCodeService(
             else -> ""
         }
         val valid = updatedEntities == 1
-        metricsService.countCodeUsedAndValid(codeType, valid)
+        metricsService.countCodeUsed(codeType, valid)
         return valid
     }
 
@@ -106,12 +106,14 @@ class SubmissionCodeService(
         val signedJwt = try {
             SignedJWT.parse(jwt)
         } catch (e: ParseException) {
+            metricsService.countJwtUsed(false)
             return false
         }
 
         val jwtClaims = try {
             signedJwt.jwtClaimsSet
         } catch (e: ParseException) {
+            metricsService.countJwtUsed(false)
             return false
         }
 
@@ -123,6 +125,7 @@ class SubmissionCodeService(
             submissionProperties.jwtPublicKeys[jwtKid].isNullOrBlank() ||
             !signedJwt.verify(jwtSignatureVerifiers[jwtKid])
         ) {
+            metricsService.countJwtUsed(false)
             return false
         }
 
@@ -136,7 +139,9 @@ class SubmissionCodeService(
         if (isValid) {
             try {
                 jwtRepository.save(JwtUsed(jti = jti))
+                metricsService.countJwtUsed(true)
             } catch (e: DataIntegrityViolationException) {
+                metricsService.countJwtUsed(false)
                 return false
             }
         }

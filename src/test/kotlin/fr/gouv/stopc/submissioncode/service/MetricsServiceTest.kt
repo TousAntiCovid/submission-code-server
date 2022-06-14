@@ -1,17 +1,17 @@
 package fr.gouv.stopc.submissioncode.service
 
 import fr.gouv.stopc.submissioncode.test.IntegrationTest
+import fr.gouv.stopc.submissioncode.test.JWTManager.Companion.givenJwt
 import fr.gouv.stopc.submissioncode.test.PostgresqlManager
 import fr.gouv.stopc.submissioncode.test.When
 import io.micrometer.core.instrument.MeterRegistry
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.tuple
-import org.hamcrest.Matchers
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpStatus
 import org.springframework.test.annotation.DirtiesContext
 import java.time.Instant
 
@@ -36,21 +36,13 @@ class MetricsServiceTest(@Autowired val meterRegistry: MeterRegistry) {
         "BBBBBBBBBBBB, BBBBBBBBBBBA, TEST",
         "0000000a-0000-0000-0000-000000000000, 0000000a-0000-0000-0000-000000000001, LONG"
     )
-    fun increment_counters(validCode: String, invalidCode: String, codeType: String) {
+    fun increment_codes_counters(validCode: String, invalidCode: String, codeType: String) {
 
         When()
             .get("/api/v1/verify?code={code}", validCode)
 
-            .then()
-            .statusCode(HttpStatus.OK.value())
-            .body("valid", Matchers.equalTo(true))
-
         When()
             .get("/api/v1/verify?code={code}", invalidCode)
-
-            .then()
-            .statusCode(HttpStatus.OK.value())
-            .body("valid", Matchers.equalTo(false))
 
         val expectedShortCodeCounter = listOf(tuple("submission.verify.code", codeType, "true"), tuple("submission.verify.code", codeType, "false"))
 
@@ -60,5 +52,31 @@ class MetricsServiceTest(@Autowired val meterRegistry: MeterRegistry) {
 
         assertThat(meterRegistry.get("submission.verify.code").tags("valid", "true", "code type", codeType).counter().count()).isEqualTo(1.0)
         assertThat(meterRegistry.get("submission.verify.code").tags("valid", "false", "code type", codeType).counter().count()).isEqualTo(1.0)
+    }
+
+    @Test
+    fun increment_jwt_counters() {
+
+        val validJwt = givenJwt()
+        val invalidJwt1 = givenJwt(jti = null)
+        val invalidJwt2 = givenJwt(kid = null)
+
+        When()
+            .get("/api/v1/verify?code={jwt}", validJwt)
+
+        When()
+            .get("/api/v1/verify?code={jwt}", invalidJwt1)
+
+        When()
+            .get("/api/v1/verify?code={jwt}", invalidJwt2)
+
+        val expectedShortCodeCounter = listOf(tuple("submission.verify.jwt", "true"), tuple("submission.verify.jwt", "false"))
+
+        assertThat(meterRegistry.meters)
+            .extracting({ it.id.name }, { it.id.getTag("valid") })
+            .containsAll(expectedShortCodeCounter)
+
+        assertThat(meterRegistry.get("submission.verify.jwt").tag("valid", "true").counter().count()).isEqualTo(1.0)
+        assertThat(meterRegistry.get("submission.verify.jwt").tag("valid", "false").counter().count()).isEqualTo(2.0)
     }
 }
