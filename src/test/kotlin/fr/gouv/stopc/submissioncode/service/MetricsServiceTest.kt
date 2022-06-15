@@ -4,20 +4,39 @@ import fr.gouv.stopc.submissioncode.test.IntegrationTest
 import fr.gouv.stopc.submissioncode.test.JWTManager.Companion.givenJwt
 import fr.gouv.stopc.submissioncode.test.PostgresqlManager.Companion.givenTableSubmissionCodeContainsCode
 import fr.gouv.stopc.submissioncode.test.When
+import io.micrometer.core.instrument.Counter
+import io.micrometer.core.instrument.Meter
 import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Tags
+import org.assertj.core.api.AbstractDoubleAssert
 import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.Assertions.tuple
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.test.annotation.DirtiesContext
 import java.time.Instant
 
 @IntegrationTest
-@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 class MetricsServiceTest(@Autowired val meterRegistry: MeterRegistry) {
+
+    private val metricsSnapshot = mutableMapOf<Meter.Id, Double>()
+
+    @BeforeEach
+    fun `take kpi snaptshot`() {
+        meterRegistry.meters
+            .filterIsInstance<Counter>()
+            .associateTo(metricsSnapshot) { it.id to it.count() }
+    }
+
+    private fun assertThatCounterIncrement(name: String, vararg tags: String): AbstractDoubleAssert<*> {
+        val snapshotValue = metricsSnapshot
+            .filter { it.key.name == name }
+            .filter { Tags.of(*tags).toList().containsAll(it.key.tags) }
+            .firstNotNullOf { it.value }
+        val actualValue = meterRegistry.get(name).tags(*tags).counter().count()
+        return assertThat(actualValue - snapshotValue).describedAs("Counter value $name${Tags.of(*tags)}")
+    }
 
     @BeforeEach
     fun `given some valid codes exists`() {
@@ -44,14 +63,10 @@ class MetricsServiceTest(@Autowired val meterRegistry: MeterRegistry) {
         When()
             .get("/api/v1/verify?code={code}", invalidCode)
 
-        val expectedShortCodeCounter = listOf(tuple("submission.verify.code", codeType, "true"), tuple("submission.verify.code", codeType, "false"))
-
-        assertThat(meterRegistry.meters)
-            .extracting({ it.id.name }, { it.id.getTag("code type") }, { it.id.getTag("valid") })
-            .containsAll(expectedShortCodeCounter)
-
-        assertThat(meterRegistry.get("submission.verify.code").tags("valid", "true", "code type", codeType).counter().count()).isEqualTo(1.0)
-        assertThat(meterRegistry.get("submission.verify.code").tags("valid", "false", "code type", codeType).counter().count()).isEqualTo(1.0)
+        assertThatCounterIncrement("submission.verify.code", "valid", "true", "code type", codeType)
+            .isEqualTo(1.0)
+        assertThatCounterIncrement("submission.verify.code", "valid", "false", "code type", codeType)
+            .isEqualTo(1.0)
     }
 
     @Test
@@ -70,13 +85,9 @@ class MetricsServiceTest(@Autowired val meterRegistry: MeterRegistry) {
         When()
             .get("/api/v1/verify?code={jwt}", invalidJwt2)
 
-        val expectedShortCodeCounter = listOf(tuple("submission.verify.code", "true"), tuple("submission.verify.code", "false"))
-
-        assertThat(meterRegistry.meters)
-            .extracting({ it.id.name }, { it.id.getTag("valid") })
-            .containsAll(expectedShortCodeCounter)
-
-        assertThat(meterRegistry.get("submission.verify.code").tags("valid", "true", "code type", "JWT").counter().count()).isEqualTo(1.0)
-        assertThat(meterRegistry.get("submission.verify.code").tags("valid", "false", "code type", "JWT").counter().count()).isEqualTo(2.0)
+        assertThatCounterIncrement("submission.verify.code", "valid", "true", "code type", "JWT")
+            .isEqualTo(1.0)
+        assertThatCounterIncrement("submission.verify.code", "valid", "false", "code type", "JWT")
+            .isEqualTo(2.0)
     }
 }
