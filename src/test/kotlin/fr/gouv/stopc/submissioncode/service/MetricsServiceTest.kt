@@ -2,7 +2,7 @@ package fr.gouv.stopc.submissioncode.service
 
 import fr.gouv.stopc.submissioncode.test.IntegrationTest
 import fr.gouv.stopc.submissioncode.test.JWTManager.Companion.givenJwt
-import fr.gouv.stopc.submissioncode.test.PostgresqlManager
+import fr.gouv.stopc.submissioncode.test.PostgresqlManager.Companion.givenTableSubmissionCodeContainsCode
 import fr.gouv.stopc.submissioncode.test.When
 import io.micrometer.core.instrument.MeterRegistry
 import org.assertj.core.api.Assertions.assertThat
@@ -21,13 +21,13 @@ class MetricsServiceTest(@Autowired val meterRegistry: MeterRegistry) {
 
     @BeforeEach
     fun `given some valid codes exists`() {
-        PostgresqlManager.givenTableSubmissionCodeContainsCode("1", "0000000a-0000-0000-0000-000000000000")
-        PostgresqlManager.givenTableSubmissionCodeContainsCode("3", "BBBBBBBBBBBB")
-        PostgresqlManager.givenTableSubmissionCodeContainsCode("2", "AAAAAA")
+        givenTableSubmissionCodeContainsCode("1", "0000000a-0000-0000-0000-000000000000")
+        givenTableSubmissionCodeContainsCode("3", "BBBBBBBBBBBB")
+        givenTableSubmissionCodeContainsCode("2", "AAAAAA")
         val expiredInstant = Instant.now().minusSeconds(1)
-        PostgresqlManager.givenTableSubmissionCodeContainsCode("1", "0000000a-0000-0000-0000-000000000001", expiresOn = expiredInstant)
-        PostgresqlManager.givenTableSubmissionCodeContainsCode("3", "BBBBBBBBBBBA", expiresOn = expiredInstant)
-        PostgresqlManager.givenTableSubmissionCodeContainsCode("2", "AAAAAB", expiresOn = expiredInstant)
+        givenTableSubmissionCodeContainsCode("1", "0000000a-0000-0000-0000-000000000001", expiresOn = expiredInstant)
+        givenTableSubmissionCodeContainsCode("3", "BBBBBBBBBBBA", expiresOn = expiredInstant)
+        givenTableSubmissionCodeContainsCode("2", "AAAAAB", expiresOn = expiredInstant)
     }
 
     @ParameterizedTest
@@ -36,7 +36,7 @@ class MetricsServiceTest(@Autowired val meterRegistry: MeterRegistry) {
         "BBBBBBBBBBBB, BBBBBBBBBBBA, TEST",
         "0000000a-0000-0000-0000-000000000000, 0000000a-0000-0000-0000-000000000001, LONG"
     )
-    fun increment_codes_counters(validCode: String, invalidCode: String, codeType: String) {
+    fun can_increment_codes_counters(validCode: String, invalidCode: String, codeType: String) {
 
         When()
             .get("/api/v1/verify?code={code}", validCode)
@@ -55,7 +55,7 @@ class MetricsServiceTest(@Autowired val meterRegistry: MeterRegistry) {
     }
 
     @Test
-    fun increment_jwt_counters() {
+    fun can_increment_jwt_counters() {
 
         val validJwt = givenJwt()
         val invalidJwt1 = givenJwt(jti = null)
@@ -70,13 +70,13 @@ class MetricsServiceTest(@Autowired val meterRegistry: MeterRegistry) {
         When()
             .get("/api/v1/verify?code={jwt}", invalidJwt2)
 
-        val expectedShortCodeCounter = listOf(tuple("submission.verify.jwt", "true"), tuple("submission.verify.jwt", "false"))
+        val expectedShortCodeCounter = listOf(tuple("submission.verify.code", "true"), tuple("submission.verify.code", "false"))
 
         assertThat(meterRegistry.meters)
             .extracting({ it.id.name }, { it.id.getTag("valid") })
             .containsAll(expectedShortCodeCounter)
 
-        assertThat(meterRegistry.get("submission.verify.jwt").tag("valid", "true").counter().count()).isEqualTo(1.0)
-        assertThat(meterRegistry.get("submission.verify.jwt").tag("valid", "false").counter().count()).isEqualTo(2.0)
+        assertThat(meterRegistry.get("submission.verify.code").tags("valid", "true", "code type", "JWT").counter().count()).isEqualTo(1.0)
+        assertThat(meterRegistry.get("submission.verify.code").tags("valid", "false", "code type", "JWT").counter().count()).isEqualTo(2.0)
     }
 }

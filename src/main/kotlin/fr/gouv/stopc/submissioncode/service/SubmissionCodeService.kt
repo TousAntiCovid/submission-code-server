@@ -7,9 +7,10 @@ import fr.gouv.stopc.submissioncode.repository.JwtRepository
 import fr.gouv.stopc.submissioncode.repository.SubmissionCodeRepository
 import fr.gouv.stopc.submissioncode.repository.model.JwtUsed
 import fr.gouv.stopc.submissioncode.repository.model.SubmissionCode
-import fr.gouv.stopc.submissioncode.repository.model.SubmissionCode.Type.LONG
 import fr.gouv.stopc.submissioncode.repository.model.SubmissionCode.Type.SHORT
 import fr.gouv.stopc.submissioncode.repository.model.SubmissionCode.Type.TEST
+import fr.gouv.stopc.submissioncode.service.model.CodeType
+import fr.gouv.stopc.submissioncode.service.model.CodeType.JWT
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.retry.annotation.Backoff
 import org.springframework.retry.annotation.Recover
@@ -78,24 +79,15 @@ class SubmissionCodeService(
         throw RuntimeException("No unique code could be generated after 10 random attempts")
     }
 
-    fun validateAndUse(code: String): Boolean {
-
-        return if (code.length == 6 || code.length == 12 || code.length == 36) {
-            validateCode(code)
-        } else {
-            validateJwt(code)
-        }
+    fun validateAndUse(code: String) = when (CodeType.ofCode(code)) {
+        JWT -> validateJwt(code)
+        else -> validateCode(code)
     }
 
     private fun validateCode(code: String): Boolean {
         val now = Instant.now()
         val updatedEntities = submissionCodeRepository.verifyAndUse(code, now)
-        val codeType = when (code.length) {
-            6 -> SHORT.name
-            12 -> TEST.name
-            36 -> LONG.name
-            else -> ""
-        }
+        val codeType = CodeType.ofCode(code)
         val valid = updatedEntities == 1
         metricsService.countCodeUsed(codeType, valid)
         return valid
@@ -106,14 +98,14 @@ class SubmissionCodeService(
         val signedJwt = try {
             SignedJWT.parse(jwt)
         } catch (e: ParseException) {
-            metricsService.countJwtUsed(false)
+            metricsService.countCodeUsed(JWT, false)
             return false
         }
 
         val jwtClaims = try {
             signedJwt.jwtClaimsSet
         } catch (e: ParseException) {
-            metricsService.countJwtUsed(false)
+            metricsService.countCodeUsed(JWT, false)
             return false
         }
 
@@ -125,7 +117,7 @@ class SubmissionCodeService(
             submissionProperties.jwtPublicKeys[jwtKid].isNullOrBlank() ||
             !signedJwt.verify(jwtSignatureVerifiers[jwtKid])
         ) {
-            metricsService.countJwtUsed(false)
+            metricsService.countCodeUsed(JWT, false)
             return false
         }
 
@@ -139,9 +131,9 @@ class SubmissionCodeService(
         if (isValid) {
             try {
                 jwtRepository.save(JwtUsed(jti = jti, dateUse = now))
-                metricsService.countJwtUsed(true)
+                metricsService.countCodeUsed(JWT, true)
             } catch (e: DataIntegrityViolationException) {
-                metricsService.countJwtUsed(false)
+                metricsService.countCodeUsed(JWT, false)
                 return false
             }
         }
