@@ -7,6 +7,7 @@ import fr.gouv.stopc.submissioncode.test.JWTManager.Companion.givenJwt
 import fr.gouv.stopc.submissioncode.test.PostgresqlManager.Companion.givenTableSubmissionCodeContainsCode
 import fr.gouv.stopc.submissioncode.test.When
 import io.restassured.RestAssured.given
+import org.assertj.core.api.Assertions
 import org.hamcrest.Matchers.equalTo
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -14,10 +15,14 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
+import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.ValueSource
+import org.springframework.boot.test.system.CapturedOutput
+import org.springframework.boot.test.system.OutputCaptureExtension
 import org.springframework.http.HttpStatus.OK
 import java.time.Instant
 import java.time.temporal.ChronoUnit.DAYS
@@ -25,6 +30,7 @@ import java.time.temporal.ChronoUnit.MINUTES
 import java.util.stream.Stream
 
 @IntegrationTest
+@ExtendWith(OutputCaptureExtension::class)
 class VerifyControllerTest {
 
     @BeforeEach
@@ -58,9 +64,9 @@ class VerifyControllerTest {
     @ParameterizedTest
     @ValueSource(
         strings = [
-            "0000000A-0000-0000-0000-000000000000",
-            "aaaaaa",
-            "bbbbbbbbbbbb"
+            "0000000A-0000-0000-0000-000000000000, LONG",
+            "aaaaaa, SHORT",
+            "bbbbbbbbbbbb, TEST"
         ]
     )
     fun codes_are_case_sensitive(validCodeButWrongCase: String) {
@@ -73,26 +79,23 @@ class VerifyControllerTest {
     }
 
     @ParameterizedTest
-    @ValueSource(
-        strings = [
-            "",
-            "    ",
-            "a",
-            "bbbbbbbbbbbbbbbb",
-            "00000000-1111-1111-1111-111111111111",
-            "AAA000",
-            "BBBBBB000000",
-            "aaaaaaaa.aaaaaaaa",
-            "aaaaaaaaaa.aaaaaaaaa.aaaaaaaaa"
-        ]
+    @CsvSource(
+        "00000000-1111-1111-1111-111111111110, LONG",
+        "AAA000, SHORT",
+        "BBBBBB000000, TEST"
+
     )
-    fun can_detect_a_short_code_doesnt_exist_and_is_not_a_valid_JWT(unexistingCode: String) {
+    fun can_detect_a_code_doesnt_exist(unexistingCode: String, codeType: String, output: CapturedOutput) {
         When()
             .get("/api/v1/verify?code={code}", unexistingCode)
 
             .then()
             .statusCode(OK.value())
             .body("valid", equalTo(false))
+
+        Assertions.assertThat(output.all).contains(
+            "Code $unexistingCode ($codeType) was not found."
+        )
     }
 
     @ParameterizedTest
@@ -103,7 +106,7 @@ class VerifyControllerTest {
             "EXP000000000"
         ]
     )
-    fun can_detect_a_short_code_is_expired(expiredCode: String) {
+    fun can_detect_a_code_is_expired(expiredCode: String) {
         When()
             .get("/api/v1/verify?code={code}", expiredCode)
 
@@ -113,14 +116,13 @@ class VerifyControllerTest {
     }
 
     @ParameterizedTest
-    @ValueSource(
-        strings = [
-            "0000000a-0000-0000-0000-000000000000",
-            "AAAAAA",
-            "BBBBBBBBBBBB"
-        ]
+    @CsvSource(
+        "0000000a-0000-0000-0000-000000000000, LONG",
+        "AAAAAA, SHORT",
+        "BBBBBBBBBBBB, TEST"
+
     )
-    fun a_code_can_be_used_only_once(validCode: String) {
+    fun a_code_can_be_used_only_once(validCode: String, codeType: String, output: CapturedOutput) {
         given() // a code has been used
             .get("/api/v1/verify?code={code}", validCode)
 
@@ -130,6 +132,30 @@ class VerifyControllerTest {
             .then() // it should be rejected
             .statusCode(OK.value())
             .body("valid", equalTo(false))
+
+        Assertions.assertThat(output.all).contains(
+            "Code $validCode ($codeType) has already been used."
+        )
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        "0000000a0000000000000000000000000000, LONG",
+        "AAAAA@, SHORT",
+        "BBBBBBBBBBB+, TEST"
+
+    )
+    fun can_reject_codes_not_matching_pattern(codeWithWrongPattern: String, codeType: String, output: CapturedOutput) {
+        When()
+            .get("/api/v1/verify?code={code}", codeWithWrongPattern)
+
+            .then()
+            .statusCode(OK.value())
+            .body("valid", equalTo(false))
+
+        Assertions.assertThat(output.all).contains(
+            "Code $codeWithWrongPattern ($codeType) does not match the expected pattern"
+        )
     }
 
     @TestInstance(PER_CLASS)
@@ -213,7 +239,7 @@ class VerifyControllerTest {
         }
 
         @Test
-        fun reject_a_JWT_sign_with_unknown_private_key() {
+        fun reject_a_JWT_sign_with_unknown_private_key(output: CapturedOutput) {
 
             val unknownKeys = ECKeyGenerator(Curve.P_256)
                 .keyID("unknownKey")
@@ -227,6 +253,10 @@ class VerifyControllerTest {
                 .then()
                 .statusCode(OK.value())
                 .body("valid", equalTo(false))
+
+            Assertions.assertThat(output.all).contains(
+                "Could not verify the signature of JWT: $jwtWithUnknownSignature"
+            )
         }
 
         @DisplayName("A valid JWT must have a iat field as a Date, a unique jti field as a string, a kid field as a string which value is associated to a public key corresponding to the private key used to signed the JWT and is valid for 10 days ")
@@ -243,7 +273,7 @@ class VerifyControllerTest {
         }
 
         @Test
-        fun reject_a_JWT_with_jti_already_used() {
+        fun reject_a_JWT_with_jti_already_used(output: CapturedOutput) {
 
             val validJwt = givenJwt()
 
@@ -256,6 +286,46 @@ class VerifyControllerTest {
                 .then() // it should be rejected
                 .statusCode(OK.value())
                 .body("valid", equalTo(false))
+
+            Assertions.assertThat(output.all).contains(
+                "The jti of JWT: $validJwt has already been used"
+            )
+        }
+
+        @ParameterizedTest
+        @ValueSource(
+            strings = [
+                "",
+                "    ",
+                "a",
+                "aaaaaaaa.aaaaaaaa",
+            ]
+        )
+        fun reject_a_code_that_does_not_match_jwt_pattern(invalidJwt: String, output: CapturedOutput) {
+            When()
+                .get("/api/v1/verify?code={code}", invalidJwt)
+
+                .then()
+                .statusCode(OK.value())
+                .body("valid", equalTo(false))
+
+            Assertions.assertThat(output.all).contains(
+                "The JWT: $invalidJwt does not match the expected pattern"
+            )
+        }
+
+        @Test
+        fun reject_a_code_that_is_not_a_valid_jwt(output: CapturedOutput) {
+            When()
+                .get("/api/v1/verify?code={code}", "aaaaaaa.aaaaaaa.aaaaaaa")
+
+                .then()
+                .statusCode(OK.value())
+                .body("valid", equalTo(false))
+
+            Assertions.assertThat(output.all).contains(
+                "The JWT: aaaaaaa.aaaaaaa.aaaaaaa could not be parsed"
+            )
         }
     }
 }
