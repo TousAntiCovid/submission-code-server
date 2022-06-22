@@ -2,12 +2,13 @@ package fr.gouv.stopc.submissioncode.controller
 
 import com.nimbusds.jose.jwk.Curve
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator
+import fr.gouv.stopc.submissioncode.service.model.CodeType
 import fr.gouv.stopc.submissioncode.test.IntegrationTest
 import fr.gouv.stopc.submissioncode.test.JWTManager.Companion.givenJwt
 import fr.gouv.stopc.submissioncode.test.PostgresqlManager.Companion.givenTableSubmissionCodeContainsCode
 import fr.gouv.stopc.submissioncode.test.When
 import io.restassured.RestAssured.given
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers.equalTo
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -27,6 +28,7 @@ import org.springframework.http.HttpStatus.OK
 import java.time.Instant
 import java.time.temporal.ChronoUnit.DAYS
 import java.time.temporal.ChronoUnit.MINUTES
+import java.util.UUID
 import java.util.stream.Stream
 
 @IntegrationTest
@@ -93,26 +95,50 @@ class VerifyControllerTest {
             .statusCode(OK.value())
             .body("valid", equalTo(false))
 
-        Assertions.assertThat(output.all).contains(
-            "Code $unexistingCode ($codeType) was not found."
-        )
+        assertThat(output.all)
+            .contains("Code $unexistingCode doesn't exist")
     }
 
     @ParameterizedTest
-    @ValueSource(
-        strings = [
-            "11111111-1111-1111-1111-111111111111",
-            "EXP000",
-            "EXP000000000"
-        ]
+    @CsvSource(
+        "LONG,00000000-1111-1111-1111-111111111111",
+        "SHORT,EXP000",
+        "TEST,EXP000000000"
     )
-    fun can_detect_a_code_is_expired(expiredCode: String) {
+    fun can_detect_a_code_is_expired(codeType: String, expiredCode: String, output: CapturedOutput) {
         When()
             .get("/api/v1/verify?code={code}", expiredCode)
 
             .then()
             .statusCode(OK.value())
             .body("valid", equalTo(false))
+
+        assertThat(output.all)
+            .contains("$codeType code '$expiredCode' has expired on ")
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        "LONG,f1111111-1111-1111-1111-111111111111",
+        "SHORT,FUT000",
+        "TEST,FUT000000000"
+    )
+    fun can_detect_a_code_is_not_yet_available(codeType: CodeType, unavailableCode: String, output: CapturedOutput) {
+        givenTableSubmissionCodeContainsCode(
+            codeType.databaseRepresentation!!.dbValue,
+            unavailableCode,
+            availableFrom = Instant.now().plus(20, DAYS)
+        )
+
+        When()
+            .get("/api/v1/verify?code={code}", unavailableCode)
+
+            .then()
+            .statusCode(OK.value())
+            .body("valid", equalTo(false))
+
+        assertThat(output.all)
+            .contains("$codeType code '$unavailableCode' is not yet available (availability date is ")
     }
 
     @ParameterizedTest
@@ -133,19 +159,23 @@ class VerifyControllerTest {
             .statusCode(OK.value())
             .body("valid", equalTo(false))
 
-        Assertions.assertThat(output.all).contains(
-            "Code $validCode ($codeType) has already been used."
-        )
+        assertThat(output.all)
+            .contains("$codeType code '$validCode' has already been used")
     }
 
     @ParameterizedTest
-    @CsvSource(
-        "0000000a0000000000000000000000000000, LONG",
-        "AAAAA@, SHORT",
-        "BBBBBBBBBBB+, TEST"
-
+    @ValueSource(
+        strings = [
+            "",
+            "  ",
+            "____",
+            "0000000a0000000000000000000000000000",
+            "AAAAA@",
+            "BBBBBBBBBBB+",
+            "aaaaaaaa.aaaaaaaa",
+        ]
     )
-    fun can_reject_codes_not_matching_pattern(codeWithWrongPattern: String, codeType: String, output: CapturedOutput) {
+    fun can_reject_codes_not_matching_pattern(codeWithWrongPattern: String, output: CapturedOutput) {
         When()
             .get("/api/v1/verify?code={code}", codeWithWrongPattern)
 
@@ -153,77 +183,130 @@ class VerifyControllerTest {
             .statusCode(OK.value())
             .body("valid", equalTo(false))
 
-        Assertions.assertThat(output.all).contains(
-            "Code $codeWithWrongPattern ($codeType) does not match the expected pattern"
-        )
+        assertThat(output.all)
+            .contains("Code $codeWithWrongPattern does not match any code type and can't be validated")
+    }
+
+    @ParameterizedTest
+    @ValueSource(
+        strings = [
+            "unknow",
+            "unknownunkno",
+            "0000000b-0000-0000-0000-000000000000"
+        ]
+    )
+    fun can_reject_codes_unknown_from_database(unknownCode: String, output: CapturedOutput) {
+        When()
+            .get("/api/v1/verify?code={code}", unknownCode)
+
+            .then()
+            .statusCode(OK.value())
+            .body("valid", equalTo(false))
+
+        assertThat(output.all)
+            .contains("Code $unknownCode doesn't exist")
+    }
+
+    @Test
+    fun can_report_inconsistent_code_in_database(output: CapturedOutput) {
+        // "2" is SHORT code type
+        // "AAAAAA123456" is a TEST code value
+        givenTableSubmissionCodeContainsCode("2", "AAAAAA123456")
+
+        When()
+            .get("/api/v1/verify?code={code}", "AAAAAA123456")
+
+            .then()
+            .statusCode(OK.value())
+            .body("valid", equalTo(false))
+
+        assertThat(output.all)
+            .contains("'AAAAAA123456' seems to be a TEST code but database knows it as a SHORT code")
     }
 
     @TestInstance(PER_CLASS)
     @Nested
     inner class JwtTest {
 
-        private fun generateInvalidJwt() = Stream.of(
-            Arguments.of(
-                "the JWT is issued more than 10 days in the past",
-                givenJwt(iat = Instant.now().minus(10, DAYS).epochSecond)
-            ),
-            Arguments.of(
-                "the JWT is issued in the future",
-                givenJwt(iat = Instant.now().plus(1, MINUTES).epochSecond)
-            ),
-            Arguments.of(
-                "the JWT iat field is an empty string instead of a numeric Date",
-                givenJwt(iat = "")
-            ),
-            Arguments.of(
-                "the JWT has an iat field as a blank string instead of a numeric Date",
-                givenJwt(iat = " ")
-            ),
-            Arguments.of(
-                "the JWT has an iat field as a string instead of a numeric Date",
-                givenJwt(iat = "123456")
-            ),
-            Arguments.of(
-                "the iat field is missing",
-                givenJwt(iat = null)
-            ),
-            Arguments.of(
-                "the JWT has an empty jti field",
-                givenJwt(jti = "")
-            ),
-            Arguments.of(
-                "the JWT has a blank jti field",
-                givenJwt(jti = " ")
-            ),
-            Arguments.of(
-                "the jti field is missing",
-                givenJwt(jti = null)
-            ),
-            Arguments.of(
-                "the JWT has a jti field as a number instead of a string",
-                givenJwt(jti = 1234)
-            ),
-            Arguments.of(
-                "the JWT has an empty kid field ",
-                givenJwt(kid = "")
-            ),
-            Arguments.of(
-                "the JWT has a blank kid field ",
-                givenJwt(kid = " ")
-            ),
-            Arguments.of(
-                "the kid field is missing",
-                givenJwt(kid = null)
-            ),
-            Arguments.of(
-                "the JWT has an unknown kid value",
-                givenJwt(kid = "test")
-            ),
-            Arguments.of(
-                "the JWT has a kid value associate to a wrong key",
-                givenJwt(kid = "AnotherKID")
-            ),
-        )
+        private fun generateInvalidJwt(): Stream<Arguments> {
+            return Stream.of(
+                Arguments.of(
+                    "the JWT is issued more than 10 days in the past",
+                    givenJwt(iat = Instant.now().minus(10, DAYS).epochSecond),
+                    "JWT has expired, it was issued at [^ ]+, so it expired on [^ ]+:"
+                ),
+                Arguments.of(
+                    "the JWT is issued in the future",
+                    givenJwt(iat = Instant.now().plus(1, MINUTES).epochSecond),
+                    "JWT is issued at a future time \\([^)]+\\):"
+                ),
+                Arguments.of(
+                    "the iat field is an empty string instead of a numeric Date",
+                    givenJwt(iat = ""),
+                    "JWT claims set could not be parsed: Unexpected type of JSON object member with key iat,"
+                ),
+                Arguments.of(
+                    "the iat field is a blank string instead of a numeric Date",
+                    givenJwt(iat = " "),
+                    "JWT claims set could not be parsed: Unexpected type of JSON object member with key iat,"
+                ),
+                Arguments.of(
+                    "the iat field is a string instead of a numeric Date",
+                    givenJwt(iat = "123456"),
+                    "JWT claims set could not be parsed: Unexpected type of JSON object member with key iat,"
+                ),
+                Arguments.of(
+                    "the iat field is missing",
+                    givenJwt(iat = null),
+                    "JWT is missing claim jti \\([^)]+\\) or iat \\(null\\):"
+                ),
+                Arguments.of(
+                    "the jti field is empty",
+                    givenJwt(jti = ""),
+                    "JWT is missing claim jti \\(\\) or iat \\([^)]+\\):"
+                ),
+                Arguments.of(
+                    "the jti field is blank",
+                    givenJwt(jti = " "),
+                    "JWT is missing claim jti \\( \\) or iat \\([^)]+\\):"
+                ),
+                Arguments.of(
+                    "the jti field is missing",
+                    givenJwt(jti = null),
+                    "JWT is missing claim jti \\(null\\) or iat \\([^)]+\\):"
+                ),
+                Arguments.of(
+                    "the jti field is a number instead of a string",
+                    givenJwt(jti = 1234),
+                    "JWT claims set could not be parsed: Unexpected type of JSON object member with key jti,"
+                ),
+                Arguments.of(
+                    "the kid field is empty",
+                    givenJwt(kid = ""),
+                    "No public key found in configuration for kid '':"
+                ),
+                Arguments.of(
+                    "the kid field is blank",
+                    givenJwt(kid = " "),
+                    "No public key found in configuration for kid ' ':"
+                ),
+                Arguments.of(
+                    "the kid field is missing",
+                    givenJwt(kid = null),
+                    "No public key found in configuration for kid 'null':"
+                ),
+                Arguments.of(
+                    "the kid field is an unknown kid",
+                    givenJwt(kid = "Unknown"),
+                    "No public key found in configuration for kid 'Unknown':"
+                ),
+                Arguments.of(
+                    "the kid field points to the wrong public key",
+                    givenJwt(kid = "AnotherKID"),
+                    "JWT signature is invalid:"
+                ),
+            )
+        }
 
         @Test
         fun validate_a_valid_JWT() {
@@ -254,15 +337,14 @@ class VerifyControllerTest {
                 .statusCode(OK.value())
                 .body("valid", equalTo(false))
 
-            Assertions.assertThat(output.all).contains(
-                "Could not verify the signature of JWT: $jwtWithUnknownSignature"
-            )
+            assertThat(output.all)
+                .contains("JWT signature is invalid: $jwtWithUnknownSignature")
         }
 
         @DisplayName("A valid JWT must have a iat field as a Date, a unique jti field as a string, a kid field as a string which value is associated to a public key corresponding to the private key used to signed the JWT and is valid for 10 days ")
         @ParameterizedTest(name = "but {0}, so the JWT is not valid and the response is false")
         @MethodSource("generateInvalidJwt")
-        fun reject_JWT_with_invalid_value_or_structure(title: String, serializedJwt: String) {
+        fun reject_JWT_with_invalid_value_or_structure(title: String, serializedJwt: String, logMessage: String, output: CapturedOutput) {
 
             When()
                 .get("/api/v1/verify?code={jwt}", serializedJwt)
@@ -270,12 +352,16 @@ class VerifyControllerTest {
                 .then()
                 .statusCode(OK.value())
                 .body("valid", equalTo(false))
+
+            assertThat(output.all)
+                .containsPattern("$logMessage $serializedJwt")
         }
 
         @Test
         fun reject_a_JWT_with_jti_already_used(output: CapturedOutput) {
 
-            val validJwt = givenJwt()
+            val jti = UUID.randomUUID().toString()
+            val validJwt = givenJwt(jti = jti)
 
             given() // jwt is used once
                 .get("/api/v1/verify?code={jwt}", validJwt)
@@ -287,31 +373,8 @@ class VerifyControllerTest {
                 .statusCode(OK.value())
                 .body("valid", equalTo(false))
 
-            Assertions.assertThat(output.all).contains(
-                "The jti of JWT: $validJwt has already been used"
-            )
-        }
-
-        @ParameterizedTest
-        @ValueSource(
-            strings = [
-                "",
-                "    ",
-                "a",
-                "aaaaaaaa.aaaaaaaa",
-            ]
-        )
-        fun reject_a_code_that_does_not_match_jwt_pattern(invalidJwt: String, output: CapturedOutput) {
-            When()
-                .get("/api/v1/verify?code={code}", invalidJwt)
-
-                .then()
-                .statusCode(OK.value())
-                .body("valid", equalTo(false))
-
-            Assertions.assertThat(output.all).contains(
-                "The JWT: $invalidJwt does not match the expected pattern"
-            )
+            assertThat(output.all)
+                .contains("JWT with jti '$jti' has already been used: $validJwt")
         }
 
         @Test
@@ -323,9 +386,8 @@ class VerifyControllerTest {
                 .statusCode(OK.value())
                 .body("valid", equalTo(false))
 
-            Assertions.assertThat(output.all).contains(
-                "The JWT: aaaaaaa.aaaaaaa.aaaaaaa could not be parsed"
-            )
+            assertThat(output.all)
+                .containsPattern("JWT could not be parsed: Invalid JWS header: Invalid JSON: Unexpected token [^ ]+ at position 5., aaaaaaa.aaaaaaa.aaaaaaa")
         }
     }
 }
