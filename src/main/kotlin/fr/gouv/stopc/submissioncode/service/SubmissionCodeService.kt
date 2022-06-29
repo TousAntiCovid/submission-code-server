@@ -7,8 +7,12 @@ import fr.gouv.stopc.submissioncode.repository.JwtRepository
 import fr.gouv.stopc.submissioncode.repository.SubmissionCodeRepository
 import fr.gouv.stopc.submissioncode.repository.model.JwtUsed
 import fr.gouv.stopc.submissioncode.repository.model.SubmissionCode
-import fr.gouv.stopc.submissioncode.repository.model.SubmissionCode.Type.SHORT
-import fr.gouv.stopc.submissioncode.repository.model.SubmissionCode.Type.TEST
+import fr.gouv.stopc.submissioncode.service.model.CodeType
+import fr.gouv.stopc.submissioncode.service.model.CodeType.JWT
+import fr.gouv.stopc.submissioncode.service.model.CodeType.LONG
+import fr.gouv.stopc.submissioncode.service.model.CodeType.SHORT
+import fr.gouv.stopc.submissioncode.service.model.CodeType.TEST
+import org.slf4j.LoggerFactory
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.retry.annotation.Backoff
 import org.springframework.retry.annotation.Recover
@@ -26,8 +30,11 @@ class SubmissionCodeService(
     private val submissionProperties: SubmissionProperties,
     private val jwtSignatureVerifiers: Map<String, JWSVerifier>,
     private val submissionCodeRepository: SubmissionCodeRepository,
-    private val jwtRepository: JwtRepository
+    private val jwtRepository: JwtRepository,
+    private val metricsService: MetricsService
 ) {
+
+    private val log = LoggerFactory.getLogger(this::class.java)
 
     @Retryable(
         value = [DataIntegrityViolationException::class],
@@ -44,7 +51,7 @@ class SubmissionCodeService(
                 dateGeneration = now,
                 dateAvailable = now,
                 dateEndValidity = now.plus(submissionProperties.shortCodeLifetime),
-                type = SHORT.dbValue,
+                type = SubmissionCode.Type.SHORT.dbValue,
                 used = false
             )
         )
@@ -65,7 +72,7 @@ class SubmissionCodeService(
                 dateGeneration = now,
                 dateAvailable = now,
                 dateEndValidity = now.plus(submissionProperties.testCodeLifetime).truncatedTo(DAYS),
-                type = TEST.dbValue,
+                type = SubmissionCode.Type.TEST.dbValue,
                 used = false
             )
         )
@@ -76,19 +83,60 @@ class SubmissionCodeService(
         throw RuntimeException("No unique code could be generated after 10 random attempts")
     }
 
-    fun validateAndUse(code: String): Boolean {
-
-        return if (code.length == 6 || code.length == 12 || code.length == 36) {
-            validateCode(code)
-        } else {
-            validateJwt(code)
+    fun validateAndUse(code: String): Boolean = when (val codeType = CodeType.ofCode(code)) {
+        LONG, SHORT, TEST -> validateCode(codeType, code)
+        JWT -> validateJwt(code)
+        else -> {
+            log.info("Code $code does not match any code type and can't be validated")
+            false
         }
     }
 
-    private fun validateCode(code: String): Boolean {
+    private fun validateCode(codeType: CodeType, code: String): Boolean {
+
         val now = Instant.now()
-        val updatedEntities = submissionCodeRepository.verifyAndUse(code, now)
-        return updatedEntities == 1
+        val submissionCode = submissionCodeRepository.findByCode(code)
+
+        if (submissionCode == null) {
+            metricsService.countCodeUsed(codeType, false)
+            log.info("Code $code doesn't exist")
+            return false
+        }
+        if (submissionCode.type != codeType.databaseRepresentation?.dbValue) {
+            metricsService.countCodeUsed(codeType, false)
+            log.info("'$code' seems to be a $codeType code but database knows it as a ${submissionCode.getType()} code")
+            return false
+        }
+        if (submissionCode.used || submissionCode.dateUse != null) {
+            metricsService.countCodeUsed(codeType, false)
+            log.info("$codeType code '$code' has already been used")
+            return false
+        }
+        if (submissionCode.dateAvailable.isAfter(now)) {
+            metricsService.countCodeUsed(codeType, false)
+            log.info("$codeType code '$code' is not yet available (availability date is ${submissionCode.dateAvailable})")
+            return false
+        }
+        if (submissionCode.dateEndValidity.isBefore(now)) {
+            metricsService.countCodeUsed(codeType, false)
+            log.info("$codeType code '$code' has expired on ${submissionCode.dateEndValidity}")
+            return false
+        }
+
+        return try {
+            submissionCodeRepository.save(
+                submissionCode.copy(
+                    used = true,
+                    dateUse = now
+                )
+            )
+            metricsService.countCodeUsed(codeType, true)
+            true
+        } catch (e: DataIntegrityViolationException) {
+            metricsService.countCodeUsed(JWT, false)
+            log.info("Code $code ($codeType) has already been used.")
+            false
+        }
     }
 
     private fun validateJwt(jwt: String): Boolean {
@@ -96,41 +144,69 @@ class SubmissionCodeService(
         val signedJwt = try {
             SignedJWT.parse(jwt)
         } catch (e: ParseException) {
+            metricsService.countCodeUsed(JWT, false)
+            log.info("JWT could not be parsed: ${e.message}, $jwt")
             return false
         }
 
-        val jwtClaims = try {
+        val claims = try {
             signedJwt.jwtClaimsSet
         } catch (e: ParseException) {
+            metricsService.countCodeUsed(JWT, false)
+            log.info("JWT claims set could not be parsed: ${e.message}, $jwt")
             return false
         }
 
-        val jwtKid = signedJwt.header.keyID
-
-        if (jwtKid.isNullOrBlank() ||
-            jwtClaims.jwtid.isNullOrBlank() ||
-            jwtClaims.issueTime == null ||
-            submissionProperties.jwtPublicKeys[jwtKid].isNullOrBlank() ||
-            !signedJwt.verify(jwtSignatureVerifiers[jwtKid])
-        ) {
-            return false
-        }
-
-        val iat = jwtClaims.issueTime.toInstant()
-        val exp = iat.plus(submissionProperties.jwtCodeLifetime)
-        val jti = jwtClaims.jwtid
+        val jti = claims.jwtid
+        val iat = claims.issueTime?.toInstant()
+        val exp = iat?.plus(submissionProperties.jwtCodeLifetime)
         val now = Instant.now()
 
-        val isValid = now in iat..exp && !jwtRepository.existsByJti(jti)
-
-        if (isValid) {
-            try {
-                jwtRepository.save(JwtUsed(jti = jti))
-            } catch (e: DataIntegrityViolationException) {
-                return false
-            }
+        if (jti.isNullOrBlank() || iat == null || exp == null) {
+            metricsService.countCodeUsed(JWT, false)
+            log.info("JWT is missing claim jti ($jti) or iat ($iat): $jwt")
+            return false
         }
 
-        return isValid
+        if (iat.isAfter(now)) {
+            metricsService.countCodeUsed(JWT, false)
+            log.info("JWT is issued at a future time ($iat): $jwt")
+            return false
+        }
+
+        if (exp.isBefore(now)) {
+            metricsService.countCodeUsed(JWT, false)
+            log.info("JWT has expired, it was issued at $iat, so it expired on $exp: $jwt")
+            return false
+        }
+
+        val kid = signedJwt.header.keyID
+        if (!submissionProperties.jwtPublicKeys.containsKey(kid)) {
+            metricsService.countCodeUsed(JWT, false)
+            log.info("No public key found in configuration for kid '$kid': $jwt")
+            return false
+        }
+
+        if (!signedJwt.verify(jwtSignatureVerifiers[kid])) {
+            metricsService.countCodeUsed(JWT, false)
+            log.info("JWT signature is invalid: $jwt")
+            return false
+        }
+
+        if (jwtRepository.existsByJti(jti)) {
+            metricsService.countCodeUsed(JWT, false)
+            log.info("JWT with jti '$jti' has already been used: $jwt")
+            return false
+        }
+
+        return try {
+            jwtRepository.save(JwtUsed(jti = jti, dateUse = now))
+            metricsService.countCodeUsed(JWT, true)
+            true
+        } catch (e: DataIntegrityViolationException) {
+            metricsService.countCodeUsed(JWT, false)
+            log.info("JWT with jti '$jti' has already been used: $jwt")
+            false
+        }
     }
 }

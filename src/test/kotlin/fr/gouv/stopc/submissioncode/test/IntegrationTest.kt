@@ -15,7 +15,7 @@ import kotlin.annotation.AnnotationTarget.CLASS
 @ActiveProfiles("dev")
 @SpringBootTest(webEnvironment = RANDOM_PORT, classes = [Application::class])
 @TestExecutionListeners(
-    listeners = [RestAssuredManager::class, PostgresqlManager::class, JWTManager::class],
+    listeners = [RestAssuredManager::class, PostgresqlManager::class, JWTManager::class, MetricsManager::class],
     mergeMode = MERGE_WITH_DEFAULTS
 )
 @DisplayNameGeneration(ReplaceUnderscores::class)

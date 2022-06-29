@@ -37,9 +37,16 @@ data class SubmissionCode(
     val used: Boolean
 ) {
 
+    fun getType() = Type.fromDbValue(type)
+
     enum class Type(val dbValue: String) {
         LONG("1"),
         SHORT("2"),
-        TEST("3")
+        TEST("3");
+
+        companion object {
+            fun fromDbValue(type: String): Type = values().find { type == it.dbValue }
+                ?: throw IllegalStateException("Database entry has inconsistent code type value")
+        }
     }
 }
