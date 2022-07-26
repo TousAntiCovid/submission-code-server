@@ -4,6 +4,7 @@ import com.nimbusds.jose.jwk.Curve
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator
 import fr.gouv.stopc.submissioncode.service.model.CodeType
 import fr.gouv.stopc.submissioncode.test.IntegrationTest
+import fr.gouv.stopc.submissioncode.test.JWTManager.Companion.givenCustomizeJwt
 import fr.gouv.stopc.submissioncode.test.JWTManager.Companion.givenJwt
 import fr.gouv.stopc.submissioncode.test.PostgresqlManager.Companion.givenTableSubmissionCodeContainsCode
 import fr.gouv.stopc.submissioncode.test.When
@@ -388,6 +389,21 @@ class VerifyControllerTest {
 
             assertThat(output.all)
                 .containsPattern("JWT could not be parsed: Invalid JWS header: Invalid JSON: Unexpected token [^ ]+ at position 5., aaaaaaa.aaaaaaa.aaaaaaa")
+        }
+
+        @Test
+        fun reject_a_JWT_with_invalid_alg_header_field(output: CapturedOutput) {
+            val jwtWithIncorrectAlgHeader = givenCustomizeJwt()
+
+            When()
+                .get("/api/v1/verify?code={jwt}", jwtWithIncorrectAlgHeader)
+
+                .then()
+                .statusCode(OK.value())
+                .body("valid", equalTo(false))
+
+            assertThat(output.all)
+                .containsPattern("Exception while verifying the signature: Unsupported JWS algorithm E��m�S256, must be ES256, $jwtWithIncorrectAlgHeader")
         }
     }
 }

@@ -10,8 +10,10 @@ import com.nimbusds.jose.jwk.gen.ECKeyGenerator
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
 import groovy.util.logging.Slf4j
+import org.json.JSONObject
 import org.springframework.test.context.TestExecutionListener
 import java.security.NoSuchAlgorithmException
+import java.security.Signature
 import java.security.interfaces.ECPrivateKey
 import java.time.Instant
 import java.util.Base64
@@ -69,6 +71,32 @@ class JWTManager : TestExecutionListener {
             val jwt = SignedJWT(header.build(), claims.build())
             jwt.sign(ECDSASigner(privateKey))
             return jwt.serialize()
+        }
+
+        fun givenCustomizeJwt(): String {
+
+            val payload = JSONObject()
+            payload.put("iat", Instant.now().epochSecond)
+            payload.put("iss", "SIDEP")
+            payload.put("jti", UUID.randomUUID())
+
+            val header = JSONObject()
+            header.put("alg", "E��m�S256")
+            header.put("typ", "JWT")
+            header.put("kid", "TousAntiCovidKID")
+
+            val encodedPayload = Base64.getUrlEncoder().encodeToString(payload.toString().toByteArray())
+            val encodedHeader = Base64.getUrlEncoder().encodeToString(header.toString().toByteArray())
+
+            val body = "$encodedHeader.$encodedPayload"
+
+            val signature = Signature.getInstance("SHA256withECDSA")
+            signature.initSign(JWT_KEY_PAIR.toECPrivateKey())
+            signature.update(body.toByteArray())
+            val jwtSignature = signature.sign()
+            val signatureEncoded = Base64.getUrlEncoder().encodeToString(jwtSignature)
+
+            return "$body.$signatureEncoded"
         }
     }
 }

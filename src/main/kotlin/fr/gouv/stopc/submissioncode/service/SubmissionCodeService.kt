@@ -1,5 +1,6 @@
 package fr.gouv.stopc.submissioncode.service
 
+import com.nimbusds.jose.JOSEException
 import com.nimbusds.jose.JWSVerifier
 import com.nimbusds.jwt.SignedJWT
 import fr.gouv.stopc.submissioncode.configuration.SubmissionProperties
@@ -187,9 +188,15 @@ class SubmissionCodeService(
             return false
         }
 
-        if (!signedJwt.verify(jwtSignatureVerifiers[kid])) {
+        try {
+            if (!signedJwt.verify(jwtSignatureVerifiers[kid])) {
+                metricsService.countCodeUsed(JWT, false)
+                log.info("JWT signature is invalid: $jwt")
+                return false
+            }
+        } catch (e: JOSEException) {
             metricsService.countCodeUsed(JWT, false)
-            log.info("JWT signature is invalid: $jwt")
+            log.info("Exception while verifying the signature: ${e.message}, $jwt")
             return false
         }
 
