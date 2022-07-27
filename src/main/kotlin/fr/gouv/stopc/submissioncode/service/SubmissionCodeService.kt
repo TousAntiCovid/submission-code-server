@@ -196,7 +196,7 @@ class SubmissionCodeService(
             }
         } catch (e: JOSEException) {
             metricsService.countCodeUsed(JWT, false)
-            log.info("Exception while verifying the signature: ${e.message}, $jwt")
+            log.info("JWT signature can't be verified: ${e.message}, $jwt")
             return false
         }
 

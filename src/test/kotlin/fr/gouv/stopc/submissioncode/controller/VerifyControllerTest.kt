@@ -4,7 +4,6 @@ import com.nimbusds.jose.jwk.Curve
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator
 import fr.gouv.stopc.submissioncode.service.model.CodeType
 import fr.gouv.stopc.submissioncode.test.IntegrationTest
-import fr.gouv.stopc.submissioncode.test.JWTManager.Companion.givenCustomizeJwt
 import fr.gouv.stopc.submissioncode.test.JWTManager.Companion.givenJwt
 import fr.gouv.stopc.submissioncode.test.PostgresqlManager.Companion.givenTableSubmissionCodeContainsCode
 import fr.gouv.stopc.submissioncode.test.When
@@ -29,6 +28,7 @@ import org.springframework.http.HttpStatus.OK
 import java.time.Instant
 import java.time.temporal.ChronoUnit.DAYS
 import java.time.temporal.ChronoUnit.MINUTES
+import java.util.Base64
 import java.util.UUID
 import java.util.stream.Stream
 
@@ -393,17 +393,28 @@ class VerifyControllerTest {
 
         @Test
         fun reject_a_JWT_with_invalid_alg_header_field(output: CapturedOutput) {
-            val jwtWithIncorrectAlgHeader = givenCustomizeJwt()
+
+            val invalidHeader = """
+                {
+                    "alg": "invalid alg",
+                    "typ": "JWT",
+                    "kid": "TousAntiCovidKID"
+                }
+            """.trimIndent()
+                .toByteArray()
+                .let { Base64.getEncoder().encodeToString(it) }
+
+            val jwtWithInvalidHeader = givenJwt().replaceBefore(".", invalidHeader)
 
             When()
-                .get("/api/v1/verify?code={jwt}", jwtWithIncorrectAlgHeader)
+                .get("/api/v1/verify?code={jwt}", jwtWithInvalidHeader)
 
                 .then()
                 .statusCode(OK.value())
                 .body("valid", equalTo(false))
 
             assertThat(output.all)
-                .containsPattern("Exception while verifying the signature: Unsupported JWS algorithm E��m�S256, must be ES256, $jwtWithIncorrectAlgHeader")
+                .contains("JWT signature can't be verified: Unsupported JWS algorithm invalid alg, must be ES256, $jwtWithInvalidHeader")
         }
     }
 }
