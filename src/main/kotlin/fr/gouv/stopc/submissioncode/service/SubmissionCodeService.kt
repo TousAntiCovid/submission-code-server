@@ -19,13 +19,11 @@ import org.springframework.retry.annotation.Backoff
 import org.springframework.retry.annotation.Recover
 import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
 import java.text.ParseException
 import java.time.Instant
 import java.time.temporal.ChronoUnit.DAYS
 
 @Service
-@Transactional
 class SubmissionCodeService(
     private val random: RandomGenerator,
     private val submissionProperties: SubmissionProperties,
