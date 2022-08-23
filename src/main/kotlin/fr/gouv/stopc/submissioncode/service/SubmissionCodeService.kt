@@ -5,9 +5,7 @@ import com.nimbusds.jose.JWSVerifier
 import com.nimbusds.jwt.SignedJWT
 import fr.gouv.stopc.submissioncode.configuration.SubmissionProperties
 import fr.gouv.stopc.submissioncode.repository.JwtRepository
-import fr.gouv.stopc.submissioncode.repository.model.JwtUsed
 import org.slf4j.LoggerFactory
-import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.text.ParseException
@@ -84,17 +82,10 @@ class SubmissionCodeService(
             return false
         }
 
-        if (jwtRepository.existsByJti(jti)) {
-            metricsService.countCodeUsed(false)
-            log.info("JWT with jti '$jti' has already been used: $jwt")
-            return false
-        }
-
-        return try {
-            jwtRepository.save(JwtUsed(jti = jti, dateUse = now))
+        return if (1 == jwtRepository.saveUsedJti(jti, now)) {
             metricsService.countCodeUsed(true)
             true
-        } catch (e: DataIntegrityViolationException) {
+        } else {
             metricsService.countCodeUsed(false)
             log.info("JWT with jti '$jti' has already been used: $jwt")
             false
