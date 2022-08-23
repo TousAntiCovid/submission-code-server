@@ -6,7 +6,6 @@ import com.nimbusds.jwt.SignedJWT
 import fr.gouv.stopc.submissioncode.configuration.SubmissionProperties
 import fr.gouv.stopc.submissioncode.repository.JwtRepository
 import fr.gouv.stopc.submissioncode.repository.SubmissionCodeRepository
-import fr.gouv.stopc.submissioncode.repository.model.JwtUsed
 import fr.gouv.stopc.submissioncode.repository.model.SubmissionCode
 import fr.gouv.stopc.submissioncode.service.model.CodeType
 import fr.gouv.stopc.submissioncode.service.model.CodeType.JWT
@@ -200,17 +199,10 @@ class SubmissionCodeService(
             return false
         }
 
-        if (jwtRepository.existsByJti(jti)) {
-            metricsService.countCodeUsed(JWT, false)
-            log.info("JWT with jti '$jti' has already been used: $jwt")
-            return false
-        }
-
-        return try {
-            jwtRepository.save(JwtUsed(jti = jti, dateUse = now))
+        return if (1 == jwtRepository.saveUsedJti(jti, now)) {
             metricsService.countCodeUsed(JWT, true)
             true
-        } catch (e: DataIntegrityViolationException) {
+        } else {
             metricsService.countCodeUsed(JWT, false)
             log.info("JWT with jti '$jti' has already been used: $jwt")
             false
