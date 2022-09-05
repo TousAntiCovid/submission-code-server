@@ -388,7 +388,7 @@ class VerifyControllerTest {
                 .body("valid", equalTo(false))
 
             assertThat(output.all)
-                .containsPattern("JWT could not be parsed: Invalid JWS header: Invalid JSON: Unexpected token [^ ]+ at position 5., aaaaaaa.aaaaaaa.aaaaaaa")
+                .contains("JWT could not be parsed: Invalid JWS header: Invalid JSON: java.lang.IllegalStateException: Expected BEGIN_OBJECT but was STRING at line 1 column 1 path \$, aaaaaaa.aaaaaaa.aaaaaaa")
         }
 
         @Test
