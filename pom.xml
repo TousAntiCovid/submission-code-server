@@ -24,7 +24,7 @@
         <commons-compress.version>1.21</commons-compress.version>
         <commons-text.version>1.10.0</commons-text.version>
         <hamcrest-date.version>2.0.8</hamcrest-date.version>
-        <spring-cloud.version>2021.0.3</spring-cloud.version>
+        <spring-cloud.version>2021.0.4</spring-cloud.version>
         <testcontainers.version>1.17.5</testcontainers.version>
     </properties>
 
@@ -93,7 +93,6 @@
             <artifactId>nimbus-jose-jwt</artifactId>
             <version>9.25.4</version>
         </dependency>
-
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -218,7 +217,9 @@
                             </modelPackage>
                             <configOptions>
                                 <sourceFolder>src/main/kotlin</sourceFolder>
-                                <documentationProvider>none</documentationProvider>
+                                <documentationProvider>
+                                    none
+                                </documentationProvider>
                                 <dateLibrary>java8</dateLibrary>
                                 <interfaceOnly>true</interfaceOnly>
                                 <useTags>true</useTags>
