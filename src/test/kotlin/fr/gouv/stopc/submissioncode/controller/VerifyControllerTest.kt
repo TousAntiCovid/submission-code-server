@@ -319,7 +319,7 @@ class VerifyControllerTest {
                 Arguments.of(
                     "the JWT header is corrupt",
                     givenJwt().replaceBefore(".", "Z"),
-                    "JWT could not be parsed: NullPointerException,"
+                    "JWT could not be parsed: Invalid JWS header: Invalid JSON object,"
                 ),
             )
         }
