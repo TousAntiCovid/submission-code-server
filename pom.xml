@@ -22,7 +22,7 @@
         <java.version>11</java.version>
         <kotlin.version>1.7.10</kotlin.version>
         <commons-compress.version>1.21</commons-compress.version>
-        <commons-text.version>1.9</commons-text.version>
+        <commons-text.version>1.10.0</commons-text.version>
         <hamcrest-date.version>2.0.8</hamcrest-date.version>
         <spring-cloud.version>2021.0.3</spring-cloud.version>
         <testcontainers.version>1.17.3</testcontainers.version>
