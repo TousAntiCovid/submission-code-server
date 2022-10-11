@@ -25,9 +25,11 @@ import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.boot.test.system.CapturedOutput
 import org.springframework.boot.test.system.OutputCaptureExtension
 import org.springframework.http.HttpStatus.OK
+import java.time.Duration
 import java.time.Instant
 import java.time.temporal.ChronoUnit.DAYS
 import java.time.temporal.ChronoUnit.MINUTES
+import java.time.temporal.ChronoUnit.SECONDS
 import java.util.Base64
 import java.util.UUID
 import java.util.stream.Stream
@@ -230,16 +232,19 @@ class VerifyControllerTest {
     inner class JwtTest {
 
         private fun generateInvalidJwt(): Stream<Arguments> {
+            val tenDaysAgo = Instant.now().minus(10, DAYS).truncatedTo(SECONDS)
+            val oneMinuteAgo = Instant.now().minus(1, MINUTES).truncatedTo(SECONDS)
+            val oneMinuteLater = Instant.now().plus(1, MINUTES).truncatedTo(SECONDS)
             return Stream.of(
                 Arguments.of(
                     "the JWT is issued more than 10 days in the past",
-                    givenJwt(iat = Instant.now().minus(10, DAYS).epochSecond),
-                    "JWT has expired, it was issued at [^ ]+, so it expired on [^ ]+:"
+                    givenJwt(iat = tenDaysAgo.epochSecond),
+                    "JWT has expired, it was issued at $tenDaysAgo, so it expired on ${tenDaysAgo.plus(Duration.ofDays(10))}:"
                 ),
                 Arguments.of(
                     "the JWT is issued in the future",
-                    givenJwt(iat = Instant.now().plus(1, MINUTES).epochSecond),
-                    "JWT is issued at a future time \\([^)]+\\):"
+                    givenJwt(iat = oneMinuteLater.epochSecond),
+                    "JWT is issued at a future time ($oneMinuteLater):"
                 ),
                 Arguments.of(
                     "the iat field is an empty string instead of a numeric Date",
@@ -258,23 +263,23 @@ class VerifyControllerTest {
                 ),
                 Arguments.of(
                     "the iat field is missing",
-                    givenJwt(iat = null),
-                    "JWT is missing claim jti \\([^)]+\\) or iat \\(null\\):"
+                    givenJwt(jti = "some-jwt-identifier", iat = null),
+                    "JWT is missing claim jti (some-jwt-identifier) or iat (null):"
                 ),
                 Arguments.of(
                     "the jti field is empty",
-                    givenJwt(jti = ""),
-                    "JWT is missing claim jti \\(\\) or iat \\([^)]+\\):"
+                    givenJwt(jti = "", iat = oneMinuteAgo.epochSecond),
+                    "JWT is missing claim jti () or iat ($oneMinuteAgo):"
                 ),
                 Arguments.of(
                     "the jti field is blank",
-                    givenJwt(jti = " "),
-                    "JWT is missing claim jti \\( \\) or iat \\([^)]+\\):"
+                    givenJwt(jti = " ", iat = oneMinuteAgo.epochSecond),
+                    "JWT is missing claim jti ( ) or iat ($oneMinuteAgo):"
                 ),
                 Arguments.of(
                     "the jti field is missing",
-                    givenJwt(jti = null),
-                    "JWT is missing claim jti \\(null\\) or iat \\([^)]+\\):"
+                    givenJwt(jti = null, iat = oneMinuteAgo.epochSecond),
+                    "JWT is missing claim jti (null) or iat ($oneMinuteAgo):"
                 ),
                 Arguments.of(
                     "the jti field is a number instead of a string",
@@ -355,7 +360,7 @@ class VerifyControllerTest {
                 .body("valid", equalTo(false))
 
             assertThat(output.all)
-                .containsPattern("$logMessage $serializedJwt")
+                .contains("$logMessage $serializedJwt")
         }
 
         @Test
