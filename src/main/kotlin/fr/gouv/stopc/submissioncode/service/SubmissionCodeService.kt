@@ -144,9 +144,9 @@ class SubmissionCodeService(
 
         val signedJwt = try {
             SignedJWT.parse(jwt)
-        } catch (e: ParseException) {
+        } catch (e: Exception) {
             metricsService.countCodeUsed(JWT, false)
-            log.info("JWT could not be parsed: ${e.message}, $jwt")
+            log.info("JWT could not be parsed: ${e.message ?: e::class.simpleName}, $jwt")
             return false
         }
 
