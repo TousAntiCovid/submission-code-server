@@ -311,6 +311,16 @@ class VerifyControllerTest {
                     givenJwt(kid = "AnotherKID"),
                     "JWT signature is invalid:"
                 ),
+                Arguments.of(
+                    "the alg field is missing",
+                    givenJwt().replaceBefore(".", Base64.getEncoder().encodeToString("""{"kid": "TousAntiCovidKID","typ":"JWT"}""".toByteArray())),
+                    "JWT could not be parsed: Invalid JWS header: Missing \"alg\" in header JSON object,"
+                ),
+                Arguments.of(
+                    "the JWT header is corrupt",
+                    givenJwt().replaceBefore(".", "Z"),
+                    "JWT could not be parsed: NullPointerException,"
+                ),
             )
         }
 
