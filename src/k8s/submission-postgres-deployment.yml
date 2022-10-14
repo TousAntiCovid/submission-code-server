@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-db-deployment
+  labels:
+    app: postgres-db
+    name: postgres-db
+spec:
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app: postgres-db
+  template:
+    metadata:
+      labels:
+        app: postgres-db # Bind by service selector>app:
+    spec:
+      containers:
+        - name: postgres-db
+          image: postgres:9.6
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_PASSWORD
+              value: "1234"
+            - name: POSTGRES_DB
+              value: dev-submission-code-server-schema
+            - name: POSTGRES_USER
+              value: postgres
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-db-service # Service name
+spec:
+  type: NodePort # Sets the service type
+  selector:
+    app: postgres-db # Defines app that will be targeted
+  ports:
+    - port: 5432
+      targetPort: 5432

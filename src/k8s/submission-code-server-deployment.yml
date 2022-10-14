@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: submission-code-server-deployment
+  labels:
+    app: submission-code-server
+    name: submission-code-server
+spec:
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app: submission-code-server
+  template:
+    metadata:
+      labels:
+        app: submission-code-server # Bind by service selector>app:
+    spec:
+      containers:
+        - name: submission-app
+          image: submission-code-server:0-SNAPSHOT
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://postgres-db-service:5432/dev-submission-code-server-schema"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: postgres
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: "1234"
+            - name: SUBMISSION_JWTPUBLICKEYS_TOUSANTICOVIDKID
+              value: "replace_replace_replace"
+            - name: SPRING_JPA_HIBERNATE_DLL_AUTO
+              value: update
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: submission-code-server-service # Service name
+spec:
+  selector:
+    app: submission-code-server # Defines app that will be targeted
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+      protocol: TCP
+    - name: management # actuator
+      port: 8081
+      targetPort: 8081
+      protocol: TCP
