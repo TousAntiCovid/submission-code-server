@@ -23,7 +23,7 @@ spec:
             - containerPort: 8080
           env:
             - name: SPRING_DATASOURCE_URL
-              value: "jdbc:postgresql://postgres-db-service:5432/dev-submission-code-server-schema"
+              value: "jdbc:postgresql://postgres-db-service:5432/submission"
             - name: SPRING_DATASOURCE_USERNAME
               value: postgres
             - name: SPRING_DATASOURCE_PASSWORD

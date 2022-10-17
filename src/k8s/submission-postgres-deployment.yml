@@ -25,7 +25,7 @@ spec:
             - name: POSTGRES_PASSWORD
               value: "1234"
             - name: POSTGRES_DB
-              value: dev-submission-code-server-schema
+              value: submission
             - name: POSTGRES_USER
               value: postgres
 ---
