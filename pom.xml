@@ -256,6 +256,18 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <docker>
+                        <publishRegistry>
+                            <username>
+                                ${spring-boot.build-image.publishRegistry.username}
+                            </username>
+                            <password>
+                                ${spring-boot.build-image.publishRegistry.password}
+                            </password>
+                        </publishRegistry>
+                    </docker>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>

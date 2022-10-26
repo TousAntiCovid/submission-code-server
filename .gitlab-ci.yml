@@ -17,6 +17,23 @@ build-v1:
       junit:
         - "**/target/*-reports/TEST-*.xml"
 
+build-docker:
+  image: maven:3.8.3-adoptopenjdk-11
+  stage: build
+  needs: ["build"]
+  tags:
+    - caascad
+  script:
+    # Build image and push to container registry
+    - mvn -B spring-boot:build-image
+      -Dmaven.test.skip=true
+      -Dspring-boot.build-image.imageName=$K8S_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+      -Dspring-boot.build-image.publish=true
+      -Dspring-boot.build-image.publishRegistry.username=$K8S_REGISTRY_USER
+      -Dspring-boot.build-image.publishRegistry.password=$K8S_REGISTRY_PASSWORD
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+
 deploy-int:
   stage: deploy
   variables:
