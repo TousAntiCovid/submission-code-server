@@ -1,3 +1,7 @@
 server.error:
   include-message: always
   include-stacktrace: always
+
+spring:
+  flyway:
+    enabled: true
