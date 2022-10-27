@@ -44,3 +44,29 @@ deploy-int:
     strategy: depend
   rules:
     - if: '$CI_COMMIT_BRANCH == "develop"'
+
+deployment:
+  image:
+    name: alpine
+  stage: deploy
+  tags:
+    - caascad
+  variables:
+    KUSTOMIZE_VER: "4.5.7"
+    ENVIRONMENT: "int"
+  before_script:
+    - apk --no-cache add git
+    - wget -O - https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/v${KUSTOMIZE_VER}/kustomize_v${KUSTOMIZE_VER}_linux_amd64.tar.gz | tar xz -C /usr/local/bin
+  script:
+    - git config --global user.name  "$CI_COMMIT_SHORT_SHA"
+    - git config --global user.email "$CI_COMMIT_SHORT_SHA"
+    - git clone --branch master https://${GIT_ACCESS_USER}:${GIT_ACCESS_TOKEN}@${GIT_SERVER_HOST} /tmp/submission-app
+    - cd ./src/k8s
+    - kustomize edit set image submission-server=$K8S_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+    - kustomize build . > /tmp/submission-app/deployment-$ENVIRONMENT.yml
+    - cd /tmp/submission-app
+    - git add ./deployment-$ENVIRONMENT.yml
+    - git commit -m "$ENVIRONMENT $CI_COMMIT_SHORT_SHA"
+    - git push origin master
+  rules:
+    - if: $CI_COMMIT_BRANCH == 'develop'
