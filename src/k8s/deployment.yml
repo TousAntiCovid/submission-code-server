@@ -47,3 +47,5 @@ spec:
               value: "0"
       nodeSelector:
         cce.cloud.com/cce-nodepool: "caascad-inttac-ju-pod-tac-dashing-boa"
+      imagePullSecrets:
+        - name: poc-inttac-poc-img-push-pull-secret
