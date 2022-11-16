@@ -2,9 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: submission-code-server-deployment
-  labels:
-    app: submission-code-server
-    name: submission-code-server
 spec:
   revisionHistoryLimit: 1
   selector:
