@@ -37,9 +37,11 @@ publish-deployment:
     ENVIRONMENT: "int"
   script:
     - cd ./src/k8s/base
-    - kustomize edit set image submission-server=$K8S_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+    - kustomize edit set image submission-image=$K8S_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
     - kustomize build . > /tmp/deployments/$ENVIRONMENT/deployment.yml
     - cd /tmp/deployments
     - git add ./$ENVIRONMENT/deployment.yml
+    - git commit -m "$CI_COMMIT_SHORT_SHA"
+    - git push origin master
   rules:
     - if: '$CI_COMMIT_BRANCH == "develop"'
