@@ -4,6 +4,7 @@ metadata:
   labels:
     app: submission-code # do not delete, used for billing
   name: submission-code-server-service # Service name
+  namespace: submission-code
 spec:
   type: NodePort
   selector:

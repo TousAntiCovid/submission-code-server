@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: submission-code-server-deployment+
+  name: submission-code-server-deployment
   namespace: submission-code
   labels:
     app: submission-code # do not delete, used for billing
