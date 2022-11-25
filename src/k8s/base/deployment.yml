@@ -1,7 +1,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: submission-code-server-deployment
+  name: submission-code-server-deployment+
+  namespace: submission-code
+  labels:
+    app: submission-code # do not delete, used for billing
 spec:
   revisionHistoryLimit: 1
   selector:
@@ -14,7 +17,7 @@ spec:
     spec:
       containers:
         - name: submission-app
-          image: submission-server
+          image: submission-image
           imagePullPolicy: Always
           ports:
             - containerPort: 8080

@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    application: tac # do not delete, used for billing
+    app: submission-code # do not delete, used for billing
   name: submission-code-server-service # Service name
 spec:
   type: NodePort
