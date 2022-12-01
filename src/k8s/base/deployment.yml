@@ -2,18 +2,16 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: submission-code-server-deployment
-  namespace: submission-code
   labels:
-    app: submission-code # do not delete, used for billing
+    app: submission-code
 spec:
-  revisionHistoryLimit: 1
   selector:
     matchLabels:
       app: submission-code-server
   template:
     metadata:
       labels:
-        app: submission-code-server # Bind by service selector>app:
+        app: submission-code-server
     spec:
       containers:
         - name: submission-app
@@ -46,6 +44,6 @@ spec:
             - name: SPRING_FLYWAY_BASELINE_VERSION
               value: "0"
       nodeSelector:
-        cce.cloud.com/cce-nodepool: "caascad-inttac-ju-pod-tac-dashing-boa"
+        caascad.io/nodepool: "pod-tac"
       imagePullSecrets:
         - name: poc-inttac-poc-img-push-pull-secret
