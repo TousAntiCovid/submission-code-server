@@ -20,6 +20,11 @@ spec:
           ports:
             - containerPort: 8080
           env:
+            - name: SPRING_APPLICATION_JSON
+              valueFrom:
+                secretKeyRef:
+                  key: SPRING_APPLICATION_JWTPUBLICKEYS_JSON
+                  name: submission-secrets
             - name: SPRING_DATASOURCE_URL
               valueFrom:
                 secretKeyRef:
@@ -30,11 +35,6 @@ spec:
                 secretKeyRef:
                   name: submission-secrets
                   key: SPRING_DATASOURCE_PASSWORD
-            - name: SUBMISSION_JWTPUBLICKEYS_TOUSANTICOVIDKID
-              valueFrom:
-                secretKeyRef:
-                  name: submission-secrets
-                  key: SUBMISSION_JWTPUBLICKEYS_TOUSANTICOVIDKID
             - name: SPRING_DATASOURCE_USERNAME
               value: pocinit
             - name: SPRING_FLYWAY_ENABLED
