@@ -4,3 +4,5 @@ namespace: submission-code
 resources:
   - deployment.yml
   - service.yml
+  - role.yml
+  - rolebinding.yml
