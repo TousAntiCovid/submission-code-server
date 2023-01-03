@@ -8,12 +8,6 @@ import java.time.Duration
 @ConfigurationProperties(prefix = "submission")
 data class SubmissionProperties(
 
-    val longCodeLifetime: Duration,
-
-    val shortCodeLifetime: Duration,
-
-    val testCodeLifetime: Duration,
-
     val jwtCodeLifetime: Duration,
 
     val jwtPublicKeys: Map<String, String>
