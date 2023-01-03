@@ -5,6 +5,8 @@ import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.test.context.TestContext
 import org.springframework.test.context.TestExecutionListener
 import org.testcontainers.containers.PostgreSQLContainer
+import java.time.Instant
+import java.time.temporal.ChronoUnit.MINUTES
 
 class PostgresqlManager : TestExecutionListener {
 
@@ -19,6 +21,21 @@ class PostgresqlManager : TestExecutionListener {
                 System.setProperty("spring.datasource.username", username)
                 System.setProperty("spring.datasource.password", password)
             }
+        }
+
+        fun givenTableSubmissionCodeContainsCode(
+            type: String,
+            code: String,
+            generatedOn: Instant = Instant.now(),
+            availableFrom: Instant = Instant.now(),
+            expiresOn: Instant = Instant.now().plus(5, MINUTES)
+        ) {
+            JDBC_TEMPLATE.execute(
+                """
+                    insert into submission_code(type_code, code, date_generation, date_available, date_end_validity, used) values
+                    ('$type', '$code', '$generatedOn', '$availableFrom', '$expiresOn', false)
+                """.trimIndent()
+            )
         }
     }
 

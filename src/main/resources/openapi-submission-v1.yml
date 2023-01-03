@@ -12,6 +12,51 @@ info:
   license:
     name: Custom (see repository's LICENSE.md)
 paths:
+  /generate/{codeType}:
+    get:
+      operationId: generate
+      tags:
+        - Submission Code
+      summary: Generate a code to declare themself ill
+      description: One can generate either a short or a test code.
+        * a short code is a 6 alphanumeric characters code valid 1 hour
+        * a test  code is a 12 alphanumeric characters code valid 3 days
+      parameters:
+        - in: path
+          name: codeType
+          description: type of the requested code, `long` is unsupported
+          schema:
+            $ref: "#/components/schemas/CodeType"
+          required: true
+      responses:
+        200:
+          description: The generated code
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmissionCodeGenerationResponse"
+              examples:
+                short:
+                  value:
+                    code: AS3F5Z
+                    dateGenerate: 2022-01-11T18:28:30Z
+                    validFrom: 2022-01-11T18:28:31Z
+                    validUntil: 2022-01-11T19:28:31Z
+                test:
+                  value:
+                    code: BxTjcmac07Mg
+                    dateGenerate: 2022-01-11T18:28:30Z
+                    validFrom: 2022-01-11T18:28:31Z
+                    validUntil: 2022-01-14T00:00:00Z
+        400:
+          $ref: "openapi-errors-v1.yml#/components/responses/BadRequest"
+        401:
+          $ref: "openapi-errors-v1.yml#/components/responses/Unauthorized"
+        403:
+          $ref: "openapi-errors-v1.yml#/components/responses/Forbidden"
+        500:
+          $ref: "openapi-errors-v1.yml#/components/responses/InternalServerError"
+
   /verify:
     get:
       operationId: verify
@@ -30,7 +75,12 @@ paths:
           in: query
           required: true
           description: |
-            The submission code (as a JWT) to validate. :
+            The submission code to validate. A submission code can be either:
+            * a 6 alphanumeric string `[a-zA-Z0-9]{6}`
+            * a 12 alphanumeric string `[a-zA-Z0-9]{12}`
+            * a 36 alphanumeric UUID `[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}`
+            * a serialized JWT
+
             A JWT has three parts : a header, a payload and a signature
             header {
               "alg": "ES256",
@@ -110,6 +160,37 @@ paths:
 
 components:
   schemas:
+    CodeType:
+      type: string
+      description: A type of submission code
+      enum: [short, test]
+
+    SubmissionCodeGenerationResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          description: The submission code value
+          example: AS3F5Z
+        validFrom:
+          type: string
+          format: date-time
+          description: Submission code must not be used before this date
+        validUntil:
+          type: string
+          format: date-time
+          description: Submission code must not be used after this date
+        dateGenerate:
+          type: string
+          format: date-time
+          description: Submission code mgeneration date
+      description: A submission code and its type as well as validity information
+      required:
+        - code
+        - validFrom
+        - validUntil
+        - dateGenerate
+
     SubmissionCodeValidationResponse:
       type: object
       properties:
@@ -130,10 +211,49 @@ components:
         date:
           type: string
           format: date
+        nbShortCodesUsed:
+          type: integer
+          format: int64
+          example: 23
+        nbLongCodesUsed:
+          type: integer
+          format: int64
+          example: 55
+        nbLongExpiredCodes:
+          type: integer
+          format: int64
+          example: 2145
+        nbShortExpiredCodes:
+          type: integer
+          format: int64
+          example: 30
+        nbShortCodesGenerated:
+          type: integer
+          format: int64
+          example: 53
+        nbTestCodesUsed:
+          type: integer
+          format: int64
+          example: 52
+        nbTestExpiredCodes:
+          type: integer
+          format: int64
+          example: 40
+        nbTestCodesGenerated:
+          type: integer
+          format: int64
+          example: 60
         nbJwtUsed:
           type: integer
           format: int64
           example: 45
       required:
         - date
-        - nbJwtUsed
+        - nbShortCodesUsed
+        - nbLongCodesUsed
+        - nbLongExpiredCodes
+        - nbShortExpiredCodes
+        - nbShortCodesGenerated
+        - nbTestCodesUsed
+        - nbTestExpiredCodes
+        - nbTestCodesGenerated

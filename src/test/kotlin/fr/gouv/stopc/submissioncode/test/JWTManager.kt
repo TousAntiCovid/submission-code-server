@@ -9,6 +9,7 @@ import com.nimbusds.jose.jwk.ECKey
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
+import groovy.util.logging.Slf4j
 import org.springframework.test.context.TestExecutionListener
 import java.security.NoSuchAlgorithmException
 import java.security.interfaces.ECPrivateKey
@@ -16,6 +17,7 @@ import java.time.Instant
 import java.util.Base64
 import java.util.UUID
 
+@Slf4j
 class JWTManager : TestExecutionListener {
 
     companion object {
