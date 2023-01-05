@@ -43,6 +43,10 @@ spec:
               value: "true"
             - name: SPRING_FLYWAY_BASELINE_VERSION
               value: "0"
+            - name: MANAGEMENT_SERVER_PORT
+              value: "8081"
+            - name: MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE
+              value: health,info,prometheus
       nodeSelector:
         caascad.io/nodepool: "pod-tac"
       imagePullSecrets:
