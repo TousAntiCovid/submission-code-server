@@ -48,6 +48,6 @@ spec:
             - name: MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE
               value: health,info,prometheus
       nodeSelector:
-        caascad.io/nodepool: "pod-tac"
+        caascad.io/nodepool: pod-ta
       imagePullSecrets:
         - name: poc-inttac-poc-img-push-pull-secret
