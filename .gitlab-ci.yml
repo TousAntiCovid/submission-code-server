@@ -53,6 +53,7 @@ publish-deployment:
   script:
     - cd ./src/k8s/base
     - kustomize edit set image submission-image=$K8S_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+    - kustomize edit set image flyway-image=$K8S_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA-flyway
     - kustomize build . > /tmp/deployments/$ENVIRONMENT/deployment.yml
     - cd /tmp/deployments
     - git add ./$ENVIRONMENT/deployment.yml
