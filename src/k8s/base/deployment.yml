@@ -34,6 +34,13 @@ spec:
                 secretKeyRef:
                   name: submission-secrets
                   key: SPRING_DATASOURCE_PASSWORD
+          resources:
+            limits:
+              cpu: "2"
+              memory: 2Gi
+            requests:
+              cpu: "1"
+              memory: 750Mi
       containers:
         - name: submission-app
           image: submission-image
