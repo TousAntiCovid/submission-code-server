@@ -46,8 +46,7 @@ deploy-int:
   rules:
     - if: '$CI_COMMIT_BRANCH == "develop"'
 
-publish-deployment:
-  stage: publish
+deploy-kubernetes:
   variables:
     ENVIRONMENT: "int"
   script:
